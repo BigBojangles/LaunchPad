@@ -1,0 +1,29 @@
+<Window x:Class="LaunchPad.Views.WelcomeDialog"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LaunchPad"
+        Width="480" Height="240"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <Button DockPanel.Dock="Bottom"
+                Classes="PrimaryButton"
+                Content="Continue"
+                HorizontalAlignment="Right"
+                IsDefault="True"
+                Click="GotIt_Click"
+                Margin="0,20,0,0"/>
+
+        <CheckBox x:Name="DontShowCheck"
+                  DockPanel.Dock="Bottom"
+                  Classes="CheckLabel"
+                  Content="Don't show this again"/>
+
+        <TextBlock x:Name="WarningText"
+                   Classes="BodyText"
+                   TextWrapping="Wrap"
+                   Text="New Project creates a folder and opens Grok Build in a small Debian machine. Your projects stay listed on the left. This folder is not mounted. Grok works on a copy inside a small Debian machine."/>
+    </DockPanel>
+</Window>

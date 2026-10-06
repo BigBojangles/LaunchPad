@@ -1,0 +1,88 @@
+﻿# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+*.log
+__pycache__/
+*.py[cod]
+.pytest_cache/
+**/AvaloniaUI/BuildServices/
+.avalonia-build-tasks/
+
+# Visual Studio / Rider / user junk
+.vs/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+TestResults/
+*.DotSettings.user
+
+# Published package (ship via GitHub Releases, not git)
+dist/
+*.Setup.exe
+LaunchPad-Setup.exe
+BuildLaunch-Setup.exe
+*.Setup-*.bin
+LaunchPad-Setup-*.bin
+*.trx
+*.dmp
+
+# Local version archives (on disk only)
+v1.0.0 release/
+v1.0.1 release/
+v1.0.* release/
+
+# VM / QEMU images and installer staging (large binaries)
+installer/stage/
+*.qcow2
+*.img
+*.iso
+*.vmdk
+*.vdi
+*.vhdx
+*.vhd
+/qemu/
+/images/
+/sessions/
+/recovery/
+
+# Local quarantine and agent/application state (preserve on disk)
+/trash/
+/.codex/
+/.agents/
+/.claude/
+/.grok/
+/.ssh/
+/.aws/
+/settings.json
+/projects.json
+
+# Secrets / local credentials (never commit)
+*.pem
+*.pfx
+*.p12
+**/auth.json
+**/fence-user.bin
+**/builder.pass
+*.secret
+*.key
+*.keystore
+**/credentials.json
+**/credentials.*.json
+**/token.json
+**/tokens.json
+**/id_rsa
+**/id_ed25519
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store

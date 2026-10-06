@@ -1,0 +1,166 @@
+<Window x:Class="LaunchPad.Views.OnboardingWizard"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LaunchPad setup"
+        Width="560" Height="660"
+        MinHeight="560" MinWidth="520"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,18,0,0">
+            <Button x:Name="BackButton"
+                    DockPanel.Dock="Left"
+                    Classes="GhostButton"
+                    Content="Back"
+                    Click="Back_Click"
+                    IsVisible="False"/>
+            <Button x:Name="PrimaryButton"
+                    Classes="PrimaryButton"
+                    Content="Get started"
+                    HorizontalAlignment="Right"
+                    IsDefault="True"
+                    Click="Primary_Click"/>
+        </DockPanel>
+
+        <TextBlock x:Name="StepLabel"
+                   DockPanel.Dock="Top"
+                   Classes="HintText"
+                   Text="Step 1 of 4"
+                   Margin="0,0,0,12"/>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <StackPanel x:Name="StepWelcome">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Image Width="44" Height="44"
+                               Source="avares://LaunchPad/Assets/launchpad-rocket.png"
+                               Margin="0,0,12,0"/>
+                        <TextBlock Text="Welcome"
+                                   Classes="TitleText"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,12"
+                               Text="This is the guided version of the Quick Start Guide. Three tools work together:"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,6"
+                               Text="• LaunchPad — The front door. Creates folders and opens your project."/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,6"
+                               Text="• Agent Bob — The chat companion. Helps you plan, keep the scope small, and write the prompt."/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,14"
+                               Text="• Grok Build — The programmer. Writes the code in a terminal window."/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,14"
+                               Text="You’ll be ready to build in minutes."/>
+                    <TextBlock Classes="HintText"
+                               Text="We’ll go step by step and keep the first project small. That’s the best way to learn the tools."/>
+                </StackPanel>
+
+                <StackPanel x:Name="StepAgentBob" IsVisible="False">
+                    <TextBlock Text="Set up Agent Bob"
+                               Classes="TitleText"
+                               Margin="0,0,0,14"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,16"
+                               Text="Agent Bob lives in Grok chat. You add his instructions once. After that he helps you plan before any code is written."/>
+                    <Button Classes="CardButton" Click="CopyInstructions_Click" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock x:Name="CopyLabel" Text="Copy instructions" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Copies the full Agent Bob prompt. Paste it into the Custom box."
+                                       Classes="HintText"
+                                       Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="CardButton" Click="OpenGrok_Click" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Open Grok" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Opens grok.com in your browser."
+                                       Classes="HintText"
+                                       Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Classes="HintText" Margin="0,0,0,10"
+                               Text="Click your profile picture (bottom left) → Settings → Customize → Custom, paste the instructions, then come back here."/>
+                    <Button Classes="QuietLink" Content="Open the full guide for screenshots of the settings steps" Click="OpenGuide_Click"/>
+                </StackPanel>
+
+                <StackPanel x:Name="StepCreateProject" IsVisible="False">
+                    <TextBlock Text="Create your first project"
+                               Classes="TitleText"
+                               Margin="0,0,0,14"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,14"
+                               Text="We’ll create the first project for you so you don’t have to figure out the main screen yet."/>
+                    <TextBlock Classes="HintText" Margin="0,0,0,6" Text="Project name"/>
+                    <TextBox x:Name="ProjectNameBox"
+                             Classes="FieldBox"
+                             Text="my-checklist"
+                             TextChanged="ProjectName_TextChanged"/>
+                    <TextBlock x:Name="ProjectPathPreview"
+                               Classes="HintText"
+                               Margin="0,10,0,0"/>
+                    <TextBlock x:Name="ProjectError"
+                               Foreground="{StaticResource Danger}"
+                               FontSize="13"
+                               Margin="0,8,0,8"
+                               TextWrapping="Wrap"/>
+                    <Button x:Name="UseExistingButton"
+                            Classes="GhostButton"
+                            Content="Use this project &amp; continue"
+                            HorizontalAlignment="Left"
+                            Click="UseExisting_Click"
+                            IsVisible="False"
+                            Margin="0,0,0,12"/>
+                    <TextBlock Classes="HintText" Margin="0,0,0,10"
+                               Text="Start with a small, clear first project. A tiny checklist is enough. You can always make another one later."/>
+                    <TextBlock Classes="HintText" Margin="0,0,0,8"
+                               Text="The first time Grok Build opens it may ask you to sign in with your browser. That is normal."/>
+                    <TextBlock Classes="HintText"
+                               Text="Grok Build may need to install some development tools the first time. That is also normal."/>
+                </StackPanel>
+
+                <StackPanel x:Name="StepNext" IsVisible="False">
+                    <TextBlock Text="What to do next"
+                               Classes="TitleText"
+                               Margin="0,0,0,14"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,12"
+                               Text="This is the working loop:"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,6"
+                               Text="1. Talk to Agent Bob in Grok chat"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,6"
+                               Text="2. Copy the prompt he gives you"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,14"
+                               Text="3. Paste it into the Grok Build terminal"/>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,10"
+                               Text="Leave the Grok Build window open while you work. That is the programmer."/>
+                    <TextBlock Classes="HintText" Margin="0,0,0,6"
+                               Text="First, paste this to Agent Bob so that he can help you plan the project:"/>
+                    <Border Background="{StaticResource CardBg}"
+                            BorderBrush="{StaticResource BorderSubtle}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12"
+                            Margin="0,0,0,10">
+                        <TextBox x:Name="StarterPromptBox"
+                                 TextWrapping="Wrap"
+                                 IsReadOnly="True"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 FontSize="13"
+                                 Foreground="{StaticResource TextPrimary}"
+                                 Text="i want to make a very small personal daily checklist app. one simple window. i can type a new item and add it. i can check items off when im done. i can clear the ones that are finished. nothing else for the first version. no saving between restarts yet. keep it really small so it can be built in one go."/>
+                    </Border>
+                    <TextBlock Classes="HintText" Margin="0,0,0,10"
+                               Text="Bob will give you a prompt to paste into the Grok Build window."/>
+                    <Button x:Name="CopyStarterButton"
+                            Classes="GhostButton"
+                            Content="Copy starter prompt"
+                            HorizontalAlignment="Left"
+                            Click="CopyStarter_Click"
+                            Margin="0,0,0,14"/>
+                    <Button Classes="GhostButton"
+                            Content="Open full guide"
+                            HorizontalAlignment="Left"
+                            Click="OpenGuide_Click"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

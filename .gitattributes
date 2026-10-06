@@ -1,0 +1,11 @@
+# Keep guest scripts usable after a Windows checkout.
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.pl text eol=lf
+*.axaml text eol=lf
+*.cs text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.png binary
+*.ico binary

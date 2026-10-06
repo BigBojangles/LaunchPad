@@ -1,0 +1,58 @@
+<Window x:Class="LaunchPad.Views.EdgeBarWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LaunchPad.Views"
+        Title="LaunchPad edge bar"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="#01000000"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        CanResize="False"
+        Width="10"
+        Height="160"
+        MaxHeight="680"
+        PointerEntered="OnEnter"
+        PointerExited="OnLeave">
+    <Grid>
+        <Border x:Name="Sliver" Width="4" HorizontalAlignment="Left" Margin="2,0,0,0"
+                CornerRadius="2" Background="#954B1E" Opacity="0.7"/>
+        <Border x:Name="Row"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                IsVisible="False"
+                Background="#F2EFDB"
+                BorderBrush="#D4C7A8"
+                BorderThickness="1"
+                CornerRadius="14"
+                Padding="8,6,8,10"
+                Margin="4,0,6,0">
+            <StackPanel>
+                <Button x:Name="PinButton" Content="&#xE718;" FontFamily="Segoe MDL2 Assets"
+                        Width="28" Height="22"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,4"
+                        Cursor="Hand"
+                        ToolTip.Tip="Pin"
+                        Click="Pin_Click">
+
+                </Button>
+                <ScrollViewer x:Name="SessionScroll" MaxHeight="600" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="Tiles" ItemsSource="{Binding AllSessions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:SessionMark ShowCaption="False" Margin="0,3"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

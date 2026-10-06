@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "scope": "Disposable guest and explicit owned listeners only; no discovery, third-party, LAN or default-port scanning.",
+  "targets": [
+    {
+      "id": "guest-loopback-open",
+      "address": "127.0.0.1",
+      "portSource": "guest-owned-listening-socket",
+      "expected": "open",
+      "allowedObservations": ["open"]
+    },
+    {
+      "id": "guest-loopback-closed",
+      "address": "127.0.0.1",
+      "portSource": "guest-owned-bound-non-listening-socket",
+      "expected": "closed",
+      "allowedObservations": ["closed"]
+    },
+    {
+      "id": "host-gateway-owned-listener",
+      "address": "10.0.2.2",
+      "portSource": "actual-host-owned-loopback-listener",
+      "expected": "denied",
+      "allowedObservations": ["closed", "filtered", "unreachable"],
+      "requireHostListenerAlive": true
+    }
+  ],
+  "reportRequirements": [
+    "Actual unprivileged identity and effective profile",
+    "Pinned source and compiled binary hashes, compiler and runtime image identity",
+    "Exact resolved target addresses and ports; prove owned control listeners",
+    "Separate open, closed, filtered, unreachable and incomplete states with scanner reasons",
+    "Unexpected reachability fails; timeout or missing controls is incomplete",
+    "Connectivity observations do not establish full agent/child-process or host confinement"
+  ]
+}

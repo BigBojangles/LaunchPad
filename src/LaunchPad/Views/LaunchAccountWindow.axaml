@@ -1,0 +1,28 @@
+<Window x:Class="LaunchPad.Views.LaunchAccountWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LaunchPad"
+        Width="520" Height="360"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Classes="GhostButton"
+                    Content="Not now"
+                    Margin="0,0,10,0"
+                    Click="Decline_Click"/>
+            <Button Classes="PrimaryButton"
+                    Content="Create the account"
+                    IsDefault="True"
+                    Click="Accept_Click"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Text="Windows launch account" Classes="TitleText" Margin="0,0,0,16"/>
+            <TextBlock x:Name="WhyText" Classes="BodyText" Margin="0,0,0,10"/>
+            <TextBlock x:Name="AccountText" Classes="BodyText" Margin="0,0,0,10"/>
+            <TextBlock x:Name="ErrorText" Classes="HintText"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

@@ -1,0 +1,53 @@
+<Window x:Class="LaunchPad.Views.ShareDialog"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Share LaunchPad"
+        Width="540"
+        SizeToContent="Height"
+        MinHeight="420"
+        MaxHeight="680"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28,24,28,24">
+        <Button DockPanel.Dock="Bottom"
+                Classes="GhostButton"
+                Content="Close"
+                HorizontalAlignment="Right"
+                IsCancel="True"
+                Margin="0,18,0,0"/>
+
+        <StackPanel>
+            <TextBlock Text="Share LaunchPad"
+                       Classes="TitleText"
+                       Margin="0,0,0,10"/>
+            <TextBlock Classes="HintText" Margin="0,0,0,10"
+                       Text="Copy the message, then open X, LinkedIn, or TikTok to paste it."/>
+            <Border Background="{StaticResource CardBg}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="14"
+                    Margin="0,0,0,14">
+                <TextBlock x:Name="MessageText"
+                           Classes="BodyText"
+                           TextWrapping="Wrap"
+                           LineHeight="22"/>
+            </Border>
+            <Button x:Name="CopyButton"
+                    Classes="PrimaryButton"
+                    Content="Copy message"
+                    HorizontalAlignment="Left"
+                    Click="Copy_Click"
+                    Margin="0,0,0,16"/>
+            <TextBlock Classes="HintText" Margin="0,0,0,10"
+                       Text="Each button copies the text and opens the site:"/>
+            <UniformGrid Columns="3">
+                <Button Classes="GhostButton" Content="X" Click="X_Click" Margin="0,0,8,0"/>
+                <Button Classes="GhostButton" Content="LinkedIn" Click="LinkedIn_Click" Margin="0,0,8,0"/>
+                <Button Classes="GhostButton" Content="TikTok" Click="TikTok_Click"/>
+            </UniformGrid>
+        </StackPanel>
+    </DockPanel>
+</Window>

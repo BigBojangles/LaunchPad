@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "pinnedDate": "2026-10-05",
+  "artifacts": [
+    {
+      "id": "winpeas",
+      "version": "20261005-c6b483d8",
+      "file": "winPEASx64.exe",
+      "url": "https://github.com/peass-ng/PEASS-ng/releases/download/20261005-c6b483d8/winPEASx64.exe",
+      "sha256": "41b6546a00c2a94b929380032f9fb7788a2a920fa7cc45473634a818dd1557a1",
+      "hashSource": "GitHub release asset digest"
+    },
+    {
+      "id": "linpeas",
+      "version": "20261005-c6b483d8",
+      "file": "linpeas.sh",
+      "url": "https://github.com/peass-ng/PEASS-ng/releases/download/20261005-c6b483d8/linpeas.sh",
+      "sha256": "7454e8f3fc817fdb7de0818ac7b80a05071ebf4194f7a6e13689985033593870",
+      "hashSource": "GitHub release asset digest"
+    },
+    {
+      "id": "hardeningkitty-module",
+      "version": "v.0.9.4",
+      "commit": "da0976073caad006c48b2478588c2f7fa572ab46",
+      "file": "HardeningKitty.psm1",
+      "url": "https://raw.githubusercontent.com/scipag/HardeningKitty/da0976073caad006c48b2478588c2f7fa572ab46/HardeningKitty.psm1",
+      "sha256": "01eba5f0f4f11fa21616946bd9ea7eccd56079abb9cafdc7b8e7c60c75f63aee",
+      "hashSource": "SHA256 of official immutable-commit download; trust on first retrieval"
+    },
+    {
+      "id": "hardeningkitty-machine-list",
+      "version": "v.0.9.4",
+      "commit": "da0976073caad006c48b2478588c2f7fa572ab46",
+      "file": "finding_list_0x6d69636b_machine.csv",
+      "url": "https://raw.githubusercontent.com/scipag/HardeningKitty/da0976073caad006c48b2478588c2f7fa572ab46/lists/finding_list_0x6d69636b_machine.csv",
+      "sha256": "cc6cf409c7cb0f7dc0caeb82b8323dcc13ddb4dcb88e35e9e2cc4f52874816f4",
+      "hashSource": "SHA256 of official immutable-commit download; trust on first retrieval"
+    },
+    {
+      "id": "hardeningkitty-user-list",
+      "version": "v.0.9.4",
+      "commit": "da0976073caad006c48b2478588c2f7fa572ab46",
+      "file": "finding_list_0x6d69636b_user.csv",
+      "url": "https://raw.githubusercontent.com/scipag/HardeningKitty/da0976073caad006c48b2478588c2f7fa572ab46/lists/finding_list_0x6d69636b_user.csv",
+      "sha256": "c8cf8a5a7b46e4f94d7b57601732a2359651c878e93ad95b3cf8684d0887a2d5",
+      "hashSource": "SHA256 of official immutable-commit download; trust on first retrieval"
+    },
+    {
+      "id": "lynis-source",
+      "version": "3.1.7",
+      "commit": "2e99f92265760b73fd6b139868eb8d4116624030",
+      "file": "lynis-3.1.7.tar.gz",
+      "url": "https://api.github.com/repos/CISOfy/lynis/tarball/2e99f92265760b73fd6b139868eb8d4116624030",
+      "sha256": "b315c848323572500225312de7e9a3bf3b0c462f5b2d6f4ff56fe6ae521ad169",
+      "hashSource": "SHA256 of official immutable-commit download; trust on first retrieval"
+    },
+    {
+      "id": "nmap-source",
+      "version": "7.991",
+      "file": "nmap-7.991.tar.bz2",
+      "url": "https://nmap.org/dist/nmap-7.991.tar.bz2",
+      "sha256": "a5d507f29437bef3bedd4771ff9aaa8fc1c2a109ddba1f5b1cf12027456929be",
+      "hashSource": "Official publisher SHA256 at https://nmap.org/dist/sigs/nmap-7.991.tar.bz2.digest.txt"
+    },
+    {
+      "id": "trivy-linux-x64",
+      "version": "0.75.0",
+      "file": "trivy-0.75.0-linux-x64.tar.gz",
+      "url": "https://github.com/aquasecurity/trivy/releases/download/v0.75.0/trivy_0.75.0_Linux-64bit.tar.gz",
+      "sha256": "c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f",
+      "hashSource": "GitHub release asset digest"
+    }
+  ]
+}

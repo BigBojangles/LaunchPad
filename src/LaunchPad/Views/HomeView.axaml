@@ -1,0 +1,95 @@
+<UserControl x:Class="LaunchPad.Views.HomeView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LaunchPad.Views">
+    <Grid x:Name="Stage">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel HorizontalAlignment="Center" Margin="0,32,0,0">
+            <Image Source="avares://LaunchPad/Assets/launchpad-rocket.png"
+                   Width="72" Height="72"
+                   HorizontalAlignment="Center"/>
+            <TextBlock Text="LaunchPad"
+                       FontSize="32"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource Ink}"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Margin="0,16,0,0"/>
+            <TextBlock Margin="0,10,0,0"
+                       FontSize="15"
+                       Foreground="{StaticResource Ink}"
+                       LineHeight="22"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center">
+                <Run Text="Put the agent in a box."/>
+                <LineBreak/>
+                <Run Text="Watch it work."/>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Live sessions. Grouped and loose tiles share the same label slot and padding, so they sit on one line. -->
+        <Grid Grid.Row="1" Margin="0,20,0,0">
+            <TextBlock x:Name="EmptyHint"
+                       Text="Open a project and its session shows up here."
+                       FontSize="13"
+                       Foreground="{StaticResource Muted}"
+                       Opacity="0.8"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       Margin="0,28,0,0"/>
+            <ScrollViewer x:Name="TileScroll"
+                          Focusable="False"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Groups}" HorizontalAlignment="Stretch">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                <Grid MinHeight="16" Margin="4,0,0,6"><local:EditableDisplayName Text="{Binding Name}" IsVisible="{Binding ShowFrame}" MaxWidth="220" FontSize="13" Foreground="{StaticResource Ink}" HorizontalAlignment="Left" NameSaved="GroupName_Saved"/></Grid>
+                                <Border Padding="10" CornerRadius="10" Background="Transparent" BorderThickness="1.5" BorderBrush="{Binding FrameBrush}">
+
+                                    <ItemsControl ItemsSource="{Binding Sessions}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel HorizontalAlignment="Center"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <local:SessionMark Width="88" Margin="8"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Classes="PadLink"
+                    Content="What kind of user are you?"
+                    Click="Onboarding_Click"/>
+            <TextBlock Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+            <Button Classes="PadLink"
+                    Content="Share LaunchPad"
+                    Click="Share_Click"/>
+            <TextBlock Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+            <Button Classes="PadLink"
+                    Content="Machine"
+                    Click="Machine_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

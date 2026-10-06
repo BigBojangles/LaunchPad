@@ -1,0 +1,217 @@
+<Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="LaunchPad.App">
+  <Application.Resources>
+    <SolidColorBrush x:Key="WindowBg" Color="#E9E4DC"/>
+    <SolidColorBrush x:Key="CardBg" Color="#FBF7F1"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#2B2B2E"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#5C5752"/>
+    <SolidColorBrush x:Key="Accent" Color="#F07828"/>
+    <SolidColorBrush x:Key="AccentHover" Color="#D45F16"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#FFE6CC"/>
+    <SolidColorBrush x:Key="Navy" Color="#2C3D5C"/>
+    <SolidColorBrush x:Key="BorderSubtle" Color="#D4C8BA"/>
+    <SolidColorBrush x:Key="Danger" Color="#B45309"/>
+    <SolidColorBrush x:Key="Ink" Color="#954B1E"/>
+    <SolidColorBrush x:Key="Muted" Color="#8C623E"/>
+    <SolidColorBrush x:Key="Panel" Color="#E7E1C4"/>
+    <SolidColorBrush x:Key="AppBackground" Color="#F2EFDB"/>
+  </Application.Resources>
+  <Application.Styles>
+    <SimpleTheme/>
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="Segoe UI"/>
+      <Setter Property="Background" Value="{StaticResource WindowBg}"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+    <Style Selector="TextBlock.TitleText">
+      <Setter Property="FontSize" Value="22"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+    <Style Selector="TextBlock.BodyText">
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="LineHeight" Value="22"/>
+    </Style>
+    <Style Selector="TextBlock.HintText">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="Button.PrimaryButton">
+      <Setter Property="Background" Value="{StaticResource Accent}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="20,10"/>
+      <Setter Property="MinWidth" Value="120"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.PrimaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentHover}"/>
+    </Style>
+    <Style Selector="Button.GhostButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="Padding" Value="16,10"/>
+      <Setter Property="MinWidth" Value="100"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.GhostButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.BackButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="MinWidth" Value="88"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.BackButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.CardButton">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="24,22"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="CornerRadius" Value="16"/>
+    </Style>
+    <Style Selector="Button.CardButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="TextBox.FieldBox">
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="Padding" Value="12,10"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="CheckBox.CheckLabel">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.TipCard">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="18,16"/>
+    </Style>
+    <Style Selector="Button.QuietLink">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Navy}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.QuietLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="TextBlock.CreditText">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+    </Style>
+    <Style Selector="Button.RowAction">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="MinWidth" Value="0"/>
+      <Setter Property="Margin" Value="8,0,0,0"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.RowAction:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.PlainRowButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.PlainRowButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.CornerButton">
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Width" Value="32"/>
+      <Setter Property="Height" Value="24"/>
+      <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.CornerButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.NewProjectButton">
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Background" Value="#F2EFDB"/>
+      <Setter Property="BorderBrush" Value="#C4A882"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.NewProjectButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="Button.ProjectBubble">
+      <Setter Property="Margin" Value="2,3"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Background" Value="#FBF9F2"/>
+      <Setter Property="BorderBrush" Value="#E2D9C2"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="12,7"/>
+    </Style>
+    <Style Selector="Button.ProjectBubble:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+    <Style Selector="ContextMenu.BubbleMenu">
+      <Setter Property="Background" Value="#FBF9F2"/>
+      <Setter Property="BorderBrush" Value="#C4A882"/>
+      <Setter Property="Foreground" Value="#954B1E"/>
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="Button.PadLink">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.PadLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E4D7B4"/>
+    </Style>
+  </Application.Styles>
+</Application>

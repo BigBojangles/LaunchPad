@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <ApplicationIcon>Assets\LaunchPad.ico</ApplicationIcon>
+    <AssemblyName>LaunchPad</AssemblyName>
+    <RootNamespace>LaunchPad</RootNamespace>
+    <Product>LaunchPad</Product>
+    <AssemblyTitle>LaunchPad</AssemblyTitle>
+    <Company>LaunchPad</Company>
+    <Version>1.0.2</Version>
+    <FileVersion>1.0.2.0</FileVersion>
+    <InformationalVersion>1.0.2</InformationalVersion>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\LaunchPad.ico" />
+    <AvaloniaResource Include="Assets\launchpad-rocket.png" />
+    <EmbeddedResource Include="Assets\AgentBobInstructions.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Simple" Version="11.3.22" />
+  </ItemGroup>
+</Project>

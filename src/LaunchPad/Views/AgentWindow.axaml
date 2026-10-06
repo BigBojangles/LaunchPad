@@ -1,0 +1,35 @@
+<Window x:Class="LaunchPad.Views.AgentWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Agent"
+        Width="440"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Classes="GhostButton" Content="Cancel" IsCancel="True" Margin="0,0,10,0"/>
+            <Button Classes="PrimaryButton" Content="Save" IsDefault="True" Click="Save_Click"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Text="Agent" Classes="TitleText" Margin="0,0,0,8"/>
+            <TextBlock Text="Used the next time this project opens. One that is already running keeps its agent."
+                       Classes="HintText"
+                       Margin="0,0,0,16"/>
+            <ComboBox x:Name="AgentBox" FontSize="15" Padding="8,6" Margin="0,0,0,14" SelectionChanged="AgentBox_SelectionChanged"/>
+            <StackPanel x:Name="CustomPanel" IsVisible="False">
+                <TextBlock Text="Program file" Classes="HintText" Margin="0,0,0,6"/>
+                <DockPanel Margin="0,0,0,8">
+                    <Button DockPanel.Dock="Right" Classes="GhostButton" Content="Choose" Click="Choose_Click" Margin="8,0,0,0"/>
+                    <TextBlock x:Name="FileText" Classes="HintText" VerticalAlignment="Center" Text="No file chosen"/>
+                </DockPanel>
+            </StackPanel>
+            <TextBlock Text="LaunchPad is not affiliated with, endorsed by, or sponsored by xAI, OpenAI, or Anthropic."
+                       Classes="HintText"
+                       TextWrapping="Wrap"
+                       Margin="0,12,0,0"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

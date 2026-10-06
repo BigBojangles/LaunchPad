@@ -1,0 +1,28 @@
+<UserControl x:Class="LaunchPad.Views.SessionMark" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:LaunchPad.Views" Cursor="Hand" ToolTip.Tip="{Binding ToolTip}" PointerPressed="OnDown" PointerReleased="OnUp" ContextRequested="Menu_Requested">
+  <UserControl.Styles>
+    <Style Selector="Border.selected"><Setter Property="Background" Value="#E4D7B4"/></Style>
+    <Style Selector="Button.tileMenu"><Setter Property="Opacity" Value="0"/></Style>
+    <Style Selector="UserControl:pointerover Button.tileMenu"><Setter Property="Opacity" Value="1"/></Style>
+    <Style Selector="UserControl:focus-within Button.tileMenu"><Setter Property="Opacity" Value="1"/></Style>
+    <Style Selector="Border.busy">
+      <Style.Animations>
+        <Animation Duration="0:0:0.4" IterationCount="Infinite" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+  <Border x:Name="Shell" CornerRadius="6" Padding="8" Background="Transparent" Classes.selected="{Binding IsSelected}">
+    <Grid><StackPanel>
+      <Grid HorizontalAlignment="Center" Width="48" Height="48">
+        <Border BorderBrush="{Binding IdentityBrush}" BorderThickness="3" CornerRadius="6" Background="Transparent"/>
+        <Border Width="40" Height="40" Background="#2A3142" IsVisible="{Binding !HasIcon}"/>
+        <Image Source="{Binding Icon}" Width="40" Height="40" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Border x:Name="StatusLamp" Width="11" Height="11" Background="{Binding StatusBrush}" BorderBrush="#F2EFDB" BorderThickness="1" CornerRadius="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False" IsVisible="{Binding HasStatus}" Classes.busy="{Binding IsBusy}"/>
+      </Grid>
+      <local:EditableDisplayName x:Name="Caption" Text="{Binding Name}" HorizontalAlignment="Stretch" Margin="0,8,0,0" FontSize="12" Foreground="{StaticResource Ink}" NameSaved="Name_Saved"/>
+      <TextBlock x:Name="StatusLabel" Text="{Binding StatusText}" FontSize="10" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+    </StackPanel><Button x:Name="MenuButton" Classes="tileMenu" Content="⋯" Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="Project menu" Click="Menu_Click"/></Grid>
+  </Border>
+</UserControl>

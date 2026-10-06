@@ -1,0 +1,47 @@
+<Window x:Class="LaunchPad.Views.OnboardingChoiceDialog"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="What kind of user are you?"
+        Width="520" Height="420"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Image Width="44" Height="44"
+                       Source="avares://LaunchPad/Assets/launchpad-rocket.png"
+                       Margin="0,0,12,0"/>
+                <TextBlock Text="What kind of user are you?"
+                           Classes="TitleText"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock Classes="BodyText" Margin="0,0,0,18"
+                       Text="Pick the one that fits. You can open this screen again from the home page."/>
+
+            <Button Classes="CardButton"
+                    Background="{StaticResource AccentSoft}"
+                    BorderBrush="{StaticResource Accent}"
+                    Click="AgentBob_Click"
+                    Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Agent Bob assistant user" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Grok Chat companion agent"
+                               Classes="HintText"
+                               Margin="0,6,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button Classes="CardButton" Click="GrokBuild_Click">
+                <StackPanel>
+                    <TextBlock Text="I already use Grok Build" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="You’ve already created Grok Build projects"
+                               Classes="HintText"
+                               Margin="0,6,0,0"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </DockPanel>
+</Window>

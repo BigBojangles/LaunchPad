@@ -1,0 +1,23 @@
+<Window x:Class="LaunchPad.Views.BackupPrompt"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Backup"
+        Width="560" Height="340"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="NotNowButton" Classes="GhostButton" Content="Not now" Margin="0,0,10,0" Click="NotNow_Click"/>
+            <Button x:Name="AcceptButton" Classes="PrimaryButton" Content="Use this remote" IsDefault="True" Click="Accept_Click"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Text="Backup" Classes="TitleText" Margin="0,0,0,12"/>
+            <TextBlock x:Name="BodyText" TextWrapping="Wrap" FontSize="15" Margin="0,0,0,14"/>
+            <TextBlock x:Name="OriginText" TextWrapping="Wrap" FontSize="14" Margin="0,0,0,10"/>
+            <TextBlock x:Name="UrlLabel" Text="Remote URL" Classes="HintText" Margin="0,0,0,6"/>
+            <TextBox x:Name="UrlBox" Classes="FieldBox"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

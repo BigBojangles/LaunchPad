@@ -1,0 +1,104 @@
+<UserControl x:Class="LaunchPad.Views.ExistingProjectsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LaunchPad.Views"
+             VerticalAlignment="Top">
+    <UserControl.Styles>
+        <Style Selector="Button.menuButton"><Setter Property="Opacity" Value="0"/></Style>
+        <Style Selector="Button.ProjectBubble:pointerover Button.menuButton"><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="Button.ProjectBubble:focus-within Button.menuButton"><Setter Property="Opacity" Value="1"/></Style>
+    </UserControl.Styles>
+    <!-- Floating, content-height panel. Project names stay on this side only. -->
+    <Border Width="220"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Background="{StaticResource Panel}"
+            BorderBrush="#D4C7A8"
+            BorderThickness="1"
+            CornerRadius="16"
+            Padding="16">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" OffsetX="0" OffsetY="0" Opacity="0.5" Color="Black"/>
+        </Border.Effect>
+        <DockPanel>
+            <TextBlock x:Name="TipText" DockPanel.Dock="Top" Classes="HintText" IsVisible="False" Margin="0,0,0,8" Text="Tip: right-click for more"/>
+            <Button DockPanel.Dock="Top"
+                    Classes="NewProjectButton"
+                    Content="+  New Project"
+                    Click="NewProject_Click"/>
+
+            <Grid DockPanel.Dock="Top" Margin="0,16,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Height="1" Background="#C4A882" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="Projects" Margin="10,0" FontSize="12"
+                           Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+                <Border Grid.Column="2" Height="1" Background="#C4A882" VerticalAlignment="Center"/>
+            </Grid>
+
+            <Button DockPanel.Dock="Bottom"
+                    Classes="PadLink"
+                    Content="Add Project"
+                    ToolTip.Tip="Add a folder you already have"
+                    HorizontalAlignment="Center"
+                    Margin="0,10,0,0"
+                    Click="Browse_Click"/>
+
+            <TextBlock x:Name="EmptyText"
+                       DockPanel.Dock="Top"
+                       FontSize="12"
+                       Foreground="{StaticResource Muted}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="4,8,4,0"
+                       IsVisible="False"
+                       Text="No projects yet. Use New Project above."/>
+
+            <ScrollViewer Focusable="False" VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="ProjectList" Margin="0,4,0,2">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Click opens the project. Right-click holds the row actions. -->
+                            <Button Classes="ProjectBubble"
+                                    Tag="{Binding Path}"
+                                    ToolTip.Tip="{Binding Path}"
+                                    Click="Project_Click"
+                                    Loaded="ProjectRow_Loaded"
+                                    ContextRequested="RowMenu_Opening">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <local:EditableDisplayName Grid.Column="0"
+                                               Text="{Binding Name}"
+                                               NameSaved="ProjectName_Saved"
+                                               FontSize="13"
+                                               Foreground="{StaticResource Ink}"
+                                               VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1"
+                                            Classes="menuButton" Content="⋯"
+                                            ToolTip.Tip="Project menu"
+                                            Tag="{Binding Path}"
+                                            Padding="6,0"
+                                            Margin="4,0,0,0"
+                                            FontSize="14"
+                                            FontWeight="Bold"
+                                            Foreground="{StaticResource Muted}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            VerticalAlignment="Center"
+                                            Click="BubbleMenu_Click"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

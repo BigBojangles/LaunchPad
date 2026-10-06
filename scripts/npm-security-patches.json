@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "npmVersion": "11.20.0",
+  "upstreamNpmSha256": "d1a92f40e6c407b84c3a00c3cf978a10b24fd42f153c527e2016cef7bb34a483",
+  "packages": [
+    {
+      "name": "brace-expansion",
+      "version": "5.0.12",
+      "baseVersion": "5.0.9",
+      "sha256": "ef8448ec78f20b692f04fa6d01f39b5ab34c66404bea3429f5a39c6c9e0be8b4",
+      "integrity": "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==",
+      "advisories": ["https://github.com/juliangruber/brace-expansion/security/advisories/GHSA-6j4f-fj2g-mc7p", "https://github.com/juliangruber/brace-expansion/security/advisories/GHSA-qhr7-859c-m2p7"]
+    },
+    {
+      "name": "undici",
+      "version": "6.28.1",
+      "baseVersion": "6.28.0",
+      "sha256": "e18191aac9c0ff43dac7fe9b10b7041a22d07addb7b66a6e8ac14a52a5b69b74",
+      "integrity": "sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==",
+      "advisories": ["https://github.com/nodejs/undici/security/advisories/GHSA-rfgv-xxqx-mfg5"]
+    }
+  ],
+  "limitations": "Official upstream patch archives applied separately to npm's bundled dependencies. npm itself retains its vendor version and archive. This is a LaunchPad dependency repair, not an unchanged official npm bundle. Preserve strictly newer dependencies; refuse unrecognized older or modified trees. Other findings remain subject to review."
+}

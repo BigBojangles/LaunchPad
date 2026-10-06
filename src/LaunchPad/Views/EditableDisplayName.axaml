@@ -1,0 +1,10 @@
+<UserControl x:Class="LaunchPad.Views.EditableDisplayName" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" KeyDown="Name_KeyDown">
+    <Button x:Name="CaptionButton" Classes="PadLink" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="0" Click="Caption_Click">
+      <TextBlock x:Name="CaptionText" TextTrimming="CharacterEllipsis"/>
+    </Button>
+    <TextBox x:Name="Editor" IsVisible="False" MinWidth="40"/>
+    <Button x:Name="ResetButton" Grid.Column="1" IsVisible="False" Content="↺" Padding="4,0" ToolTip.Tip="Reset to folder name" Click="Reset_Click"/>
+    <TextBlock x:Name="ErrorText" Grid.Row="1" Grid.ColumnSpan="2" IsVisible="False" Foreground="#B42318" TextWrapping="Wrap"/>
+  </Grid>
+</UserControl>

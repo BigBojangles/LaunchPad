@@ -1,0 +1,27 @@
+<Window x:Class="LaunchPad.Views.HypervisorWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LaunchPad"
+        Width="520" Height="320"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="CloseButton"
+                    Classes="GhostButton"
+                    Content="Close"
+                    Margin="0,0,10,0"
+                    Click="Close_Click"/>
+            <Button x:Name="EnableButton"
+                    Classes="PrimaryButton"
+                    Content="Turn on Windows Hypervisor Platform"
+                    Click="Enable_Click"/>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Text="Windows hypervisor" Classes="TitleText" Margin="0,0,0,16"/>
+            <TextBlock x:Name="BodyText" Classes="BodyText"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

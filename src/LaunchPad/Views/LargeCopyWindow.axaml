@@ -1,0 +1,32 @@
+<Window x:Class="LaunchPad.Views.LargeCopyWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Copy"
+        Width="560" Height="520"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource WindowBg}">
+    <DockPanel Margin="28">
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+            <CheckBox x:Name="StartGitBox" Content="Start git for this folder" Margin="0,0,0,14"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Classes="GhostButton" Content="Cancel" Margin="0,0,10,0" Click="Cancel_Click"/>
+                <Button Classes="GhostButton" Content="Send everything" Margin="0,0,10,0" Click="SendAll_Click"/>
+                <Button Classes="PrimaryButton" Content="Continue" IsDefault="True" Click="Continue_Click"/>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel>
+            <TextBlock Text="This copy is large" Classes="TitleText" Margin="0,0,0,12"/>
+            <TextBlock x:Name="Body" TextWrapping="Wrap" FontSize="15" Margin="0,0,0,8"/>
+            <TextBlock x:Name="Hint" Classes="HintText" Margin="0,0,0,12"/>
+            <ListBox x:Name="Folders" Height="220" BorderBrush="{StaticResource BorderSubtle}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Label}" IsChecked="{Binding Include, Mode=TwoWay}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+    </DockPanel>
+</Window>

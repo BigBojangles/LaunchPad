@@ -1,0 +1,13 @@
+LaunchPad 1.0.2 (Windows 64-bit)
+
+This file is unsigned. If Windows says "Windows protected your PC",
+click More info, then Run anyway.
+
+Optional security check:
+Follow the instructions in the README to verify the file hash,
+or scan the file with Windows Security / your preferred tool first.
+
+This software is provided as-is under the MIT License, with no warranty.
+Use at your own risk. See LICENSE for the full terms.
+
+Guide and updates: https://github.com/BigBojangles/launch-pad

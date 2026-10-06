@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "debian": {
+    "suite": "bookworm-security",
+    "version": "5.36.0-7+deb12u4",
+    "packages": {
+      "perl-base": "d7d1943aec9597629bf73075efcc5ef6dc9bda96d78e80d843156ecd448478b8",
+      "perl-modules-5.36": "3ed38ffa8320e9bf7597cefa01b6a6ace4a08ccc77cdfd15ef7d8b711dea7166",
+      "libperl5.36": "ed8480b621ad574c25aea30d36194d0133ea74093756ecbe3dff157d0510ef7f",
+      "perl": "67e7a883c5d835939638f89a750799282df243ac1446281aa92ef9e19300940b"
+    }
+  },
+  "npm": {
+    "version": "11.20.0",
+    "sha256": "d1a92f40e6c407b84c3a00c3cf978a10b24fd42f153c527e2016cef7bb34a483",
+    "integrity": "sha512-dF3EDFwbYN+N5RUip+ZYDe0NeURK5BgqKOcvT1iNtUYhTMTl0FwWhBuXrS7KtXyduqyTMS5aaQaregnHDAxNgw=="
+  },
+  "limitations": "A pinned same-major vendor update, not complete remediation. npm still bundles brace-expansion 5.0.9, undici 6.28.0 and http-cache-semantics 4.2.0; remaining applicability/fixes must be reviewed. This lock does not authorize any package downgrade or user-session mutation."
+}
