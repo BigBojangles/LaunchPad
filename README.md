@@ -1,26 +1,50 @@
 # LaunchPad
 
-LaunchPad is a Windows desktop app for opening coding-agent projects in a persistent Linux VM. It supports Grok Build, Codex CLI, Claude Code and custom programs, with project/session selection and matching window indicators.
+**Put the agent in a box. Watch it work.**
 
-**Work in progress:** the source has migrated to Avalonia and Windows finishing is underway. Publishing this repository does not mark the current source, installer or isolation model as release-ready. The first Windows dogfood release comes before the Apple Silicon Mac port.
+LaunchPad is a Windows desktop app that opens a coding-agent project in a persistent Linux VM, with clear agent controls, each with its own color and icon. It is built for Grok Build, Codex CLI, Claude Code, and custom programs.
 
-## Current work
+**Status:** public MIT source. Avalonia UI is in. The Windows side is still being finished. There is no public download yet. The next package will be a Windows beta release, not a fully tested stable release. An Apple Silicon Mac port comes after that Windows beta.
 
-Implemented features include project/session display names, a shared project menu, Settings, one-time tips, saved VM sessions and return/recovery handling. Display names never rename project folders. Physical UI acceptance and complete installed-build workflows remain outstanding.
+## What it does
 
-The approved Windows work includes:
+1. Open a project.
+2. Run it in a fenced Linux VM, or open native if you choose that path.
+3. Work in agent terminals aimed at Grok Build, Codex CLI, Claude Code, or Custom.
+4. Send selected files into the VM, then return changed files to Windows.
 
-- Accurate working / needs-attention / idle indicators from agent events.
-- Automatic Windows builds, tests and GUI testing through a separate non-admin working copy, with results returned to the Linux agent.
-- Strict, Standard fenced and temporary Troubleshoot permission presets, plus installer setup repair.
-- Optional user-configured email, Telegram, Discord or ntfy notifications. No LaunchPad account or messaging backend. Notifications start off; phone replies are later work.
-- Finished-build testing, a bounded security scan/report and a verified Windows package.
+## Trust on the way back
 
-These additions are planned, not all implemented. See [AGENTS.md](AGENTS.md) for the approved sequence and current status.
+- The return path scans files through Windows AMSI and refuses to apply if that scan is unavailable or rejects content.
+- Copy-back requires a successful backup first and verifies the written host files.
 
-## Build the source
+Before returned VM files update the Windows project folder, LaunchPad can push a snapshot commit to a git remote you choose, for example a GitHub repo. That backs up the host project folder only, not the VM session disk. Your own day-to-day git commits stay separate.
 
-Use Windows and the .NET 8 SDK selected by `global.json` (currently 8.0.424). Avalonia dependencies are pinned and NuGet lock files are committed.
+## What it doesn't yet
+
+- Activity lights that mean the agent is actually coding
+- Notifications
+- Automatic Windows testing bridge
+- Security-preset slider
+- Mac release
+- User-facing product CLI
+- Continuous or scheduled backup
+
+## Known limits
+
+- Native mode is unfenced.
+- VM control endpoints currently lack authentication.
+- Host-network isolation is incomplete.
+- RAM/CPU allocations are not proof of an aggregate hard resource cap.
+- File-access checks have been scoped, not exhaustive.
+- Custom programs may lack activity telemetry.
+- No integrated chat service, code editor, scheduled backup, or general application auto-update.
+- No current Mac release.
+- No promise of universal Windows build/GUI compatibility until the testing bridge is finished.
+
+## Try it from source
+
+Needs Windows and the .NET 8 SDK selected by `global.json`.
 
 ```powershell
 dotnet restore LaunchPad.sln --locked-mode
@@ -28,25 +52,20 @@ dotnet build LaunchPad.sln --no-restore
 dotnet test tests/LaunchPad.Tests/LaunchPad.Tests.csproj --no-restore --filter "Category!=Integration"
 ```
 
-Source builds and UI tests do not require a published installer. VM execution additionally requires the Windows hypervisor, the non-admin launch account, the custom QEMU runtime and the compatible guest image chain. This repository does not contain those large runtime assets or user session disks.
+Source builds do not need a published installer. Running agents in a VM also needs the Windows hypervisor, the non-admin launch account, the custom QEMU runtime, and the guest image chain. Those large runtime assets and session disks are not in this repository.
 
-The existing development layout uses a sibling `build-launch-qemu` directory. Installer/package scripts are under `installer/` and `scripts/`; a self-contained clean-install package is still being verified. Live integration and audit checks are opt-in and require their fixtures and prerequisites in the corresponding tests/scripts.
+When a beta package ships, install steps for that package will live here. Full VM installer and native-only packages are different. The README will match whichever one you download.
 
-## Data and isolation
+## Also available
 
-Project folders on the host and persistent VM session disks are separate. Keep backups of both. Recovery, upgrades and testing must preserve existing project work rather than reset a VM silently.
+Native is there if you want to run an agent on Windows without the VM. It is unfenced. The boxed path is the one this is built for.
 
-LaunchPad uses a non-admin Windows launch identity and guest restrictions. This is a developer tool under active testing, with known limitations:
+## Credit
 
-- Loopback control endpoints currently lack authentication; loopback binding alone does not exclude other local processes.
-- A controlled guest probe reached a service through the host's network-interface address. The proposed host-network enforcement has not been installed or verified.
-- RAM/vCPU allocations exist, but a hard aggregate host resource cap is not established.
-- Scoped process/file checks do not establish that every personal file is inaccessible or that all host isolation is complete.
+Built by Casey Nielsen · X @BigBojangles_ · github.com/BigBojangles
 
-The security presets and automatic Windows testing remain implementation work. No enterprise security or exhaustive audit claim is made. Raw audit reports, credentials, test outputs and machine-specific evidence are kept out of Git.
+## License
 
-## Packages and license
+LaunchPad source is under the MIT License. Third-party components keep their own licenses. QEMU is GPL-licensed. See NOTICE.
 
-Build outputs, VM images, local archives and `dist/` are intentionally ignored by Git. Publishing source does not publish or refresh installer assets; packaged releases will be verified separately. Historical local package documentation/checksums describe their own artifacts, not this source snapshot.
-
-LaunchPad source is licensed under the [MIT License](LICENSE). Third-party components retain their own licenses; QEMU is GPL-licensed. See [NOTICE](NOTICE). LaunchPad is not affiliated with or endorsed by xAI, OpenAI or Anthropic; their product names remain their respective trademarks.
+LaunchPad is not affiliated with or endorsed by xAI, OpenAI, or Anthropic. Their product names remain their trademarks.
