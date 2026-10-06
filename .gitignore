@@ -86,3 +86,6 @@ installer/stage/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Local agent rules — keep on disk, not public
+AGENTS.md
