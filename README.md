@@ -1,3 +1,6 @@
+﻿<p align="center">
+  <img src="docs/launchpad-lockup.png" alt="LaunchPad — Put the agent in a box. Watch it work." width="640">
+</p>
 # LaunchPad
 
 **Put the agent in a box. Watch it work.**
