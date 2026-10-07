@@ -7,6 +7,7 @@ namespace LaunchPad.Services;
 public interface IProjectRuntime
 {
     bool HasVirtualMachine { get; }
+    bool NativeOnly => false;
     string? HostAgentExecutable { get; }
     FenceStartAvailability FenceStartAvailability { get; }
     IFencedProjectSession CreateFencedSession();
@@ -14,6 +15,7 @@ public interface IProjectRuntime
     bool IsHostOpen(string project);
     Task OpenFencedAsync(string project, CancellationToken cancellationToken, IProgress<string>? progress);
     Task<bool> EnsureHostAgentAsync();
+    Task<bool> EnsureHostAgentAsync(string project) => EnsureHostAgentAsync();
     bool TryLaunchHostAgent(string project, LaunchPlacement? placement, out string error);
     Task<string?> SendProjectAsync(string project, CancellationToken cancellationToken);
     SessionRecord? DescribeFenced(string project);

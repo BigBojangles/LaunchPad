@@ -18,6 +18,7 @@
   <Application.Styles>
     <SimpleTheme/>
     <Style Selector="Window">
+      <Setter Property="Icon" Value="avares://LaunchPad/Assets/LaunchPad.ico"/>
       <Setter Property="FontFamily" Value="Segoe UI"/>
       <Setter Property="Background" Value="{StaticResource WindowBg}"/>
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>

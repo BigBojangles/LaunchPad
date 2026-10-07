@@ -54,6 +54,7 @@ public static class RocketView
             footer.Add(left);
 
         var header = new List<string>();
+        header.Add(sent < total ? SealText.WarmingUp : SealText.VmLaunching);
         if (firstCopy)
         {
             header.Add("Copying your project into the sandbox.");
@@ -99,7 +100,7 @@ public static class RocketView
             picture.Append('\u001b').Append('[').Append(top + index).Append(";1H");
             picture.Append("\u001b[38;2;44;61;92m");
             picture.Append(' ', pad);
-            var small = firstCopy && index == 1;
+            var small = firstCopy && index == 2;
             if (small)
                 picture.Append("\u001b[2m");
             AppendColored(picture, shown, shownMask);

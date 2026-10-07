@@ -11,11 +11,14 @@ public partial class AgentWindow : Window
     private string? _source;
     private readonly List<AgentOption> _choices = new();
 
-    public AgentWindow(SettingsStore settings, string projectPath, string? projectName)
+    public AgentWindow(SettingsStore settings, string projectPath, string? projectName, bool nativeOnly = false)
     {
         _settings = settings;
         _projectPath = projectPath;
         InitializeComponent();
+        LaunchModeBox.ItemsSource = new[] { "Fenced VM", "Native (no sandbox)" };
+        LaunchModeBox.SelectedIndex = nativeOnly || settings.LaunchModeFor(projectPath) == "native" ? 1 : 0;
+        LaunchModeBox.IsEnabled = !nativeOnly;
         if (!string.IsNullOrWhiteSpace(projectName))
             Title = projectName;
 
@@ -56,9 +59,11 @@ public partial class AgentWindow : Window
             return;
 
         var name = System.IO.Path.GetFileName(path);
-        if (!AgentChoice.SafeProgram(name))
+        if (LaunchModeBox.SelectedIndex == 1 ? !NativeAgentLocator.Supported(path) : !AgentChoice.SafeProgram(name))
         {
-            await UiDialogs.ShowAsync(this, "Use a program name made of letters, numbers, dots, dashes, or underscores.");
+            await UiDialogs.ShowAsync(this, LaunchModeBox.SelectedIndex == 1
+                ? "Choose a Windows executable (.exe) or command file (.cmd or .bat)."
+                : "Use a program name made of letters, numbers, dots, dashes, or underscores.");
             return;
         }
 
@@ -82,19 +87,32 @@ public partial class AgentWindow : Window
         if (id == AgentChoice.Custom)
         {
             var program = System.IO.Path.GetFileName(_source ?? FileText.Text);
-            if (!AgentChoice.SafeProgram(program) || string.IsNullOrWhiteSpace(_source))
+            if (string.IsNullOrWhiteSpace(_source) || (LaunchModeBox.SelectedIndex == 1 ? !NativeAgentLocator.Supported(_source) : !AgentChoice.SafeProgram(program)))
             {
                 await UiDialogs.ShowAsync(this, "Choose one program file. No installer and no shell.");
                 return;
             }
 
-            _settings.SaveAgent(_projectPath, id, program, _source);
+            if (!await SaveSelectionAsync(id, program, _source)) return;
         }
         else
         {
-            _settings.SaveAgent(_projectPath, id, null, null);
+            if (!await SaveSelectionAsync(id, null, null)) return;
         }
 
         Close(true);
+    }
+    private async Task<bool> SaveSelectionAsync(string id, string? program, string? source)
+    {
+        try
+        {
+            _settings.SaveAgent(_projectPath, id, program, source, LaunchModeBox.SelectedIndex == 1 ? "native" : "fenced");
+            return true;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            await UiDialogs.ShowAsync(this, error.Message);
+            return false;
+        }
     }
 }

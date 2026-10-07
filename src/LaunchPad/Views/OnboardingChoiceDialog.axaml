@@ -19,7 +19,7 @@
             </StackPanel>
 
             <TextBlock Classes="BodyText" Margin="0,0,0,18"
-                       Text="Pick the one that fits. You can open this screen again from the home page."/>
+                           Text="Choose a starting point. Agent Bob is optional. You can reopen this screen from the home page."/>
 
             <Button Classes="CardButton"
                     Background="{StaticResource AccentSoft}"
@@ -27,17 +27,17 @@
                     Click="AgentBob_Click"
                     Margin="0,0,0,12">
                 <StackPanel>
-                    <TextBlock Text="Agent Bob assistant user" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="Grok Chat companion agent"
+                    <TextBlock Text="Start with Agent Bob" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Choose a chat companion and learn the workflow with a tiny checklist project"
                                Classes="HintText"
                                Margin="0,6,0,0"/>
                 </StackPanel>
             </Button>
 
-            <Button Classes="CardButton" Click="GrokBuild_Click">
+            <Button x:Name="CodingAgentButton" Classes="CardButton" Click="CodingAgent_Click">
                 <StackPanel>
-                    <TextBlock Text="I already use Grok Build" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="You’ve already created Grok Build projects"
+                    <TextBlock Text="Use a coding agent directly" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Grok Build, Codex CLI, Claude Code, or a custom program"
                                Classes="HintText"
                                Margin="0,6,0,0"/>
                 </StackPanel>

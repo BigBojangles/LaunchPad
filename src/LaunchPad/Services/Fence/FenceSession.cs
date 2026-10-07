@@ -240,6 +240,8 @@ public sealed class FenceSession : IFencedProjectSession
         // another agent/resource configuration after a settings read failure.
         var launchSettings = _readSettings();
         var agent = launchSettings.AgentFor(liveFull);
+        var permissionPolicy = launchSettings.PermissionPolicyFor(liveFull);
+        PermissionPolicies.RequireLaunchSupport(permissionPolicy);
         var machine = MachineSize(launchSettings, liveFull);
         var title = launchSettings.DisplayNameFor(liveFull, "vm:" + QemuLayout.ProjectKey(liveFull));
 
@@ -296,6 +298,7 @@ public sealed class FenceSession : IFencedProjectSession
         var noted = false;
         try
         {
+            progress?.Report(SealText.WarmingUp);
             var runtime = await Task.Run(() => PublicRuntime.Ensure(_log), cancellationToken).ConfigureAwait(false);
             var qemu = runtime.QemuExe;
             var img = runtime.ImgExe;
@@ -317,7 +320,7 @@ public sealed class FenceSession : IFencedProjectSession
             if (File.Exists(overlay) && runtime.Version is { } version
                 && (ProjectSessionStore.RuntimeVersion(sessionDir) != version || (resumeOnly && SessionGuardian.NeedsRecovery(sessionDir, includePreserved: false))))
             {
-                var kit = await Task.Run(() => MaintenanceKit.Read(QemuLayout.Root), cancellationToken).ConfigureAwait(false);
+                var kit = await Task.Run(() => MaintenanceKit.Read(runtime.Root, runtime.MaintenanceManifestName), cancellationToken).ConfigureAwait(false);
                 if (kit.Manifest.Version != version) throw new InvalidDataException("The saved-VM maintenance kit does not match the selected runtime.");
                 var upgraded = await SessionUpgrade.CreateAsync(runtime, kit, overlay, SessionsDirectory(), cancellationToken, progress).ConfigureAwait(false);
                 ProjectSessionStore.Activate(sessionHome, upgraded);
@@ -329,7 +332,6 @@ public sealed class FenceSession : IFencedProjectSession
             File.WriteAllText(Path.Combine(sessionDir, "session-user.txt"), user, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             args = QemuCommand.Build("whpx", overlay, 0, qmp, "fence", share: null, serialLog: serialLog, memoryMb: machine.MemoryMb, cores: machine.Cores, firmwareDir: runtime.FirmwareDir, workingDirectory: sessionDir);
             RejectLivePath(args, liveFull);
-            progress?.Report(SealText.Running);
             cancellationToken.ThrowIfCancellationRequested();
             var existingSession = File.Exists(overlay);
             if (!existingSession)
@@ -343,6 +345,7 @@ public sealed class FenceSession : IFencedProjectSession
                 throw new InvalidOperationException("This machine does not have that agent yet.");
             cancellationToken.ThrowIfCancellationRequested();
             if (leaveRunning) InitialImport.Begin(sessionDir);
+            progress?.Report(SealText.VmLaunching);
             if (!TestUserRunner.TryStart(qemu, sessionDir, args, out var process) || process is null)
             {
                 if (TestUserRunner.LastStartError == 0)
@@ -362,7 +365,7 @@ public sealed class FenceSession : IFencedProjectSession
             {
                 try
                 {
-                    using var owner = await SessionGuardian.StartAsync(process, qmp, sessionDir, agent.Id, liveFull).ConfigureAwait(false);
+                    using var owner = await SessionGuardian.StartAsync(process, qmp, sessionDir, agent.Id, liveFull, appliedPolicy: permissionPolicy).ConfigureAwait(false);
                     if (string.IsNullOrWhiteSpace(title))
                         title = "LaunchPad";
                     var pidFile = Path.Combine(sessionDir, "tui.pid");
@@ -387,6 +390,7 @@ public sealed class FenceSession : IFencedProjectSession
                     // lasts until the --tui process recorded in tui.pid exits.
                     WatchTui(pidFile, process, qmp, hand.Status, QemuLayout.ProjectKey(liveFull), liveFull, agent.Id);
                     _log.Write("Fenced session user " + user);
+                    progress?.Report(SealText.BlastOff);
                     return;
                 }
                 catch
@@ -550,6 +554,10 @@ public sealed class FenceSession : IFencedProjectSession
         var sizing = Task.Run(() => SessionSizeRelay.RunAsync(sessionDir, qmpPort, stopSize.Token));
         _ = Task.Run(async () =>
         {
+            using var heartbeatStop = new CancellationTokenSource();
+            var heartbeat = KeepHostAliveAsync(sessionDir, heartbeatStop.Token);
+            try
+            {
             var graceful = false;
             try
             {
@@ -563,7 +571,7 @@ public sealed class FenceSession : IFencedProjectSession
                 {
                     // The independent owner watches this terminal and holds the
                     // VM job through guest shutdown, even if the desktop closes.
-                    graceful = await WaitForConsole(sessionDir, pid).ConfigureAwait(false);
+                    graceful = await WaitForConsole(sessionDir, pid, status).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -625,33 +633,8 @@ public sealed class FenceSession : IFencedProjectSession
                     + (recovery is null ? "" : " Recovery copy: " + recovery.DirectoryPath)).ConfigureAwait(false);
             }
 
-            try
-            {
-                var body = await status.RequestAuthAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-                if (body is null)
-                    _log.Write("Fenced session sign-in was left as it was.");
-                else if (body.Length == 0)
-                {
-                    if (OtherBoxesOpen(qemu.Id))
-                        _log.Write("Fenced session sign-in was left as it was.");
-                    else
-                    {
-                        GuestAuth.Save(body);
-                        _log.Write("Fenced session sign-in cleared.");
-                    }
-                }
-                else if (!GuestAuth.IsDocument(body))
-                    _log.Write("Fenced session sign-in was left as it was.");
-                else
-                {
-                    GuestAuth.Save(body);
-                    _log.Write("Fenced session sign-in saved.");
-                }
-            }
-            catch
-            {
-                _log.Write("Fenced session sign-in was left as it was.");
-            }
+            // The live status reader owns sign-in caching. A second shutdown
+            // saver could overwrite a newer checkpoint with an earlier frame.
 
             try
             {
@@ -677,32 +660,24 @@ public sealed class FenceSession : IFencedProjectSession
 
             StopMachine(qemu, qmpPort, sessionDir);
             NoteClosed(qemu.Id);
+            }
+            finally
+            {
+                heartbeatStop.Cancel();
+                await heartbeat.ConfigureAwait(false);
+            }
         });
     }
 
-    private static async Task<bool> WaitForConsole(string sessionDir, int tuiPid)
+    internal static async Task<bool> WaitForConsole(string sessionDir, int tuiPid, StatusLink status)
     {
         var done = Path.Combine(sessionDir, "console.done");
-        var alive = Path.Combine(sessionDir, "host.alive");
-        var plain = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        var lastBeat = DateTime.MinValue;
         while (true)
         {
-            if (DateTime.UtcNow - lastBeat >= TimeSpan.FromSeconds(1))
-            {
-                try
-                {
-                    File.WriteAllText(alive, "1", plain);
-                }
-                catch
-                {
-                    // The terminal treats a stale beat as this window being gone.
-                }
-
-                lastBeat = DateTime.UtcNow;
-            }
-
-            if (File.Exists(done))
+            // Virtio terminal EOF can wait for QEMU shutdown. The parent has
+            // reaped the agent and is about to export, so drain that export now.
+            // Advisory Stop/SessionEnd hook records cannot enter this path.
+            if (status.AgentExited || File.Exists(done))
                 return true;
 
             if (!Alive(tuiPid))
@@ -710,6 +685,25 @@ public sealed class FenceSession : IFencedProjectSession
 
             await Task.Delay(200).ConfigureAwait(false);
         }
+    }
+
+    private static async Task KeepHostAliveAsync(string sessionDir, CancellationToken cancellationToken)
+    {
+        var alive = Path.Combine(sessionDir, "host.alive");
+        var plain = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try { File.WriteAllText(alive, "1", plain); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                { /* The terminal falls back to independent recovery on a stale beat. */ }
+                // Own return collection through apply and guest shutdown, not
+                // just the wait for agent exit, to avoid a second TUI receiver.
+                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
     }
 
     private void StopMachine(Process process, int qmpPort, string sessionDirectory)
@@ -858,35 +852,18 @@ public sealed class FenceSession : IFencedProjectSession
         var remote = ProjectReturnHost.ReadSavedRemote?.Invoke(liveProject);
         if (string.IsNullOrWhiteSpace(remote))
         {
-            _log.Write("backup offered");
-            remote = ProjectReturnHost.OfferBackupAsync is { } offer
-                ? await offer(liveProject).ConfigureAwait(false)
-                : ProjectReturnHost.OfferBackup?.Invoke(liveProject);
-            if (string.IsNullOrWhiteSpace(remote))
-            {
-                _log.Write("backup skipped");
-                return false;
-            }
-
-            _log.Write("backup saved");
-        }
-        else
-        {
-            if (ProjectReturnHost.RemindBackupAsync is { } remind)
-                await remind(remote).ConfigureAwait(false);
-            else
-                ProjectReturnHost.RemindBackup?.Invoke(remote);
+            _log.Write("Optional Git backup is not configured; saving to Windows with local recovery.");
+            return true;
         }
 
-        if (!GitBackup.TryPush(liveProject, remote, out _))
+        if (!await Task.Run(() => GitBackup.TryPush(liveProject, remote, out _)).ConfigureAwait(false))
         {
             _log.Write("backup push failed");
-            const string message = "The backup did not complete. The project was left unchanged.";
-            if (ProjectReturnHost.TellAsync is { } tell)
-                await tell(message).ConfigureAwait(false);
-            else
-                ProjectReturnHost.Tell?.Invoke(message);
-            return false;
+            // A configured remote is extra protection. ReturnApplier still
+            // verifies the scanner, host baseline and preserved local originals.
+            // Do not hold those writes or VM shutdown on a modal warning.
+            _ = TellReturnAsync("The optional Git backup did not complete. Saving to Windows will continue when its safety checks pass; local recovery copies are retained.");
+            return true;
         }
 
         _log.Write("backup push succeeded");
@@ -965,7 +942,7 @@ public sealed class FenceSession : IFencedProjectSession
     private static int ReservePort()
     {
         // Windows hands out 49152-65535 as outbound source ports. Fence, status,
-        // and the console are the next three ports, so a port from that range
+        // console and Windows test bridge are the next four ports, so a port from that range
         // makes QEMU fail the bind. These listeners stay below it.
         for (var port = PortChoice.First; port <= PortChoice.Last; port++)
         {
@@ -980,10 +957,10 @@ public sealed class FenceSession : IFencedProjectSession
 
     private static bool PortSetIsFree(int port)
     {
-        var held = new List<TcpListener>(4);
+        var held = new List<TcpListener>(PortChoice.Width);
         try
         {
-            for (var offset = 0; offset < 4; offset++)
+            for (var offset = 0; offset < PortChoice.Width; offset++)
             {
                 var listener = new TcpListener(IPAddress.Loopback, port + offset);
                 listener.Start();

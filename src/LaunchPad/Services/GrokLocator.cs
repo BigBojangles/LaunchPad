@@ -8,6 +8,7 @@ public sealed class GrokLocator
     {
         _paths = paths;
     }
+    internal AppPaths Paths => _paths;
 
     public string? FindGrokExecutable()
     {

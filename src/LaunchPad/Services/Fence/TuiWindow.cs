@@ -205,7 +205,7 @@ public static class TuiWindow
         return null;
     }
 
-    private static void BindConsole(string title)
+    internal static void BindConsole(string title)
     {
         if (!AttachConsole(-1))
             AllocConsole();

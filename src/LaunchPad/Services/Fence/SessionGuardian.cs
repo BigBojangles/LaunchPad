@@ -20,8 +20,10 @@ public static class SessionGuardian
     public static bool IsRequest(string[] args) => args.Length is 8 or 10 && args[0] == Argument;
 
     public static async Task<Process> StartAsync(Process machine, int qmpPort, string sessionDirectory,
-        string agentId = AgentChoice.Grok, string? project = null, string? executable = null)
+        string agentId = AgentChoice.Grok, string? project = null, string? executable = null, LaunchPad.Models.ProjectPermissionPolicy? appliedPolicy = null)
     {
+        project = string.IsNullOrWhiteSpace(project) ? null : Path.GetFullPath(project);
+        if (appliedPolicy is not null) PermissionPolicies.RequireLaunchSupport(appliedPolicy);
         if (TryReadLiveOwner(sessionDirectory) is not null)
             throw new InvalidOperationException("This session still has a live terminal owner.");
         foreach (var file in new[] { IdentityFile, ArmedFile, ResultFile, "tui.pid", "console.done", "console.finished", "console.ready", "host.alive" })
@@ -45,8 +47,13 @@ public static class SessionGuardian
                 var identity = ReadIdentity(sessionDirectory);
                 if (identity is not null && identity.OwnerPid == owner.Id && identity.Generation == generation)
                 {
+                    var expected = new SessionOwnerIdentity(owner.Id, owner.StartTime.ToUniversalTime().Ticks, machine.Id,
+                        machine.StartTime.ToUniversalTime().Ticks, qmpPort, generation, AgentChoice.Normalize(agentId), project,
+                        DesktopPid: desktop.Id, DesktopStartTicks: desktop.StartTime.ToUniversalTime().Ticks);
+                    RequireMatchingHandoff(identity, expected);
                     if (!TestUserRunner.HandMachineTo(machine.Id, owner.Id))
                         throw new IOException("The VM job could not be handed to its terminal owner.");
+                    PermissionPolicies.Begin(new AppPaths(), expected, appliedPolicy ?? LaunchPad.Models.ProjectPermissionPolicy.Standard);
                     WriteJson(Path.Combine(sessionDirectory, ArmedFile), generation);
                     return owner;
                 }
@@ -63,6 +70,13 @@ public static class SessionGuardian
         }
     }
 
+    public static void RequireMatchingHandoff(SessionOwnerIdentity actual, SessionOwnerIdentity expected)
+    {
+        // The writable VM directory is an observation channel, never the
+        // authority for a host-owned permission grant or process identity.
+        if (actual != expected) throw new InvalidDataException("The terminal-owner handoff identity does not match this launch. Existing VM state was preserved.");
+    }
+
     public static void Run(string[] args)
     {
         if (!IsRequest(args)) return;
@@ -72,6 +86,9 @@ public static class SessionGuardian
             || !Guid.TryParseExact(args[5], "N", out _)) return;
         using var owner = Process.GetCurrentProcess();
         Process? machine = null;
+        using var windowsTestStop = new CancellationTokenSource();
+        Task? windowsTests = null;
+        SessionOwnerIdentity? permissionOwner = null;
         try
         {
             machine = OpenMatchingProcess(machinePid, machineTicks);
@@ -81,6 +98,7 @@ public static class SessionGuardian
                 DesktopPid: args.Length == 10 && int.TryParse(args[8], out var desktopPid) ? desktopPid : null,
                 DesktopStartTicks: args.Length == 10 && long.TryParse(args[9], out var desktopTicks) ? desktopTicks : null);
             WriteJson(Path.Combine(directory, IdentityFile), identity);
+            permissionOwner = identity;
             var wait = Stopwatch.StartNew();
             while (!machine.HasExited && wait.Elapsed < TimeSpan.FromSeconds(10))
             {
@@ -88,6 +106,7 @@ public static class SessionGuardian
                 Thread.Sleep(40);
             }
             var armed = ReadGeneration(directory) == identity.Generation;
+            if (armed) windowsTests = Task.Run(() => WindowsTestSessionHost.RunAsync(directory, identity, machine, windowsTestStop.Token));
             using var terminal = armed ? WaitForTerminal(directory, machine, owner.StartTime.ToUniversalTime()) : null;
             if (terminal is not null)
             {
@@ -99,15 +118,16 @@ public static class SessionGuardian
                 {
                     while (!machine.HasExited && !terminal.HasExited)
                     {
-                        if (File.Exists(Path.Combine(directory, "console.finished"))) controlStop.Cancel();
+                        if (File.Exists(Path.Combine(directory, "console.finished"))) { controlStop.Cancel(); windowsTestStop.Cancel(); }
                         else if (control is null && !DesktopAlive(identity, directory))
-                            control = KeepControlsAsync(directory, qmp, controlStop.Token);
+                            control = KeepControlsAsync(directory, identity, controlStop.Token);
                         Thread.Sleep(200);
                     }
                 }
                 finally
                 {
                     controlStop.Cancel();
+                    windowsTestStop.Cancel();
                     if (control is not null) try { control.GetAwaiter().GetResult(); } catch (Exception error) when (error is IOException or SocketException or OperationCanceledException) { }
                 }
             }
@@ -168,7 +188,18 @@ public static class SessionGuardian
             // Attempt a guest shutdown even when owner metadata cannot be written.
             if (machine is not null) _ = MachineShutdown.WaitForGuestExit(machine, qmp);
         }
-        finally { machine?.Dispose(); }
+        finally
+        {
+            windowsTestStop.Cancel();
+            if (windowsTests is not null)
+                try { windowsTests.Wait(TimeSpan.FromSeconds(8)); }
+                catch (AggregateException) { /* Bridge faults do not replace guest shutdown/recovery. */ }
+            if (permissionOwner is not null)
+                try { PermissionPolicies.End(new AppPaths(), permissionOwner); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException)
+                { /* Generation/owner/expiry checks still refuse grants on a stopped session. */ }
+            machine?.Dispose();
+        }
     }
 
     private static bool DesktopAlive(SessionOwnerIdentity identity, string directory)
@@ -182,15 +213,15 @@ public static class SessionGuardian
         catch (ArgumentException) { return false; }
         catch (Exception error) when (error is InvalidOperationException or System.ComponentModel.Win32Exception) { return true; }
     }
-    private static async Task KeepControlsAsync(string directory, int qmp, CancellationToken token)
+    private static async Task KeepControlsAsync(string directory, SessionOwnerIdentity identity, CancellationToken token)
     {
-        var resize = SessionSizeRelay.RunAsync(directory, qmp, token);
+        var resize = SessionSizeRelay.RunAsync(directory, identity.QmpPort, token);
         var status = DrainStatusAsync();
         await Task.WhenAll(resize, status).ConfigureAwait(false);
         async Task DrainStatusAsync()
         {
-            using var client = await FenceHost.ConnectAsync(QemuCommand.StatusPort(qmp), token).ConfigureAwait(false);
-            using var link = new StatusLink(client);
+            using var client = await FenceHost.ConnectAsync(QemuCommand.StatusPort(identity.QmpPort), token).ConfigureAwait(false);
+            using var link = new StatusLink(client, new SessionActivityContext(directory, identity.Generation, identity.ProjectPath, identity.AgentId));
             while (!token.IsCancellationRequested && link.Snapshot.Connected) await Task.Delay(200, token).ConfigureAwait(false);
         }
     }

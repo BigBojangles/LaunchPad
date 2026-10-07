@@ -42,7 +42,9 @@ public static class FenceHost
                     preserveRepositoryMetadata: existingSession, sendProjectFiles: !resumeOnly).ConfigureAwait(false);
             }
             // The initial status write must drain before the guest announces readiness.
-            status = new StatusLink(await ConnectAsync(QemuCommand.StatusPort(qmpPort), cancellationToken).ConfigureAwait(false));
+            var owner = SessionGuardian.TryReadLiveOwner(directory);
+            status = new StatusLink(await ConnectAsync(QemuCommand.StatusPort(qmpPort), cancellationToken).ConfigureAwait(false),
+                owner is null ? null : new SessionActivityContext(directory, owner.Generation, owner.ProjectPath, owner.AgentId));
             await InitialImport.WaitForMarkerAsync(Path.Combine(directory, "serial.log"),
                 existingSession ? "DOOR-READY safe-import safe-merge" : "DOOR-READY", cancellationToken,
                 prefix: !existingSession, timeout: TimeSpan.FromMinutes(10)).ConfigureAwait(false);
@@ -89,7 +91,8 @@ public static class FenceHost
 
             if (restoreHostHome)
             {
-                var auth = GuestAuth.ReadHost();
+                var auth = new SettingsStore(new AppPaths()).Current.RememberGrokSignIn && chosen.Id == AgentChoice.Grok
+                    ? GuestAuth.ReadHost() : null;
                 if (auth is not null)
                     await WriteChunksAsync(stream, Encoding.ASCII.GetBytes(GuestAuth.Header(auth.Length)), auth, cancellationToken).ConfigureAwait(false);
                 var home = GuestHome.Read(QemuLayout.ProjectKey(project));
@@ -134,11 +137,24 @@ public static class FenceHost
 
         long files = 0;
         long bytes = 0;
-        WriteProgress(progressPath, bytes, total, files, "", firstCopy);
+        // Progress is advisory, not the durable import baseline. Recreating its
+        // file for every chunk/file can dominate large small-file imports.
+        // Each transfer owns its clock; unrelated sessions cannot suppress it.
+        var progressClock = Stopwatch.StartNew();
+        void Progress(string name, bool force = false)
+        {
+            if (string.IsNullOrWhiteSpace(progressPath)) return;
+            if (!force && progressClock.ElapsedMilliseconds < 100) return;
+            WriteProgress(progressPath, bytes, total, files, name, firstCopy);
+            progressClock.Restart();
+        }
+        Progress("", force: true);
+        var lastName = "";
         var piece = new byte[65536];
         foreach (var file in pending)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            lastName = file.Relative;
             using var digest = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
             {
                 await using var input = new FileStream(file.Full, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -157,14 +173,16 @@ public static class FenceHost
                     digest.AppendData(piece, 0, read);
                     left -= read;
                     bytes += read;
-                    WriteProgress(progressPath, bytes, total, files, file.Relative, firstCopy);
+                    Progress(file.Relative);
                 }
             }
             manifest.Note(file.Relative, file.Length, file.Ticks, Convert.ToHexString(digest.GetHashAndReset()));
             files++;
-            WriteProgress(progressPath, bytes, total, files, file.Relative, firstCopy);
+            Progress(file.Relative);
         }
-
+        // Only a successful send reaches this point. Cancellation/failure must
+        // retain partial counters rather than publish a completion-looking row.
+        Progress(lastName, force: true);
         return manifest;
     }
 

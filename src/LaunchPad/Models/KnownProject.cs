@@ -7,6 +7,8 @@ public sealed class KnownProject
     public string Name { get; set; } = "";
     public string Path { get; set; } = "";
     public string? DisplayName { get; set; }
+    public bool NotificationsEnabled { get; set; }
+    public string? NotificationEpoch { get; set; }
     public Dictionary<string, string> SessionNames { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 

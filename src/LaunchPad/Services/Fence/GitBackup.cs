@@ -129,15 +129,19 @@ public static class GitBackup
             using var process = Process.Start(start);
             if (process is null)
                 return new GitResult(1, "");
-            var output = process.StandardOutput.ReadToEnd();
-            process.StandardError.ReadToEnd();
+            // Drain both pipes concurrently. Blocking ReadToEnd before the
+            // deadline could keep even an optional backup in front of Save.
+            var output = process.StandardOutput.ReadToEndAsync();
+            var errors = process.StandardError.ReadToEndAsync();
             if (!process.WaitForExit(120_000))
             {
                 try { process.Kill(entireProcessTree: true); } catch { }
                 return new GitResult(1, "");
             }
-
-            return new GitResult(process.ExitCode, output);
+            // Descendants can retain pipe handles after git itself exits.
+            if (!Task.WhenAll(output, errors).Wait(TimeSpan.FromSeconds(2)))
+                return new GitResult(1, "");
+            return new GitResult(process.ExitCode, output.GetAwaiter().GetResult());
         }
         catch
         {

@@ -26,7 +26,7 @@
                        LineHeight="22"
                        TextAlignment="Center"
                        HorizontalAlignment="Center">
-                <Run Text="Put the agent in a box."/>
+                <Run Text="Choose your workspace."/>
                 <LineBreak/>
                 <Run Text="Watch it work."/>
             </TextBlock>
@@ -86,8 +86,8 @@
             <Button Classes="PadLink"
                     Content="Share LaunchPad"
                     Click="Share_Click"/>
-            <TextBlock Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
-            <Button Classes="PadLink"
+            <TextBlock x:Name="MachineSeparator" Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+            <Button x:Name="MachineButton" Classes="PadLink"
                     Content="Machine"
                     Click="Machine_Click"/>
         </StackPanel>

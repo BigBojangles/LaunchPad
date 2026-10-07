@@ -70,6 +70,16 @@ if [ -d "$report/payload/security-packages" ]; then
     ( cd "$report/payload"; sha256sum security-packages/* >> SHA256SUMS )
     extra_payload=(security-packages)
 fi
+# The same reviewed bridge inputs serve new guests and preserved-session
+# maintenance. No service runs while PID 1 is the offline maintenance shell.
+mkdir "$report/payload/windows-test"
+for name in windows-test-broker.py windows-test-client.py launchpad-windows-test.service; do
+    cp -- "$project/scripts/$name" "$report/payload/windows-test/$name"
+done
+cp -- "$project/scripts/install-windows-test-guest.sh" "$report/payload/windows-test/apply.sh"
+( cd "$report/payload/windows-test"; sha256sum windows-test-broker.py windows-test-client.py launchpad-windows-test.service > SHA256SUMS )
+( cd "$report/payload"; sha256sum windows-test/* >> SHA256SUMS )
+extra_payload+=(windows-test)
 tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$report/payload" -czf "$report/upgrade.tar.gz" apply.sh SHA256SUMS bl-proof.sh launchpad-agent usr.local.bin.grok bl-proof.service quiesce.py procps_4.0.2-3_amd64.deb libproc2-0_4.0.2-3_amd64.deb "${extra_payload[@]}"
 sha256sum "$report/kernel" "$report/initrd" "$report/upgrade.tar.gz" "$report/payload/"*.deb > "$report/identity.sha256"
 

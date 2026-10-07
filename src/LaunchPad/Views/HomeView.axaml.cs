@@ -7,10 +7,11 @@ public partial class HomeView : UserControl
     private readonly MainWindow _owner;
     private SessionBoard? _board;
 
-    public HomeView(MainWindow owner)
+    public HomeView(MainWindow owner, bool nativeOnly = false)
     {
         _owner = owner;
         InitializeComponent();
+        MachineButton.IsVisible = MachineSeparator.IsVisible = !nativeOnly;
         DataContextChanged += (_, _) => WatchBoard(DataContext as SessionBoard);
     }
 

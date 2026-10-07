@@ -26,6 +26,7 @@ public partial class FenceDialog : Window
         _availability = services.Runtime.FenceStartAvailability;
         InitializeComponent();
         Closed += (_, _) => _start?.Cancel();
+        Closing += (_, args) => { if (_copyBusy) args.Cancel = true; };
         RunningText.Text = "Fenced start runs the selected agent on a copy of this project inside its VM. The Windows project folder is not mounted there.";
         ClipboardText.Text = SealText.Clipboard;
         NetworkText.Text = SealText.Network;
@@ -41,7 +42,9 @@ public partial class FenceDialog : Window
         _recovery = _session.ReadRecovery(_projectPath);
         _sessionRunning = _services.Runtime.IsFencedOpen(_projectPath);
         var recoveryMode = _sessionRunning || _recovery.RestartBlocked || _recovery.CanResume || _recovery.Returns.Count > 0;
-        Title = recoveryMode ? "Saved work" : "Fenced start";
+        Title = _sessionRunning ? "Project is already open"
+            : _recovery.CanResume ? "Continue your project"
+            : recoveryMode ? "Saved work needs attention" : "Open project";
         HeadingText.Text = Title;
         ClipboardText.IsVisible = !recoveryMode;
         NetworkText.IsVisible = !recoveryMode;
@@ -49,16 +52,24 @@ public partial class FenceDialog : Window
         RunningText.IsVisible = !recoveryMode;
         RecoveryBox.ItemsSource = _recovery.Returns;
         RecoveryBox.SelectedItem = _recovery.Returns.FirstOrDefault(item => item.Directory == selected)
-            ?? _recovery.Returns.FirstOrDefault(item => item.CanRetry) ?? _recovery.Returns.FirstOrDefault();
+            ?? _recovery.Returns.FirstOrDefault();
         RecoveryBox.IsVisible = _recovery.Returns.Count > 0;
         RecoveryText.Text = _sessionRunning
-            ? "The project VM is running. Review saved copies now; close the session before retrying copy-back."
-            : _recovery.Message;
+            ? "This project is already open. Close this page to keep working in its agent window."
+            : _recovery.CanResume && _recovery.RestartBlocked
+                ? "Your saved VM is available. LaunchPad could not finish saving its files back to your Windows folder. Continue project opens the saved VM without sending Windows files into it."
+                : _recovery.CanResume
+                    ? "Continue project opens your saved VM. Saved file copies are available under More."
+                    : "LaunchPad kept the saved files. Use More to review what happened and the available copies.";
         RecoveryText.IsVisible = recoveryMode;
+        RecoveryDetailsText.Text = _recovery.Message;
+        RecoveryMore.IsVisible = recoveryMode;
         OpenSavedVmButton.IsVisible = _recovery.RestartBlocked;
         ResumeSavedButton.IsVisible = _recovery.CanResume;
         ResumeSavedButton.IsEnabled = !_availability.Blocked && !_copyBusy && _start is null && !_sessionRunning;
         StartButton.IsEnabled = !_availability.Blocked && !_recovery.RestartBlocked && !_copyBusy && _start is null && !_sessionRunning;
+        StartButton.IsVisible = !_recovery.CanResume && !_recovery.RestartBlocked && !_sessionRunning;
+        DismissButton.IsEnabled = !_copyBusy;
         ShowSelectedReturn();
     }
 
@@ -72,8 +83,12 @@ public partial class FenceDialog : Window
         ExplorerText.IsVisible = waiting;
         StubText.IsVisible = waiting;
         CopyBackText.IsVisible = waiting;
-        CopyBackButton.IsVisible = waiting;
-        CopyBackButton.IsEnabled = selected?.CanRetry == true && !_copyBusy && !_sessionRunning;
+        CopyBackButton.IsVisible = selected?.CanRetry == true;
+        CopyBackButton.IsEnabled = selected?.CanRetry == true && !_copyBusy && !_sessionRunning && _start is null;
+        SelectedReturnText.IsVisible = selected?.CanRetry == true;
+        SelectedReturnText.Text = selected?.CanRetry == true
+            ? "Save to Windows uses the saved copy from " + selected.SavedUtc.ToLocalTime().ToString("g")
+                + ". It checks for Windows edits before replacing files." : "";
         OpenReturnButton.IsVisible = waiting;
         OpenReturnButton.IsEnabled = selected?.CanReview == true;
         if (!waiting)
@@ -101,6 +116,11 @@ public partial class FenceDialog : Window
 
         WarningsText.Text = ReportedWarnings;
         WarningsText.IsVisible = true;
+    }
+
+    private void Dismiss_Click(object? sender, RoutedEventArgs e)
+    {
+        if (!_copyBusy) Close();
     }
 
     private async void Start_Click(object sender, RoutedEventArgs e)
@@ -136,7 +156,11 @@ public partial class FenceDialog : Window
             ShowAside();
             ShowWarnings();
             if (IsLoaded)
+            {
                 StatusText.Text = "The project session was started.";
+                ReportedStatus = StatusText.Text;
+                Close();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -169,6 +193,9 @@ public partial class FenceDialog : Window
         {
             CopyBackButton.IsEnabled = false;
             _copyBusy = true;
+            DismissButton.IsEnabled = false;
+            ResumeSavedButton.IsEnabled = false;
+            StatusText.Text = "Saving to your Windows folder… Please wait before closing this page.";
             StartButton.IsEnabled = false;
             RecoveryBox.IsEnabled = false;
             var selected = RecoveryBox.SelectedItem as SavedReturn
@@ -184,6 +211,7 @@ public partial class FenceDialog : Window
         finally
         {
             _copyBusy = false;
+            DismissButton.IsEnabled = true;
             RecoveryBox.IsEnabled = true;
             ShowAside();
             ReportedStatus = StatusText.Text ?? "";
@@ -216,7 +244,7 @@ public partial class FenceDialog : Window
 
     private async void ResumeSaved_Click(object? sender, RoutedEventArgs e)
     {
-        if (_start is not null || _services.Runtime.IsFencedOpen(_projectPath)) return;
+        if (_copyBusy || _start is not null || _services.Runtime.IsFencedOpen(_projectPath)) return;
         _start = new CancellationTokenSource();
         ShowAside();
         try
@@ -224,10 +252,16 @@ public partial class FenceDialog : Window
             var progress = new Progress<string>(text => { if (IsLoaded) StatusText.Text = text; });
             await _session.ResumeSavedAsync(_projectPath, Placement(), progress, _start.Token);
             StatusText.Text = "The saved VM was opened. No Windows project files were sent.";
+            ReportedStatus = StatusText.Text;
+            if (IsLoaded) Close();
         }
         catch (OperationCanceledException) { StatusText.Text = "Opening the saved VM was cancelled. Its disks were preserved."; }
         catch (Exception error) { StatusText.Text = error.Message; _services.Log.Write("Saved VM open failed: " + error.Message); }
-        finally { _start.Dispose(); _start = null; ShowAside(); ReportedStatus = StatusText.Text ?? ""; }
+        finally
+        {
+            _start.Dispose(); _start = null;
+            if (IsLoaded) { ShowAside(); ReportedStatus = StatusText.Text ?? ""; }
+        }
     }
 
     private LaunchPlacement? Placement()

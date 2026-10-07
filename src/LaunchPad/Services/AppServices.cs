@@ -40,6 +40,7 @@ public sealed class AppServices
     public IProjectRuntime Runtime { get; }
     public IHostResources Resources { get; }
     public IDesktopIntegration Desktop { get; }
+    public NotificationService Notifications => new(Paths);
 
     public static AppServices CreateDefault(AppPaths? paths = null)
     {
@@ -51,6 +52,8 @@ public sealed class AppServices
         var setup = new GrokSetup(paths, locator, log);
         var launcher = new ProjectLauncher(locator, log);
         var shortcuts = new ShortcutService(paths, log);
+        try { NotificationDeliveryOwner.StartIfEnabled(paths); }
+        catch { /* Notification startup must never block the project launcher. */ }
         return new AppServices(paths, settings, catalog, locator, setup, launcher, shortcuts, log);
     }
 }

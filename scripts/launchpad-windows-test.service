@@ -1,0 +1,23 @@
+[Unit]
+Description=LaunchPad managed Windows test transport
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/lib/launchpad/windows-test-broker.py
+User=root
+Group=root
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/run/launchpad-windows-test
+RuntimeDirectory=launchpad-windows-test
+RuntimeDirectoryMode=0755
+RestrictAddressFamilies=AF_UNIX
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

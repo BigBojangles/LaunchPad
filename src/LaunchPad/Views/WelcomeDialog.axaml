@@ -2,8 +2,8 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="LaunchPad"
-        Width="480" Height="240"
-        CanResize="False"
+        Width="500" SizeToContent="Height" MaxHeight="600"
+        CanResize="True" MinWidth="380"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Background="{StaticResource WindowBg}">
@@ -24,6 +24,6 @@
         <TextBlock x:Name="WarningText"
                    Classes="BodyText"
                    TextWrapping="Wrap"
-                   Text="New Project creates a folder and opens Grok Build in a small Debian machine. Your projects stay listed on the left. This folder is not mounted. Grok works on a copy inside a small Debian machine."/>
+                   Text="New Project creates a folder, then lets you choose an agent and Fenced VM or Native mode. VM agents work on a copy; native Windows agents work directly in your folder using your account permissions. Native agents must already be installed. Your projects stay listed on the left."/>
     </DockPanel>
 </Window>

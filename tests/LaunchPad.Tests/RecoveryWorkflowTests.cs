@@ -10,6 +10,18 @@ namespace LaunchPad.Tests;
 public sealed class RecoveryWorkflowTests
 {
     [Fact]
+    public async Task SafeWindowsReturnDoesNotRequireGitSetupAndRetainsLocalOriginal()
+    {
+        using var fixture = new Fixture(useDefaultBackup: true);
+        var recovery = fixture.Receive("PROJECT 1\nFILE 3 a.txt\nnewPROJECT-END\n");
+        await fixture.Session.CopyBackToProjectAsync(fixture.Project, recovery.DirectoryPath);
+        Assert.Equal("new", fixture.ReadHost());
+        Assert.Equal("old", File.ReadAllText(Path.Combine(recovery.DirectoryPath, "previous", "a.txt")));
+        Assert.Equal("saved VM fixture", File.ReadAllText(fixture.Disk));
+        Assert.Equal(0, fixture.BackupCalls);
+    }
+
+    [Fact]
     public async Task ACompleteReturnCanBeRetriedWithoutChangingItsReceiptOrSavedVm()
     {
         using var fixture = new Fixture();
@@ -160,7 +172,7 @@ public sealed class RecoveryWorkflowTests
         public Scanner Scanner { get; } = new();
         public FenceSession Session { get; }
         public int BackupCalls;
-        public Fixture()
+        public Fixture(bool useDefaultBackup = false)
         {
             Directory.CreateDirectory(Project);
             Directory.CreateDirectory(SessionDirectory);
@@ -168,7 +180,7 @@ public sealed class RecoveryWorkflowTests
             File.WriteAllText(Disk, "saved VM fixture");
             Session = new FenceSession(new SetupLog(new AppPaths(userProfile: Root, appDataDir: Path.Combine(Root, "app"))),
                 sessionsRoot: () => Sessions, asideRoot: () => Aside, returnScanner: Scanner,
-                returnBackup: _ => { BackupCalls++; return Task.FromResult(true); });
+                returnBackup: useDefaultBackup ? null : _ => { BackupCalls++; return Task.FromResult(true); });
         }
         public ReturnRecovery Receive(string wire)
         {

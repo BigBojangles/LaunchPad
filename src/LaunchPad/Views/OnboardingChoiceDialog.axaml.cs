@@ -4,7 +4,7 @@ namespace LaunchPad.Views;
 public enum OnboardingPath
 {
     AgentBob,
-    GrokBuild
+    CodingAgent
 }
 
 public partial class OnboardingChoiceDialog : Window
@@ -23,9 +23,9 @@ public partial class OnboardingChoiceDialog : Window
 
     }
 
-    private void GrokBuild_Click(object sender, RoutedEventArgs e)
+    private void CodingAgent_Click(object sender, RoutedEventArgs e)
     {
-        SelectedPath = OnboardingPath.GrokBuild;
+        SelectedPath = OnboardingPath.CodingAgent;
         Close(true);
 
     }

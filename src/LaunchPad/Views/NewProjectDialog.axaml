@@ -2,14 +2,14 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="New Project"
-        Width="520" Height="300"
+        Width="620" Height="430"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Background="{StaticResource WindowBg}">
     <DockPanel Margin="28">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Classes="GhostButton" Content="Cancel" IsCancel="True" Margin="0,0,10,0"/>
+            <Button Classes="GhostButton" Content="Cancel" IsCancel="True" Click="Cancel_Click" Margin="0,0,10,0"/>
             <Button Classes="PrimaryButton" Content="Create" IsDefault="True" Click="Create_Click"/>
         </StackPanel>
 
@@ -19,8 +19,15 @@
             <TextBox x:Name="NameBox"
                      Classes="FieldBox"
                      TextChanged="NameBox_TextChanged"/>
+            <TextBlock Text="Create inside this folder" Classes="HintText" Margin="0,14,0,6"/>
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox x:Name="FolderBox" Classes="FieldBox" TextChanged="FolderBox_TextChanged"/>
+                <Button Grid.Column="1" Classes="GhostButton" Content="Browse…" Click="Browse_Click" Margin="8,0,0,0"/>
+            </Grid>
+            <CheckBox x:Name="RememberFolder" Content="Use this as my default project location" IsChecked="True" Margin="0,10,0,0"/>
             <TextBlock x:Name="PathPreview"
                        Classes="HintText"
+                       TextWrapping="Wrap"
                        Margin="0,10,0,0"/>
             <TextBlock x:Name="ErrorText"
                        Foreground="{StaticResource Danger}"

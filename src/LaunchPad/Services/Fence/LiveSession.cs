@@ -144,23 +144,22 @@ public static class LiveSession
         lock (Gate) Sessions.TryGetValue(key, out entry);
         if (entry is null) return null;
         int? terminal = int.TryParse(ReadShared(Path.Combine(entry.Directory, "tui.pid")).Trim(), out var pid) && pid > 0 ? pid : null;
-        var status = entry.Status.Snapshot;
+        var connected = entry.Status.Snapshot.Connected;
+        var activity = entry.Status.AgentActivity;
         var ready = File.Exists(Path.Combine(entry.Directory, "console.ready"));
         if (ProjectSessionStore.HasUnconfirmedImport(entry.Directory))
             return new SessionRecord("vm:" + QemuLayout.ProjectKey(key), key, entry.AgentId,
                 SessionKind.VirtualMachine, entry.ProcessId, terminal, null, SessionLifecycle.Failed,
                 "The last file send or startup was not confirmed. VM work is preserved; review Saved work.");
-        var state = status switch
-        {
-            (false, _) => SessionLifecycle.Unknown,
-            (true, "busy") => SessionLifecycle.Busy,
-            (true, "needs-an-answer") => SessionLifecycle.NeedsAnswer,
-            (true, "idle") => SessionLifecycle.Running,
-            _ => ready ? SessionLifecycle.Unknown : SessionLifecycle.Starting
-        };
+        var state = AgentActivityTracker.SessionState(activity);
+        if (connected && !ready && state == SessionLifecycle.Unknown) state = SessionLifecycle.Starting;
         return new SessionRecord("vm:" + QemuLayout.ProjectKey(key), key, entry.AgentId,
             SessionKind.VirtualMachine, entry.ProcessId, terminal, null, state,
-            !status.Connected ? "The status connection closed. VM work is preserved; activity is unavailable." : null);
+            !connected ? "The status connection closed. VM work is preserved; activity is unavailable."
+                : ready && activity.State == AgentActivity.Unknown ? "This runtime has not reported supported agent activity."
+                : AgentActivityTracker.OutcomeText(activity)
+                    ?? (entry.Status.ObservationError is not null ? "Activity history could not be saved; current status is live." : null),
+            Activity: activity);
     }
 
     private static string Normalize(string project) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(project));

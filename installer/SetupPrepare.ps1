@@ -74,7 +74,7 @@ function New-LaunchPassword {
     return -join $chars
 }
 
-function Protect-Secret([string]$Plain) {
+function Initialize-SecretInterop {
     if (-not ('FenceSecret' -as [type])) {
         Add-Type -TypeDefinition @'
 using System;
@@ -91,9 +91,30 @@ public static class FenceSecret {
 
     [DllImport("kernel32.dll")]
     public static extern IntPtr LocalFree(IntPtr handle);
+
+    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern bool LogonUserW(string user, string domain, string password, int type, int provider, out IntPtr token);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr handle);
 }
 '@
     }
+}
+
+function Test-CandidateCredential([string]$Password) {
+    Initialize-SecretInterop
+    $token = [IntPtr]::Zero
+    if (-not [FenceSecret]::LogonUserW('BuildLaunchTest', '.', $Password, 2, 0, [ref]$token)) { return $false }
+    try {
+        $identity = New-Object Security.Principal.WindowsIdentity($token)
+        try { return @($identity.Groups | Where-Object { $_.Value -eq 'S-1-5-32-544' }).Count -eq 0 }
+        finally { $identity.Dispose() }
+    } finally { [FenceSecret]::CloseHandle($token) | Out-Null }
+}
+
+function Protect-Secret([string]$Plain, [string]$Destination) {
+    Initialize-SecretInterop
 
     $plainBytes = [Text.Encoding]::UTF8.GetBytes($Plain)
     $input = New-Object FenceSecret+DataBlob
@@ -111,7 +132,12 @@ public static class FenceSecret {
         [Runtime.InteropServices.Marshal]::Copy($output.Data, $protected, 0, $output.Size)
         $dir = Join-Path $env:APPDATA 'LaunchPad'
         New-Item -ItemType Directory -Force -Path $dir | Out-Null
-        [IO.File]::WriteAllBytes((Join-Path $dir 'fence-user.bin'), $protected)
+        $temporary = $Destination + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+        try {
+            $stream = New-Object IO.FileStream($temporary, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+            try { $stream.Write($protected, 0, $protected.Length); $stream.Flush($true) } finally { $stream.Dispose() }
+            [IO.File]::Move($temporary, $Destination)
+        } finally { if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force } }
     }
     finally {
         if ($input.Data -ne [IntPtr]::Zero) {
@@ -137,44 +163,88 @@ if (-not $Elevated) {
 
     $featureOn = Test-Feature
     $accountOn = Test-Account
-    if ($featureOn -and $accountOn) {
+    $accountNeedsRepair = $false
+    if ($accountOn) {
+        try {
+            $account = Get-LocalUser -Name 'BuildLaunchTest'
+            $adminsGroup = (Get-LocalGroup -SID 'S-1-5-32-544').Name
+            $usersGroup = (Get-LocalGroup -SID 'S-1-5-32-545').Name
+            $accountNeedsRepair = -not $account.Enabled -or @(Get-LocalGroupMember -Group $adminsGroup | Where-Object { $_.SID -eq $account.SID }).Count -gt 0 -or @(Get-LocalGroupMember -Group $usersGroup | Where-Object { $_.SID -eq $account.SID }).Count -eq 0
+        } catch { $accountNeedsRepair = $true }
+    }
+    if ($featureOn -and $accountOn -and -not $accountNeedsRepair) {
         exit 0
     }
 
     $createdPassword = $null
     $secretPath = $null
+    $recoveryPath = $null
+    $workPath = $null
     if (-not $accountOn) {
+        try {
+        $existingSecret = Join-Path $env:APPDATA 'LaunchPad\fence-user.bin'
+        $oldProfile = Join-Path (Split-Path -Parent $env:USERPROFILE) 'BuildLaunchTest'
+        if ((Test-Path -LiteralPath $existingSecret) -or (Test-Path -LiteralPath $oldProfile)) {
+            throw 'The account is missing but previous account data remains. Restore the original Windows account; setup will not replace its identity.'
+        }
         $createdPassword = New-LaunchPassword
-        $secretPath = Join-Path $env:TEMP ('bl-launch-account-' + [guid]::NewGuid().ToString('N') + '.secret')
+        $recoveryPath = Join-Path $env:APPDATA ('LaunchPad\fence-user-recovery-' + [guid]::NewGuid().ToString('N') + '.bin')
+        Protect-Secret $createdPassword $recoveryPath
+        $workPath = Join-Path ([IO.Path]::GetTempPath()) ('launchpad-account-' + [guid]::NewGuid().ToString('N'))
+        [IO.Directory]::CreateDirectory($workPath) | Out-Null
+        $acl = New-Object Security.AccessControl.DirectorySecurity
+        $acl.SetAccessRuleProtection($true, $false)
+        $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User
+        foreach ($entry in @(@($currentSid, 'FullControl'), @('S-1-5-18', 'FullControl'), @('S-1-5-32-544', 'ReadAndExecute'))) {
+            $sid = New-Object Security.Principal.SecurityIdentifier($entry[0].ToString())
+            $rule = New-Object Security.AccessControl.FileSystemAccessRule($sid, [Security.AccessControl.FileSystemRights]$entry[1], [Security.AccessControl.InheritanceFlags]'ContainerInherit,ObjectInherit', [Security.AccessControl.PropagationFlags]::None, [Security.AccessControl.AccessControlType]::Allow)
+            $acl.AddAccessRule($rule)
+        }
+        Set-Acl -LiteralPath $workPath -AclObject $acl
+        $secretPath = Join-Path $workPath 'account.secret'
         [IO.File]::WriteAllText($secretPath, $createdPassword, (New-Object System.Text.UTF8Encoding $false))
+        }
+        catch {
+            if ($secretPath) { Remove-Item -LiteralPath $secretPath -Force -ErrorAction SilentlyContinue }
+            if ($workPath) { Remove-Item -LiteralPath $workPath -ErrorAction SilentlyContinue }
+            throw
+        }
     }
 
-    $argList = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath, '-Elevated')
+    $argList = '-NoProfile -ExecutionPolicy Bypass -File "' + $PSCommandPath + '" -Elevated'
     if ($secretPath) {
-        $argList += @('-Secret', $secretPath)
+        $argList += ' -Secret "' + $secretPath + '"'
     }
 
+    $scriptLease = $null
+    $secretLease = $null
     try {
+        $scriptLease = New-Object IO.FileStream($PSCommandPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+        if ($secretPath) { $secretLease = New-Object IO.FileStream($secretPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read) }
         $elevated = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $argList -Verb RunAs -Wait -PassThru -WindowStyle Hidden
     }
     catch {
-        if ($secretPath) {
-            Remove-Item -LiteralPath $secretPath -Force -ErrorAction SilentlyContinue
-        }
-
         exit 1
     }
-
-    if ($secretPath) {
-        Remove-Item -LiteralPath $secretPath -Force -ErrorAction SilentlyContinue
+    finally {
+        if ($secretLease) { $secretLease.Dispose() }
+        if ($scriptLease) { $scriptLease.Dispose() }
+        if ($secretPath) { Remove-Item -LiteralPath $secretPath -Force -ErrorAction SilentlyContinue }
+        if ($workPath) { Remove-Item -LiteralPath $workPath -ErrorAction SilentlyContinue }
     }
 
     if ($elevated.ExitCode -ne 0) {
         exit $elevated.ExitCode
     }
 
-    if ($createdPassword -and (Test-Account)) {
-        Protect-Secret $createdPassword
+    if ($createdPassword) {
+        # Current-user DPAPI was prepared before account creation. Publication
+        # never overwrites an existing host credential; failed setup retains
+        # the encrypted recovery candidate without resetting the account.
+        if (-not (Test-CandidateCredential $createdPassword)) {
+            throw ('Windows rejected the new account credential. The account password was not reset; the encrypted recovery credential remains at ' + $recoveryPath)
+        }
+        [IO.File]::Move($recoveryPath, (Join-Path $env:APPDATA 'LaunchPad\fence-user.bin'))
     }
 
     $createdPassword = $null
@@ -190,24 +260,24 @@ if (-not (Test-Feature)) {
 
 if ($Secret -and -not (Test-Account)) {
     $raw = [IO.File]::ReadAllText($Secret)
-    Remove-Item -LiteralPath $Secret -Force -ErrorAction SilentlyContinue
     $secure = ConvertTo-SecureString -String $raw -AsPlainText -Force
     $raw = $null
     Import-Module Microsoft.PowerShell.LocalAccounts
     New-LocalUser -Name 'BuildLaunchTest' -Password $secure -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires | Out-Null
     $secure = $null
-    $users = @(Get-LocalGroupMember -Group 'Users' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '\\BuildLaunchTest$' })
-    if ($users.Count -eq 0) {
-        Add-LocalGroupMember -Group 'Users' -Member 'BuildLaunchTest'
-    }
-
-    $admins = @(Get-LocalGroupMember -Group 'Administrators' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '\\BuildLaunchTest$' })
-    if ($admins.Count -gt 0) {
-        Remove-LocalGroupMember -Group 'Administrators' -Member 'BuildLaunchTest'
-    }
 }
-elseif ($Secret) {
-    Remove-Item -LiteralPath $Secret -Force -ErrorAction SilentlyContinue
+
+if (Test-Account) {
+    Enable-LocalUser -Name 'BuildLaunchTest'
+    $account = Get-LocalUser -Name 'BuildLaunchTest'
+    $usersGroup = (Get-LocalGroup -SID 'S-1-5-32-545').Name
+    $adminsGroup = (Get-LocalGroup -SID 'S-1-5-32-544').Name
+    if (@(Get-LocalGroupMember -Group $usersGroup | Where-Object { $_.SID -eq $account.SID }).Count -eq 0) {
+        Add-LocalGroupMember -Group $usersGroup -Member 'BuildLaunchTest'
+    }
+    if (@(Get-LocalGroupMember -Group $adminsGroup | Where-Object { $_.SID -eq $account.SID }).Count -gt 0) {
+        Remove-LocalGroupMember -Group $adminsGroup -Member 'BuildLaunchTest'
+    }
 }
 
 exit 0

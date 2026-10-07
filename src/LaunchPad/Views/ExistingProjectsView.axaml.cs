@@ -22,8 +22,8 @@ public partial class ExistingProjectsView : UserControl
         _newProject = newProject;
         InitializeComponent();
         _tipTimer.Tick += (_, _) => { TipText.IsVisible = false; _tipTimer.Stop(); };
-        Loaded += (_, _) => { _services.Settings.PreferencesChanged += ShowTip; ShowTip(); };
-        Unloaded += (_, _) => { _services.Settings.PreferencesChanged -= ShowTip; _tipTimer.Stop(); };
+        Loaded += (_, _) => { _services.Settings.PreferencesChanged += RefreshPreferences; ShowTip(); };
+        Unloaded += (_, _) => { _services.Settings.PreferencesChanged -= RefreshPreferences; _tipTimer.Stop(); };
         Reload();
     }
 
@@ -33,6 +33,12 @@ public partial class ExistingProjectsView : UserControl
         try { if (_services.Settings.TakeTip("project-menu")) { TipText.IsVisible = true; _tipTimer.Start(); } }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         { TipText.IsVisible = false; _tipTimer.Stop(); _services.Log.Write("Tip could not be saved: " + error.Message); }
+    }
+    private void RefreshPreferences()
+    {
+        ShowTip();
+        foreach (var row in this.GetVisualDescendants().OfType<Button>().Where(button => button.DataContext is ProjectEntry))
+            if (row.ContextMenu is not null && row.DataContext is ProjectEntry project) row.ContextMenu = CreateProjectMenu(project.Path);
     }
 
     private void ProjectName_Saved(object? sender, DisplayNameSavedEventArgs e)
@@ -61,15 +67,41 @@ public partial class ExistingProjectsView : UserControl
         }
         menu.Items.Add(Action("Open project", Project_Click));
         menu.Items.Add(Action("Open folder", OpenFolder_Click));
-        menu.Items.Add(Action("Saved work", Recovery_Click));
-        menu.Items.Add(Action("Send files", Files_Click));
+        var recovery = Action("Saved VM work", Recovery_Click);
+        recovery.IsEnabled = !_services.Runtime.NativeOnly;
+        menu.Items.Add(recovery);
+        var files = Action("Send files to VM", Files_Click);
+        files.IsEnabled = !_services.Runtime.NativeOnly && _services.Settings.LaunchModeFor(path) != "native";
+        menu.Items.Add(files);
         menu.Items.Add(Action("Agent", Agent_Click));
         var more = new MenuItem { Header = "More…" };
-        more.Items.Add(Action("Memory", Memory_Click));
+        var memory = Action("VM memory", Memory_Click);
+        memory.IsEnabled = !_services.Runtime.NativeOnly && _services.Settings.LaunchModeFor(path) != "native";
+        more.Items.Add(memory);
+        more.Items.Add(Action("Project permissions", Permissions_Click));
+        var windowsTest = Action("Windows tests", WindowsTest_Click);
+        windowsTest.IsEnabled = OperatingSystem.IsWindows();
+        more.Items.Add(windowsTest);
+        if (_services.Settings.Current.NotificationsEnabled && Guid.TryParseExact(_services.Settings.Current.NotificationDestination, "N", out _))
+            more.Items.Add(Action(_services.Settings.NotificationConsentFor(path).ProjectEnabled ? "Notifications: On" : "Notifications: Off", async (_, _) =>
+            {
+                try { _services.Settings.SaveProjectNotifications(path, !_services.Settings.NotificationConsentFor(path).ProjectEnabled); }
+                catch { await UiDialogs.ShowAsync((Window?)TopLevel.GetTopLevel(this), "Project alert preference could not be saved. The previous choice was preserved."); }
+            }));
         more.Items.Add(Action("Rename project", Rename_Click));
-        more.Items.Add(Action("Reset to folder name", (_, _) => { _services.Settings.ResetDisplayName(path); Reload(); }));
-        var unfenced = Action("Open unfenced", OpenUnfenced_Click);
-        unfenced.IsVisible = _services.Runtime.HasVirtualMachine;
+        more.Items.Add(Action("Reset to folder name", async (_, e) =>
+        {
+            e.Handled = true;
+            try { _services.Settings.ResetDisplayName(path); }
+            catch (Exception error)
+            {
+                await UiDialogs.ShowAsync((Window?)TopLevel.GetTopLevel(this),
+                    "The display name could not be reset. Saved project records were preserved.\n\n" + error.Message);
+                return;
+            }
+            Reload();
+        }));
+        var unfenced = Action("Open native (no sandbox)", OpenUnfenced_Click);
         more.Items.Add(unfenced);
         menu.Items.Add(more);
         return menu;
@@ -151,12 +183,19 @@ public partial class ExistingProjectsView : UserControl
             return;
         }
 
-        var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-        var dialog = new AgentWindow(_services.Settings, path, name)
+        var name = _services.Settings.DisplayNameFor(path);
+        var dialog = new AgentWindow(_services.Settings, path, name, _services.Runtime.NativeOnly)
         {
             Title = name
         };
         await dialog.ShowDialog((Window)TopLevel.GetTopLevel(this)!);
+    }
+
+    private async void WindowsTest_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (PathOf(sender) is not string path || !Directory.Exists(path)) return;
+        await new ManagedWindowsTestsWindow(_services, path).ShowDialog((Window)TopLevel.GetTopLevel(this)!);
     }
 
     private async void Files_Click(object sender, RoutedEventArgs e)
@@ -189,12 +228,19 @@ public partial class ExistingProjectsView : UserControl
             return;
         }
 
-        var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var name = _services.Settings.DisplayNameFor(path);
         var dialog = new MachineWindow(_services.Settings, path, name, _services.Resources)
         {
             Title = name
         };
         await dialog.ShowDialog((Window)TopLevel.GetTopLevel(this)!);
+    }
+
+    private async void Permissions_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (PathOf(sender) is not string path) return;
+        await new ProjectPermissionsWindow(_services, path).ShowDialog((Window)TopLevel.GetTopLevel(this)!);
     }
 
     private void Rename_Click(object? sender, RoutedEventArgs e)
@@ -249,7 +295,13 @@ public partial class ExistingProjectsView : UserControl
         if (string.IsNullOrWhiteSpace(name))
             name = path;
 
-        ProjectRow.AddFolder(_services.Settings, name, path);
+        try { ProjectRow.AddFolder(_services.Settings, name, path); }
+        catch (Exception error)
+        {
+            await UiDialogs.ShowAsync((Window?)top,
+                "The folder could not be added. Saved project records were preserved.\n\n" + error.Message);
+            return;
+        }
         Reload();
     }
 

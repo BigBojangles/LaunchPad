@@ -69,6 +69,27 @@ public static class RestrictedRuntimeAccess
         if (OperatingSystem.IsWindows()) GrantWindows(path, FileSystemRights.ReadAndExecute, false);
     }
 
+    public static bool HasRequiredReadGrants(string path)
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+        try
+        {
+            var full = Path.GetFullPath(path);
+            if (!FenceFiles.TryResolveUnlinked(Path.GetDirectoryName(full)!, Path.GetFileName(full), out _)) return false;
+            var account = (SecurityIdentifier)new NTAccount(TestUserRunner.UserName).Translate(typeof(SecurityIdentifier));
+            var acl = Directory.Exists(full) ? (FileSystemSecurity)new DirectoryInfo(full).GetAccessControl() : new FileInfo(full).GetAccessControl();
+            var rules = acl.GetAccessRules(true, true, typeof(SecurityIdentifier)).OfType<FileSystemAccessRule>().ToArray();
+            return new[] { account, new SecurityIdentifier("S-1-5-12") }.All(sid =>
+                rules.Any(rule => rule.IdentityReference.Equals(sid) && rule.AccessControlType == AccessControlType.Allow
+                    && (rule.PropagationFlags & PropagationFlags.InheritOnly) == 0
+                    && (rule.FileSystemRights & FileSystemRights.ReadAndExecute) == FileSystemRights.ReadAndExecute)
+                && !rules.Any(rule => rule.IdentityReference.Equals(sid) && rule.AccessControlType == AccessControlType.Deny
+                    && (rule.PropagationFlags & PropagationFlags.InheritOnly) == 0
+                    && (rule.FileSystemRights & FileSystemRights.ReadAndExecute) != 0));
+        }
+        catch { return false; }
+    }
+
     public static void ModifyDirectory(string path)
     {
         if (OperatingSystem.IsWindows()) GrantWindows(path, FileSystemRights.Modify, true);

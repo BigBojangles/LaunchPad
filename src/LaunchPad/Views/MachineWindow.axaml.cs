@@ -54,13 +54,19 @@ public partial class MachineWindow : Window
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
+        StatusText.Text = "";
         if (MemoryBox.SelectedIndex < 0)
             return;
 
         var megabytes = _gigabytes[MemoryBox.SelectedIndex] * 1024;
         if (_projectPath is not null)
         {
-            _settings.SaveProjectMemory(_projectPath, megabytes);
+            try { _settings.SaveProjectMemory(_projectPath, megabytes); }
+            catch (Exception error)
+            {
+                StatusText.Text = "Memory could not be saved.\n" + error.Message;
+                return;
+            }
             Close(true);
             return;
         }
@@ -68,7 +74,12 @@ public partial class MachineWindow : Window
         if (CoresBox.SelectedIndex < 0)
             return;
 
-        _settings.SavePreferences(_settings.Current.ShowTips, _settings.Current.DefaultAgent, megabytes, CoresBox.SelectedIndex + 1);
+        try { _settings.SavePreferences(_settings.Current.ShowTips, _settings.Current.DefaultAgent, megabytes, CoresBox.SelectedIndex + 1); }
+        catch (Exception error)
+        {
+            StatusText.Text = "VM defaults could not be saved.\n" + error.Message;
+            return;
+        }
         Close(true);
     }
 }

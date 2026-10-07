@@ -54,7 +54,6 @@ public sealed record LiveTile(string ProjectPath, string ProjectName, int ColorI
 public sealed class SessionBoard
 {
     private string _signature = "\u0000";
-    private string _layout = "\u0000";
 
     public ObservableCollection<FolderGroup> Groups { get; } = new();
     public ObservableCollection<SessionItem> AllSessions { get; } = new();
@@ -67,67 +66,74 @@ public sealed class SessionBoard
         var signature = string.Join("|", tiles.Select(t => t.ProjectPath + ":" + t.IsVm + ":" + t.ColorIndex + ":" + t.ProjectName + ":" + t.DisplayName + ":" + t.Session));
         if (signature == _signature)
             return;
-        _signature = signature;
-        var layout = string.Join("|", tiles.Select(tile => tile.ProjectPath + ":" + tile.IsVm + ":" + tile.ColorIndex + ":" +
-            (tile.Session?.Id ?? (tile.IsVm ? "vm:" : "host:") + LaunchPad.Services.Fence.QemuLayout.ProjectKey(tile.ProjectPath))));
-        if (layout == _layout)
-        {
-            foreach (var tile in tiles)
-            {
-                var id = tile.Session?.Id ?? (tile.IsVm ? "vm:" : "host:") + LaunchPad.Services.Fence.QemuLayout.ProjectKey(tile.ProjectPath);
-                var kind = tile.IsVm ? "fenced VM" : "unfenced window";
-                AllSessions.First(item => item.Id == id).UpdateDisplay(tile.DisplayName ?? tile.ProjectName,
-                    (tile.DisplayName ?? tile.ProjectName) + "  ·  " + kind, tile.Session);
-            }
-            foreach (var group in Groups.Where(group => group.ShowFrame))
-                group.Name = tiles.First(tile => tile.ProjectPath.Equals(group.ProjectPath, StringComparison.OrdinalIgnoreCase)).ProjectName;
-            return;
-        }
-        _layout = layout;
-
-        var selected = AllSessions.FirstOrDefault(s => s.IsSelected);
-        Groups.Clear();
-        AllSessions.Clear();
+        if (tiles.Select(TileId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != tiles.Count)
+            throw new ArgumentException("Session IDs must be unique.", nameof(tiles));
+        var existing = AllSessions.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
+        var desiredGroups = new List<FolderGroup>();
+        var desiredSessions = new List<SessionItem>();
 
         // A project with more than one live session gets a framed group with its name.
         // Single sessions sit loose. Both use the same label slot and padding, so they share one baseline.
-        var loose = new FolderGroup("", showFrame: false);
+        var loose = Groups.FirstOrDefault(group => !group.ShowFrame) ?? new FolderGroup("", showFrame: false);
+        var looseSessions = new List<SessionItem>();
         foreach (var project in tiles.GroupBy(t => t.ProjectPath, StringComparer.OrdinalIgnoreCase))
         {
             var list = project.ToList();
             var grouped = list.Count > 1;
             var target = loose;
+            var groupSessions = looseSessions;
             if (grouped)
             {
-                target = new FolderGroup(list[0].ProjectName, showFrame: true, list[0].ProjectPath);
-                Groups.Add(target);
+                target = Groups.FirstOrDefault(group => group.ShowFrame &&
+                    string.Equals(group.ProjectPath, list[0].ProjectPath, StringComparison.OrdinalIgnoreCase))
+                    ?? new FolderGroup(list[0].ProjectName, showFrame: true, list[0].ProjectPath);
+                target.Name = list[0].ProjectName;
+                groupSessions = new List<SessionItem>();
+                desiredGroups.Add(target);
             }
 
             foreach (var tile in list)
             {
-                var kind = tile.IsVm ? "fenced VM" : "unfenced window";
-                var item = new SessionItem(
-                    tile.DisplayName ?? tile.ProjectName,
-                    (tile.DisplayName ?? tile.ProjectName) + "  ·  " + kind,
-                    tile.ProjectPath,
-                    IdentityPalette.At(tile.ColorIndex),
-                    tile.IsVm,
-                    status: null,
-                    session: tile.Session);
-                if (selected is not null
-                    && string.Equals(selected.Id, item.Id, StringComparison.OrdinalIgnoreCase))
-                    item.IsSelected = true;
-                target.Sessions.Add(item);
+                var kind = tile.IsVm ? "fenced VM" : "native (no sandbox)";
+                var id = TileId(tile);
+                existing.TryGetValue(id, out var previous);
+                var identity = IdentityPalette.At(tile.ColorIndex);
+                var name = tile.DisplayName ?? tile.ProjectName;
+                var tooltip = name + "  ·  " + kind;
+                var item = previous is not null && previous.IsVm == tile.IsVm && previous.IdentityBrush.Color == identity &&
+                    string.Equals(previous.ProjectPath, tile.ProjectPath, StringComparison.OrdinalIgnoreCase)
+                    ? previous : new SessionItem(name, tooltip, tile.ProjectPath, identity, tile.IsVm, status: null, session: tile.Session)
+                    { IsSelected = previous?.IsSelected == true };
+                if (ReferenceEquals(item, previous)) item.UpdateDisplay(name, tooltip, tile.Session);
+                groupSessions.Add(item);
             }
+            if (grouped) Reconcile(target.Sessions, groupSessions);
         }
 
-        if (loose.Sessions.Count > 0)
-            Groups.Add(loose);
+        Reconcile(loose.Sessions, looseSessions);
+        if (looseSessions.Count > 0) desiredGroups.Add(loose);
 
-        foreach (var group in Groups)
+        foreach (var group in desiredGroups) desiredSessions.AddRange(group.Sessions);
+        Reconcile(Groups, desiredGroups);
+        Reconcile(AllSessions, desiredSessions);
+        _signature = signature;
+    }
+
+    private static string TileId(LiveTile tile) => tile.Session?.Id ??
+        (tile.IsVm ? "vm:" : "host:") + LaunchPad.Services.Fence.QemuLayout.ProjectKey(tile.ProjectPath);
+
+    // Preserve unaffected item containers, keyboard focus and inline edits.
+    // A session that changes grouping may still need a new visual parent.
+    private static void Reconcile<T>(ObservableCollection<T> current, IReadOnlyList<T> desired) where T : class
+    {
+        for (var index = current.Count - 1; index >= 0; index--)
+            if (!desired.Contains(current[index])) current.RemoveAt(index);
+        for (var index = 0; index < desired.Count; index++)
         {
-            foreach (var session in group.Sessions)
-                AllSessions.Add(session);
+            if (index < current.Count && ReferenceEquals(current[index], desired[index])) continue;
+            var previousIndex = current.IndexOf(desired[index]);
+            if (previousIndex >= 0) current.Move(previousIndex, index);
+            else current.Insert(index, desired[index]);
         }
     }
 
@@ -178,7 +184,7 @@ public sealed class SessionItem : INotifyPropertyChanged
         Session = session;
         Id = session?.Id ?? (isVm ? "vm:" : "host:") + LaunchPad.Services.Fence.QemuLayout.ProjectKey(projectPath);
         StatusBrush = status is Color s ? Freeze(s) : Paint(session?.State);
-        Icon = isVm ? ProductIcons.LaunchPad : ProductIcons.Grok;
+        Icon = ProductIcons.LaunchPad;
     }
 
     public string Name { get; private set; }
@@ -205,21 +211,27 @@ public sealed class SessionItem : INotifyPropertyChanged
     public string StatusText => Session?.State switch
     {
         SessionLifecycle.Starting => "Starting",
-        SessionLifecycle.Running => IsVm ? "Ready" : "Open",
+        SessionLifecycle.Running => "Open",
+        SessionLifecycle.Idle => Session?.Activity?.LastEvent?.Kind switch
+        {
+            AgentEventKind.RunFailed => "Run failed",
+            AgentEventKind.Interrupted => "Interrupted",
+            _ => "Idle"
+        },
         SessionLifecycle.Busy => "Working",
         SessionLifecycle.NeedsAnswer => "Needs answer",
         SessionLifecycle.Stopping => "Saving",
-        SessionLifecycle.Stopped => "Closed",
+        SessionLifecycle.Stopped => "Stopped",
         SessionLifecycle.Failed => "Failed",
-        _ => "Unavailable"
+        _ => "Activity unavailable"
     };
     private static SolidColorBrush? Paint(SessionLifecycle? state) => state switch
     {
-        SessionLifecycle.Running or SessionLifecycle.Busy => Freeze(StatusColors.Green),
+        SessionLifecycle.Busy => Freeze(StatusColors.Green),
         SessionLifecycle.NeedsAnswer => Freeze(StatusColors.Yellow),
-        SessionLifecycle.Failed => Freeze(StatusColors.Red),
-        null => null,
-        _ => Freeze(Color.Parse("#827E75"))
+        SessionLifecycle.Idle or SessionLifecycle.Stopped or SessionLifecycle.Failed => Freeze(StatusColors.Red),
+        // Startup, saving and missing activity remain text diagnostics; no fourth lamp.
+        _ => null
     };
     public bool IsVm { get; }
     public IImage? Icon { get; }

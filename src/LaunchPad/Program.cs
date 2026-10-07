@@ -9,6 +9,40 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        if (RuntimeActivation.IsRequest(args))
+        {
+            if (args.Length != 2) return 87;
+            if (!OperatingSystem.IsWindows()) return 50;
+            try
+            {
+                if (!TestUserRunner.CheckStoredCredential().Ready) return 1;
+                RuntimeActivation.Activate(AppContext.BaseDirectory, args[1]);
+                return 0;
+            }
+            catch (Exception error)
+            {
+                new SetupLog(new AppPaths()).Write("Installed runtime activation failed; previous selection preserved: " + error);
+                return 1;
+            }
+        }
+        if (NativeGrokActivity.IsRequest(args)) return NativeGrokActivity.RunCallback(args);
+        if (NativeClaudeActivity.IsRequest(args)) return NativeClaudeActivity.RunCallback(args);
+        if (NotificationDeliveryOwner.IsRequest(args)) return NotificationDeliveryOwner.Run(args);
+        if (WindowsRuntimeRepair.IsRequest(args))
+        {
+            try
+            {
+                if (!OperatingSystem.IsWindows()) return 50;
+                var account = TestUserRunner.CheckStoredCredential();
+                if (!account.Ready) return 1;
+                var root = AppContext.BaseDirectory;
+                WindowsRuntimeRepair.Apply(WindowsRuntimeRepair.Plan(root, !File.Exists(Path.Combine(root, "native-only.txt"))));
+                return 0;
+            }
+            catch { return 1; }
+        }
+        if (OperatingSystem.IsWindows() && InteractiveTestDesktop.IsGuardRequest(args)) return InteractiveTestDesktop.RunGuard(args);
+        if (NativeAgentTerminal.IsRequest(args)) return NativeAgentTerminal.Run(args);
         if (OperatingSystem.IsWindows() && WindowsHostNetworkBoundary.IsPreparationRequest(args))
         {
             try { WindowsHostNetworkBoundary.PrepareRuntime(args[1]); return 0; }

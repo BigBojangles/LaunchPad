@@ -1,0 +1,34 @@
+<Window x:Class="LaunchPad.Views.WindowsTestWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Windows test preview" Width="560" Height="620" MinWidth="480" MinHeight="500" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+  <DockPanel Margin="24">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,14,0,0">
+      <TextBlock x:Name="StatusText" Classes="BodyText" Text="Choose the demo or a built Windows app."/>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button x:Name="ShowDesktopButton" Content="Show test desktop" Classes="GhostButton" Click="ShowDesktop_Click" IsEnabled="False"/>
+        <Button x:Name="CancelTestButton" Content="Cancel test" Classes="GhostButton" Click="CancelTest_Click" IsEnabled="False"/>
+        <Button Content="Close" Classes="GhostButton" Click="Close_Click"/>
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
+        <TextBlock Text="Try Windows testing" Classes="TitleText"/>
+        <TextBlock x:Name="ProjectLabel" Classes="BodyText"/>
+        <TextBlock Classes="BodyText" Text="Start with the tiny checklist: add a task, check it off and clear completed tasks. Then try your built app."/>
+        <Button x:Name="NormalDemoButton" Content="Open checklist normally (no sandbox)" Classes="GhostButton" Click="NormalDemo_Click"/>
+        <TextBlock Classes="HintText" Text="This comparison demo uses your Windows account and ordinary desktop. It does not test account isolation."/>
+        <Button x:Name="AccountDemoButton" Content="Run checklist in test account" Classes="PrimaryButton" Click="AccountDemo_Click"/>
+        <TextBlock Classes="HintText" Text="The test-account route opens a separate desktop with Return and Cancel buttons. Return leaves the test running. It returns automatically after five minutes."/>
+        <TextBlock Classes="BodyText" Text="Your built Windows app"/>
+        <Button x:Name="ChooseAppButton" Content="Choose .exe in this project…" Classes="GhostButton" Click="ChooseApp_Click"/>
+        <TextBlock x:Name="ProgramLabel" Classes="HintText" Text="No app selected."/>
+        <Button x:Name="RunAppButton" Content="Run app in test account" Classes="PrimaryButton" Click="RunApp_Click" IsEnabled="False"/>
+        <TextBlock Classes="HintText" Text="Copies the app's containing folder and dependencies, up to 2 GiB / 20,000 files. Linked folders are refused. Originals stay in place; test changes are never copied back automatically."/>
+        <TextBlock Classes="BodyText" Text="Working copy and results"/>
+        <TextBox x:Name="CopyPathText" IsReadOnly="True" TextWrapping="Wrap"/>
+        <Button x:Name="OpenResultsButton" Content="Open retained working copy" Classes="GhostButton" Click="OpenResults_Click" IsEnabled="False"/>
+        <TextBlock Classes="HintText" Text="Closing this preview cancels its test and returns to LaunchPad. Copies and results are kept. Automatic requests/results from the Linux agent are still being connected."/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

@@ -1,9 +1,9 @@
 <Window x:Class="LaunchPad.Views.FenceDialog"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Fenced start"
-        Width="560" Height="640"
-        MinHeight="480"
+        Title="Open project"
+        Width="560" Height="480"
+        MinHeight="360"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Background="{StaticResource WindowBg}">
@@ -15,37 +15,47 @@
             <WrapPanel HorizontalAlignment="Right">
                 <Button x:Name="CopyBackButton"
                         Classes="GhostButton"
-                        Content="Retry copy-back"
+                        Content="Save to Windows"
                         Margin="0,0,10,8"
                         Click="CopyBack_Click"/>
-                <Button x:Name="OpenReturnButton" Classes="GhostButton" Content="Review files"
-                        Margin="0,0,10,8" Click="OpenReturn_Click"/>
-                <Button x:Name="OpenSavedVmButton" Classes="GhostButton" Content="Open saved VM folder"
-                        Margin="0,0,10,8" Click="OpenSavedVm_Click"/>
-                <Button x:Name="ResumeSavedButton" Classes="GhostButton" Content="Open saved VM"
+                <Button x:Name="ResumeSavedButton" Classes="PrimaryButton" Content="Continue project"
                         Margin="0,0,10,8" Click="ResumeSaved_Click"/>
                 <Button x:Name="StartButton"
                         Classes="PrimaryButton"
-                        Content="Fenced start"
-                        Margin="0,0,0,8"
+                        Content="Open project"
+                        Margin="0,0,10,8"
                         Click="Start_Click"/>
+                <Button x:Name="DismissButton" Classes="GhostButton" Content="Close"
+                        Margin="0,0,0,8" Click="Dismiss_Click"/>
             </WrapPanel>
         </StackPanel>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock x:Name="HeadingText" Text="Fenced start" Classes="TitleText" Margin="0,0,0,12"/>
+                <TextBlock x:Name="HeadingText" Text="Open project" Classes="TitleText" Margin="0,0,0,12"/>
                 <TextBlock x:Name="RecoveryText" Classes="BodyText" Margin="0,0,0,10"/>
-                <ComboBox x:Name="RecoveryBox" Margin="0,0,0,10" HorizontalAlignment="Stretch"
-                          SelectionChanged="ReturnSelection_Changed"/>
+                <TextBlock x:Name="SelectedReturnText" Classes="HintText" TextWrapping="Wrap" Margin="0,0,0,10"/>
                 <TextBlock x:Name="RunningText" Classes="BodyText" Margin="0,0,0,10"/>
                 <TextBlock x:Name="ClipboardText" Classes="BodyText" Margin="0,0,0,10"/>
                 <TextBlock x:Name="NetworkText" Classes="BodyText" Margin="0,0,0,10"/>
                 <TextBlock x:Name="WindowsGrokText" Classes="BodyText" Margin="0,0,0,10"/>
-                <TextBlock x:Name="AsideText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
-                <TextBlock x:Name="ExplorerText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
-                <TextBlock x:Name="StubText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
-                <TextBlock x:Name="CopyBackText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
+                <Expander x:Name="RecoveryMore" Header="More…" HorizontalAlignment="Stretch" Margin="0,12,0,0">
+                    <StackPanel Margin="0,12,0,0">
+                        <TextBlock x:Name="RecoveryDetailsText" Classes="HintText" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <ComboBox x:Name="RecoveryBox" Margin="0,0,0,10" HorizontalAlignment="Stretch"
+                                  SelectionChanged="ReturnSelection_Changed"/>
+                        <TextBlock x:Name="AsideText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
+                        <TextBlock x:Name="ExplorerText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
+                        <TextBlock x:Name="StubText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
+                        <TextBlock x:Name="CopyBackText" Classes="BodyText" Margin="0,0,0,10" IsVisible="False"/>
+                        <WrapPanel>
+                            <Button x:Name="OpenReturnButton" Classes="GhostButton" Content="Review saved files"
+                                    Margin="0,0,10,8" Click="OpenReturn_Click"/>
+                            <Button x:Name="OpenSavedVmButton" Classes="GhostButton" Content="Open VM storage folder"
+                                    Margin="0,0,0,8" Click="OpenSavedVm_Click"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Expander>
                 <TextBlock x:Name="WarningsText" Classes="BodyText" Margin="0,12,0,10" IsVisible="False"/>
             </StackPanel>
         </ScrollViewer>

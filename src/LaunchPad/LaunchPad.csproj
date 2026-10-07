@@ -20,12 +20,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Assets\WindowsTestDemo.cs" />
+    <Compile Remove="Assets\WindowsTestRunner.cs" />
     <AvaloniaResource Include="Assets\LaunchPad.ico" />
     <AvaloniaResource Include="Assets\launchpad-rocket.png" />
+    <EmbeddedResource Include="Assets\launchpad-loading-rocket.txt" LogicalName="LaunchPad.LoadingRocket.txt" />
     <EmbeddedResource Include="Assets\AgentBobInstructions.txt" />
   </ItemGroup>
+  <Target Name="CompileWindowsTestDemo" Condition="'$(OS)' == 'Windows_NT'"
+          Inputs="$(MSBuildProjectDirectory)\Assets\WindowsTestDemo.cs" Outputs="$(IntermediateOutputPath)WindowsTestDemo.exe">
+    <PropertyGroup>
+      <WindowsDemoCompiler>$(windir)\Microsoft.NET\Framework64\v4.0.30319\csc.exe</WindowsDemoCompiler>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(WindowsDemoCompiler)')" Text="The Windows demo build needs the installed .NET Framework C# compiler." />
+    <Exec Command="&quot;$(WindowsDemoCompiler)&quot; /nologo /target:winexe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /out:&quot;$(IntermediateOutputPath)WindowsTestDemo.exe&quot; &quot;$(MSBuildProjectDirectory)\Assets\WindowsTestDemo.cs&quot;" />
+  </Target>
+  <Target Name="CompileWindowsTestRunner" Condition="'$(OS)' == 'Windows_NT'"
+          Inputs="$(MSBuildProjectDirectory)\Assets\WindowsTestRunner.cs" Outputs="$(IntermediateOutputPath)WindowsTestRunner.exe">
+    <Exec Command="&quot;$(windir)\Microsoft.NET\Framework64\v4.0.30319\csc.exe&quot; /nologo /target:exe /out:&quot;$(IntermediateOutputPath)WindowsTestRunner.exe&quot; &quot;$(MSBuildProjectDirectory)\Assets\WindowsTestRunner.cs&quot;" />
+  </Target>
+  <Target Name="IncludeWindowsTestRunner" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileWindowsTestRunner" Condition="'$(OS)' == 'Windows_NT'">
+    <ItemGroup><EmbeddedResource Include="$(IntermediateOutputPath)WindowsTestRunner.exe" LogicalName="LaunchPad.WindowsTestRunner.exe" /></ItemGroup>
+  </Target>
+  <Target Name="IncludeWindowsTestDemo" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileWindowsTestDemo" Condition="'$(OS)' == 'Windows_NT'">
+    <ItemGroup><EmbeddedResource Include="$(IntermediateOutputPath)WindowsTestDemo.exe" LogicalName="LaunchPad.WindowsTestDemo.exe" /></ItemGroup>
+  </Target>
   <ItemGroup>
+    <InternalsVisibleTo Include="LaunchPad.Tests" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
     <PackageReference Include="Avalonia.Themes.Simple" Version="11.3.22" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
   </ItemGroup>
 </Project>

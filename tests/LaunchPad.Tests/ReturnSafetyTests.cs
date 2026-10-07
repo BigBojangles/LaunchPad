@@ -149,6 +149,32 @@ public sealed class ReturnSafetyTests
         Assert.Equal("old", fixture.Read("a.txt"));
         Assert.Equal("new", File.ReadAllText(Path.Combine(fixture.Recovery.Payload, "a.txt")));
         Assert.Equal("old", File.ReadAllText(Path.Combine(fixture.Recovery.DirectoryPath, "previous", "a.txt")));
+        var previousPath = Path.Combine(fixture.Recovery.DirectoryPath, "previous", "a.txt");
+        var savedOriginal = File.ReadAllBytes(previousPath);
+        Directory.Delete(Path.Combine(fixture.Live, "z.txt"));
+        fixture.Backup = () => Task.FromResult(true);
+        var retry = await fixture.Apply(new Scanner());
+        Assert.True(retry.Applied, retry.Message);
+        Assert.Equal("new", fixture.Read("a.txt"));
+        Assert.Equal("guest", fixture.Read("z.txt"));
+        Assert.Equal(savedOriginal, File.ReadAllBytes(previousPath));
+        Assert.Equal(2, fixture.BackupCalls);
+    }
+
+    [Fact]
+    public async Task ChangedPreviousBackupBlocksRetryWithoutReplacingEitherSavedVersion()
+    {
+        using var fixture = new Fixture();
+        fixture.Existing("a.txt", "old", "new");
+        var previousPath = Path.Combine(fixture.Recovery.DirectoryPath, "previous", "a.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(previousPath)!);
+        File.WriteAllText(previousPath, "different original");
+        var result = await fixture.Apply(new Scanner());
+        Assert.False(result.Applied);
+        Assert.Contains("does not match", result.Message);
+        Assert.Equal("old", fixture.Read("a.txt"));
+        Assert.Equal("new", File.ReadAllText(Path.Combine(fixture.Recovery.Payload, "a.txt")));
+        Assert.Equal("different original", File.ReadAllText(previousPath));
     }
 
     [Fact]

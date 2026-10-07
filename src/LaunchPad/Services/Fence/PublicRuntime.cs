@@ -4,8 +4,10 @@ public sealed class PublicRuntime
 {
     public const string BaseName = "debian-12-nocloud-amd64-20260601-2496.qcow2";
 
-    private PublicRuntime(string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version)
+    private PublicRuntime(string root, string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version, string maintenanceManifestName)
     {
+        Root = root;
+        MaintenanceManifestName = maintenanceManifestName;
         QemuDirectory = qemuDirectory;
         QemuExe = qemuExe;
         ImgExe = imgExe;
@@ -16,6 +18,8 @@ public sealed class PublicRuntime
     }
 
     public string QemuDirectory { get; }
+    public string Root { get; }
+    public string MaintenanceManifestName { get; }
     public string QemuExe { get; }
     public string ImgExe { get; }
     public string KeptImage { get; }
@@ -26,7 +30,7 @@ public sealed class PublicRuntime
     public static PublicRuntime Ensure(SetupLog log)
     {
         _ = log;
-        var root = QemuLayout.Root;
+        var root = Path.GetFullPath(QemuLayout.Root);
         var qemuDir = Path.Combine(root, "qemu");
         var imgExe = Path.Combine(qemuDir, "qemu-img.exe");
         if (!File.Exists(imgExe))
@@ -74,6 +78,7 @@ public sealed class PublicRuntime
 
         var sessions = Path.Combine(root, "sessions");
         Directory.CreateDirectory(sessions);
-        return new PublicRuntime(launchDir, qemuExe, imgExe, kept, sessions, Path.GetFullPath(firmwareDir), selection.Manifest?.Version);
+        return new PublicRuntime(root, launchDir, qemuExe, imgExe, kept, sessions, Path.GetFullPath(firmwareDir), selection.Manifest?.Version,
+            selection.Manifest?.MaintenanceManifest ?? "maintenance.json");
     }
 }

@@ -4,6 +4,7 @@ public static class PortChoice
 {
     public const int First = 20000;
     public const int Last = 20900;
+    public const int Width = 5;
 
     public static int Next(IReadOnlyCollection<int> takenBases)
     {
@@ -20,7 +21,7 @@ public static class PortChoice
     {
         foreach (var taken in takenBases)
         {
-            if (port < taken + 4 && taken < port + 4)
+            if (port < taken + Width && taken < port + Width)
                 return true;
         }
 

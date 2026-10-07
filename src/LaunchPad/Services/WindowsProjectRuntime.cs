@@ -8,13 +8,15 @@ public sealed class WindowsProjectRuntime(GrokSetup setup, ProjectLauncher launc
 {
     private readonly object _windowGate = new();
     private readonly Dictionary<string, (int Pid, long Ticks, string Directory, int HelperPid, long HelperTicks)> _hostWatches = new(StringComparer.OrdinalIgnoreCase);
-    public bool HasVirtualMachine => OperatingSystem.IsWindows() && FenceReady.Installed();
+    public bool NativeOnly => File.Exists(Path.Combine(paths.ExeDirectory, "native-only.txt"));
+    public bool HasVirtualMachine => !NativeOnly && OperatingSystem.IsWindows() && FenceReady.Installed();
     public string? HostAgentExecutable => OperatingSystem.IsWindows() ? launcher.AgentExecutable : null;
     public FenceStartAvailability FenceStartAvailability
     {
         get
         {
             RequireWindows();
+            if (NativeOnly) return new FenceStartAvailability("The native-only package does not launch a VM.", true);
             var reason = FenceSession.FileShareBlockReason();
             return new FenceStartAvailability(reason, FenceSession.StartBlocked(reason));
         }
@@ -22,39 +24,50 @@ public sealed class WindowsProjectRuntime(GrokSetup setup, ProjectLauncher launc
     public IFencedProjectSession CreateFencedSession()
     {
         RequireWindows();
+        RequireVmPackage();
         return NewFenceSession();
     }
     public bool IsFencedOpen(string project) => OperatingSystem.IsWindows() && FenceSession.IsProjectOpen(project);
     public bool IsHostOpen(string project) => OperatingSystem.IsWindows() && launcher.WasLaunched(project);
-    public Task<bool> EnsureHostAgentAsync() => OperatingSystem.IsWindows()
-        ? setup.EnsureHostGrokAsync() : Task.FromResult(false);
+    public Task<bool> EnsureHostAgentAsync() => Task.FromResult(OperatingSystem.IsWindows() && launcher.FindAgent(AgentLaunch.Grok) is not null);
+    public Task<bool> EnsureHostAgentAsync(string project) => Task.FromResult(OperatingSystem.IsWindows() && launcher.FindAgent(settings.AgentFor(project)) is not null);
     public Task OpenFencedAsync(string project, CancellationToken cancellationToken, IProgress<string>? progress)
     {
         RequireWindows();
+        RequireVmPackage();
         return ProjectRow.OpenAsync(NewFenceSession(), project, cancellationToken, progress);
     }
     private FenceSession NewFenceSession() => new(log, readSettings: () => new SettingsStore(paths));
     public bool TryLaunchHostAgent(string project, LaunchPlacement? placement, out string error)
     {
         RequireWindows();
-        return launcher.TryLaunch(project, out error, placement);
+        return launcher.TryLaunch(project, settings.AgentFor(project), out error, placement);
     }
     public Task<string?> SendProjectAsync(string project, CancellationToken cancellationToken)
     {
         RequireWindows();
+        if (NativeOnly) return Task.FromResult<string?>("Native agents already work in the Windows folder. VM file transfer is unavailable in this package.");
         return LiveSession.TrySendAsync(project, cancellationToken);
     }
     public SessionRecord? DescribeFenced(string project)
     {
-        var record = LiveSession.Describe(project) ?? FenceSession.DescribeOpen(project);
+        var liveRecord = LiveSession.Describe(project);
+        var record = liveRecord ?? FenceSession.DescribeOpen(project);
         if (record is null) return null;
         var directory = ProjectSessionStore.Current(Path.Combine(QemuLayout.Root, "sessions", QemuLayout.ProjectKey(project)));
         var owner = SessionGuardian.TryReadLiveOwner(directory);
         var window = owner is { TerminalPid: int pid, TerminalStartTicks: long ticks }
             ? WindowsSessionWindow.Read(directory, pid, ticks) : null;
-        // A reopened desktop has no status connection to its independently owned VM.
-        if (LiveSession.Describe(project) is null && record.State == SessionLifecycle.Running)
-            record = record with { State = SessionLifecycle.Unknown, Error = "The terminal is open; agent activity is unavailable in this app instance." };
+        // Reopened desktops read the independent owner's current observation.
+        // Missing/stale data stays unknown; an open terminal is not coding proof.
+        if (liveRecord is null && record.State is SessionLifecycle.Running or SessionLifecycle.Unknown)
+        {
+            var activity = owner is null ? AgentActivitySnapshot.Unavailable
+                : SessionActivityStore.Current(directory, owner.Generation, DateTimeOffset.UtcNow);
+            record = record with { State = AgentActivityTracker.SessionState(activity), Activity = activity,
+                Error = activity.State == AgentActivity.Unknown ? "The terminal is open; agent activity is unavailable."
+                    : AgentActivityTracker.OutcomeText(activity) };
+        }
         return record with { WindowHandle = window is null ? null : (nint)window.WindowHandle, Window = window };
     }
     public void UpdateSessionTitles(string project, string vmTitle, string hostTitle)
@@ -65,14 +78,25 @@ public sealed class WindowsProjectRuntime(GrokSetup setup, ProjectLauncher launc
     }
     public SessionRecord? DescribeHost(string project)
     {
-        if (launcher.Describe(project) is not { } launch) return null;
+        if (launcher.Describe(project) is not { } launch)
+        {
+            if (launcher.Record(project) is not { } ended || ended.State != "failed" && !(ended.State == "stopped" && ended.ExitCode != 0)) return null;
+            return new SessionRecord("host:" + QemuLayout.ProjectKey(project), Path.GetFullPath(project), ended.Agent,
+                SessionKind.HostWindow, null, null, null, SessionLifecycle.Failed,
+                ended.Error ?? "The native agent exited with code " + ended.ExitCode + ". Your project files were preserved.");
+        }
         var process = launcher.TrackedProcess(project);
         var directory = EnsureHostWatch(project);
         var window = process is { } tracked && directory is not null
             ? WindowsSessionWindow.Read(directory, tracked.Pid, tracked.StartTicks) : null;
-        return new SessionRecord("host:" + QemuLayout.ProjectKey(project), Path.GetFullPath(project), "grok",
+        var native = launcher.Record(project);
+        var activity = !launch.Starting && directory is not null && native is not null
+            ? SessionActivityStore.Current(directory, native.Generation, DateTimeOffset.UtcNow) : AgentActivitySnapshot.Unavailable;
+        return new SessionRecord("host:" + QemuLayout.ProjectKey(project), Path.GetFullPath(project), launcher.Record(project)?.Agent ?? "custom",
             SessionKind.HostWindow, process?.Pid, null, window is null ? null : (nint)window.WindowHandle,
-            launch.Starting ? SessionLifecycle.Starting : SessionLifecycle.Running, Window: window);
+            launch.Starting ? SessionLifecycle.Starting : activity.State == AgentActivity.Unknown ? SessionLifecycle.Running : AgentActivityTracker.SessionState(activity),
+            Error: activity.State == AgentActivity.Unknown ? "Native mode: direct Windows access. Agent activity is unavailable."
+                : "Native mode: direct Windows access. " + AgentActivityTracker.OutcomeText(activity), Window: window, Activity: activity);
     }
 
     public string? FocusSession(SessionRecord session)
@@ -88,6 +112,7 @@ public sealed class WindowsProjectRuntime(GrokSetup setup, ProjectLauncher launc
 
     private string? EnsureHostWatch(string project)
     {
+        if (launcher.SessionDirectory(project) is { } nativeDirectory && launcher.TrackedProcess(project) is not null) return nativeDirectory;
         if (launcher.TrackedProcess(project) is not { } process) return null;
         var key = QemuLayout.ProjectKey(project);
         lock (_windowGate)
@@ -112,5 +137,9 @@ public sealed class WindowsProjectRuntime(GrokSetup setup, ProjectLauncher launc
     private static void RequireWindows()
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("This runtime supports Windows. The Mac runtime has not been implemented yet.");
+    }
+    private void RequireVmPackage()
+    {
+        if (NativeOnly) throw new InvalidOperationException("This is the native-only package. Install the full package to use a fenced VM.");
     }
 }

@@ -1,0 +1,1 @@
+LaunchPad native-only package. Launch installed Windows agents directly; do not start or provision a VM.

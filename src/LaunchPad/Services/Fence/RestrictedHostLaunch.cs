@@ -17,7 +17,8 @@ public static class RestrictedHostLaunch
     public const string Argument = "--restricted-host-launch";
     public static bool IsRequest(string[] args) => args.Length == 3 && args[0] == Argument;
     private sealed record Request(string Nonce, string Executable, string CommandLine, string Directory,
-        int ParentPid, long ParentStart, string ParentSid);
+        int ParentPid, long ParentStart, string ParentSid, bool InteractiveTest = false, bool ManagedTest = false);
+    private sealed record DesktopHandles(string Nonce, long Station, long Desktop);
     private sealed record Reply(string Nonce, int ProcessId, long ProcessHandle, long ThreadHandle,
         long StationHandle, long DesktopHandle, int Error, string? Message);
     private sealed record Group(string Sid, uint Attributes);
@@ -39,29 +40,49 @@ public static class RestrictedHostLaunch
     [SupportedOSPlatform("windows")]
     internal static bool Start(string exe, string command, string directory, string password,
         Func<int, nint, bool> park, out Process? process, out int error)
+        => StartCore(exe, command, directory, password, park, null, false, CancellationToken.None, out process, out error, out _);
+
+    [SupportedOSPlatform("windows")]
+    internal static bool StartManagedTest(string exe, string command, string directory, string password,
+        Func<int, nint, bool> park, CancellationToken token, out Process? process, out int error, out string? failure)
+        => StartCore(exe, command, directory, password, park, null, true, token, out process, out error, out failure);
+
+    [SupportedOSPlatform("windows")]
+    internal static bool StartInteractive(string exe, string command, string directory, string password,
+        Func<int, nint, bool> park, InteractiveTestDesktop desktop, out Process? process, out int error, out string? failure)
+        => StartCore(exe, command, directory, password, park, desktop, false, CancellationToken.None, out process, out error, out failure);
+
+    [SupportedOSPlatform("windows")]
+    private static bool StartCore(string exe, string command, string directory, string password,
+        Func<int, nint, bool> park, InteractiveTestDesktop? testDesktop, bool managedTest, CancellationToken cancellation,
+        out Process? process, out int error, out string? failure)
     {
         process = null;
         error = 0;
+        failure = null;
         // BaseDirectory remains the apphost directory in a single-file publish;
         // Assembly.Location is empty there. It also resolves the copied apphost
         // beside LaunchPad.dll when these services run inside the test runner.
         var helper = Path.Combine(AppContext.BaseDirectory, typeof(RestrictedHostLaunch).Assembly.GetName().Name + ".exe");
-        if (!File.Exists(helper)) { error = 2; return false; }
-        var nonce = Guid.NewGuid().ToString("N");
+        if (!File.Exists(helper)) { error = 2; failure = "The restricted launch helper is absent from the app runtime."; return false; }
+        var nonce = testDesktop?.Id ?? Guid.NewGuid().ToString("N");
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        if (string.IsNullOrWhiteSpace(local)) { error = 3; return false; }
+        if (string.IsNullOrWhiteSpace(local)) { error = 3; failure = "The host account's local application-data directory is unavailable."; return false; }
         var root = Path.Combine(local, "LaunchPad", "host-launch", nonce);
         nint bootstrapJob = 0, childProcess = 0, childThread = 0, station = 0, desktop = 0;
         var bootstrap = new ProcessInformation();
         var committed = false;
+        var stage = "prepare launch request";
+        FileStream? desktopLease = null;
         try
         {
+            cancellation.ThrowIfCancellationRequested();
             Directory.CreateDirectory(root);
             Grant(root);
             using var owner = Process.GetCurrentProcess();
             using var identity = WindowsIdentity.GetCurrent();
             var request = new Request(nonce, Path.GetFullPath(exe), command, Path.GetFullPath(directory),
-                owner.Id, owner.StartTime.ToUniversalTime().Ticks, identity.User!.Value);
+                owner.Id, owner.StartTime.ToUniversalTime().Ticks, identity.User!.Value, testDesktop is not null, managedTest);
             var requestPath = Path.Combine(root, "request.json");
             File.WriteAllText(requestPath, JsonSerializer.Serialize(request));
             // Keep request bytes immutable until the helper/child handoff ends.
@@ -69,22 +90,40 @@ public static class RestrictedHostLaunch
             var requestHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(lease)).ToLowerInvariant();
             var helperCommand = new StringBuilder(Quote(helper) + " " + Argument + " " + Quote(requestPath) + " " + requestHash);
             var si = new StartupInfo { Size = Marshal.SizeOf<StartupInfo>() };
+            stage = "start restricted launch helper";
             if (!CreateProcessWithLogonW(TestUserRunner.UserName, ".", password, 1, helper, helperCommand,
                 0x08000004, 0, Path.GetDirectoryName(helper)!, ref si, out bootstrap)) ThrowLast();
+            if (testDesktop is not null)
+            {
+                stage = "transfer test desktop handles";
+                // Duplicate limited existing handles without changing WinSta0's
+                // DACL or granting clipboard/screen access or Default desktop.
+                if (!DuplicateHandle(GetCurrentProcess(), testDesktop.Station, bootstrap.Process, out var remoteStation, 0x22, false, 0)) ThrowLast();
+                if (!DuplicateHandle(GetCurrentProcess(), testDesktop.Desktop, bootstrap.Process, out var remoteDesktop, 0xc7, false, 0)) ThrowLast();
+                var handlesPath = Path.Combine(root, "desktop-handles.json");
+                File.WriteAllText(handlesPath, JsonSerializer.Serialize(new DesktopHandles(nonce, remoteStation.ToInt64(), remoteDesktop.ToInt64())));
+                desktopLease = new FileStream(handlesPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            stage = "assign launch helper job";
             bootstrapJob = CreateJobObject(0, null);
             if (bootstrapJob == 0 || !SetBootstrapKill(bootstrapJob, true) || !AssignProcessToJobObject(bootstrapJob, bootstrap.Process)) ThrowLast();
+            stage = "resume launch helper";
             if (ResumeThread(bootstrap.Thread) == uint.MaxValue) ThrowLast();
+            stage = "wait for restricted child receipt";
             var replyPath = Path.Combine(root, "reply.json");
             var clock = Stopwatch.StartNew();
             while (!File.Exists(replyPath))
             {
+                cancellation.ThrowIfCancellationRequested();
                 if (WaitForSingleObject(bootstrap.Process, 0) == 0) throw new Win32Exception(1067, "Restricted bootstrap exited before replying.");
                 if (clock.Elapsed > TimeSpan.FromSeconds(20)) throw new Win32Exception(1460, "Restricted bootstrap did not become ready.");
                 Thread.Sleep(20);
             }
+            stage = "validate restricted child receipt";
             var reply = ReadJson<Reply>(replyPath);
             if (reply.Nonce != nonce) throw new Win32Exception(13, "Restricted launch receipt mismatch.");
             if (reply.Error != 0) throw new Win32Exception(reply.Error, reply.Message);
+            stage = "validate restricted child identity";
             if (!DuplicateHandle(bootstrap.Process, (nint)reply.ProcessHandle, GetCurrentProcess(), out childProcess, 0, false, 2)
                 || !DuplicateHandle(bootstrap.Process, (nint)reply.ThreadHandle, GetCurrentProcess(), out childThread, 0, false, 2)) ThrowLast();
             if (GetProcessId(childProcess) != reply.ProcessId || GetProcessIdOfThread(childThread) != reply.ProcessId)
@@ -95,30 +134,45 @@ public static class RestrictedHostLaunch
             if (!Path.GetFullPath(image.ToString()).Equals(request.Executable, StringComparison.OrdinalIgnoreCase))
                 throw new Win32Exception(13, "Restricted child executable mismatch.");
             VerifyChildToken(childProcess);
+            stage = "validate restricted desktop handles";
             if (!DuplicateHandle(bootstrap.Process, (nint)reply.StationHandle, GetCurrentProcess(), out station, 0, false, 2)
                 || !DuplicateHandle(bootstrap.Process, (nint)reply.DesktopHandle, GetCurrentProcess(), out desktop, 0, false, 2)) ThrowLast();
-            if (UserObjectText(station, 3) != "WindowStation" || UserObjectText(station, 2) == "WinSta0"
-                || UserObjectText(desktop, 3) != "Desktop" || UserObjectText(desktop, 2) != "LaunchPad-" + nonce)
+            if (UserObjectText(station, 3) != "WindowStation"
+                || (testDesktop is null ? UserObjectText(station, 2) == "WinSta0" : UserObjectText(station, 2) != "WinSta0")
+                || UserObjectText(desktop, 3) != "Desktop" || UserObjectText(desktop, 2) != (testDesktop?.Name ?? "LaunchPad-" + nonce))
                 throw new Win32Exception(13, "Restricted desktop handle identity mismatch.");
             // The child must hold these objects before its first user32 call;
             // otherwise the short-lived bootstrap can close the last reference.
             if (!DuplicateHandle(GetCurrentProcess(), station, childProcess, out _, 0, false, 2)
                 || !DuplicateHandle(GetCurrentProcess(), desktop, childProcess, out _, 0, false, 2)) ThrowLast();
+            stage = "assign restricted child job";
             process = Process.GetProcessById(reply.ProcessId);
             _ = process.StartTime; // Bind lifecycle identity before allowing execution.
             _ = process.Handle; // Retain the native lifecycle handle through a short-lived child exit.
+            cancellation.ThrowIfCancellationRequested();
             if (!park(reply.ProcessId, childProcess)) throw new Win32Exception(5, "Restricted child job assignment failed.");
             if (!SetBootstrapKill(bootstrapJob, false)) ThrowLast();
+            cancellation.ThrowIfCancellationRequested();
+            stage = "resume restricted child";
             if (ResumeThread(childThread) != 1) throw new Win32Exception(13, "Restricted child was not suspended.");
+            stage = "commit restricted launch";
             File.WriteAllText(Path.Combine(root, "committed"), nonce);
             committed = true;
             return true;
+        }
+        catch (OperationCanceledException)
+        {
+            process?.Dispose();
+            process = null;
+            throw;
         }
         catch (Exception exception) when (exception is Win32Exception or IOException or UnauthorizedAccessException
             or InvalidOperationException or JsonException or ArgumentException or System.Security.SecurityException)
         {
             error = exception is Win32Exception native ? native.NativeErrorCode : 13;
-            try { File.WriteAllText(Path.Combine(root, "failure.json"), JsonSerializer.Serialize(new { error, exception.Message })); }
+            failure = stage + ": " + exception.Message;
+            // Keep paths in the private owned receipt, never credentials or command text.
+            try { File.WriteAllText(Path.Combine(root, "failure.json"), JsonSerializer.Serialize(new { error, stage, exception.Message, helper, helperDirectory = Path.GetDirectoryName(helper) })); }
             catch (Exception logError) when (logError is IOException or UnauthorizedAccessException) { }
             process?.Dispose();
             process = null;
@@ -139,6 +193,7 @@ public static class RestrictedHostLaunch
             if (bootstrap.Thread != 0) CloseHandle(bootstrap.Thread);
             if (bootstrap.Process != 0) CloseHandle(bootstrap.Process);
             if (bootstrapJob != 0) CloseHandle(bootstrapJob);
+            desktopLease?.Dispose();
         }
     }
 
@@ -148,8 +203,11 @@ public static class RestrictedHostLaunch
         Request? request = null;
         ProcessInformation child = new();
         nint token = 0, restricted = 0, station = 0, desktop = 0, descriptor = 0;
+        nint inheritedStation = 0, inheritedDesktop = 0;
         var root = Path.GetDirectoryName(Path.GetFullPath(args[1]))!;
         var committed = false;
+        var stage = "validate request";
+        WindowsTestEnvironment? childEnvironment = null;
         try
         {
             using var identity = WindowsIdentity.GetCurrent();
@@ -180,6 +238,19 @@ public static class RestrictedHostLaunch
                 finally { CloseHandle(parentToken); }
             }
             finally { CloseHandle(parentHandle); }
+            if (request.InteractiveTest && Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+            {
+                // The app entry thread is STA and may already own COM windows.
+                // A fresh MTA thread has no windows/hooks when selecting the
+                // owned test desktop. Revalidate the immutable request there.
+                var workerResult = 13;
+                var worker = new Thread(() => workerResult = RunWindows(args)) { Name = "LaunchPad restricted test startup" };
+                worker.SetApartmentState(ApartmentState.MTA);
+                worker.Start();
+                worker.Join();
+                return workerResult;
+            }
+            stage = "prepare restricted token";
             if (!OpenProcessToken(GetCurrentProcess(), 0x6008b, out token)) ThrowLast();
             var logons = Groups(token).Where(group => (group.Attributes & LogonGroup) == LogonGroup).ToArray();
             if (logons.Length == 0) throw new Win32Exception(13, "Logon group unavailable.");
@@ -215,17 +286,61 @@ public static class RestrictedHostLaunch
             Environment.SetEnvironmentVariable("TEMP", temporary);
             Environment.SetEnvironmentVariable("TMP", temporary);
             var attributes = new SecurityAttributes { Length = Marshal.SizeOf<SecurityAttributes>(), Descriptor = descriptor };
-            station = CreateWindowStation(null, 0, 0x000f037f, ref attributes);
+            if (request.InteractiveTest)
+            {
+                var handles = ReadJson<DesktopHandles>(Path.Combine(root, "desktop-handles.json"));
+                if (handles.Nonce != request.Nonce) throw new Win32Exception(13, "Test desktop lease identity mismatch.");
+                station = (nint)handles.Station;
+                desktop = (nint)handles.Desktop;
+                if (UserObjectText(station, 3) != "WindowStation" || UserObjectText(station, 2) != "WinSta0"
+                    || UserObjectText(desktop, 3) != "Desktop" || UserObjectText(desktop, 2) != "LaunchPad-Test-" + request.Nonce)
+                    throw new Win32Exception(13, "Unexpected test desktop handles.");
+            }
+            else
+                station = CreateWindowStation(null, 0, 0x000f037f, ref attributes);
+            stage = "select window station";
             if (station == 0 || !SetProcessWindowStation(station)) ThrowLast();
             var stationName = new StringBuilder(256);
             if (!GetUserObjectInformation(station, 2, stationName, stationName.Capacity * 2, out _)) ThrowLast();
-            var desktopName = "LaunchPad-" + request.Nonce;
-            desktop = CreateDesktop(desktopName, null, 0, 0, 0x000f01ff, ref attributes);
+            var desktopName = (request.InteractiveTest ? "LaunchPad-Test-" : "LaunchPad-") + request.Nonce;
+            if (!request.InteractiveTest) desktop = CreateDesktop(desktopName, null, 0, 0, 0x000f01ff, ref attributes);
             if (desktop == 0) ThrowLast();
-            var si = new StartupInfo { Size = Marshal.SizeOf<StartupInfo>(), Desktop = stationName + "\\" + desktopName };
+            if (request.InteractiveTest)
+            {
+                stage = "select test desktop";
+                if (!SetThreadDesktop(desktop)) ThrowLast();
+                // Test failures belong in retained results rather than modal
+                // system error boxes. Only this short-lived helper/child use it.
+                SetErrorMode(0x8003);
+                // Process-local diagnostics for this preview child only. The
+                // path is inside its already granted disposable app copy.
+                // Genuine CreateProcess inheritance supplies the sole owned
+                // pair before USER32 initialization. Post-creation handle
+                // duplication is not a substitute for that startup contract.
+                stage = "prepare inherited desktop handles";
+                if (!DuplicateHandle(GetCurrentProcess(), station, GetCurrentProcess(), out inheritedStation, 0x22, true, 0)
+                    || !DuplicateHandle(GetCurrentProcess(), desktop, GetCurrentProcess(), out inheritedDesktop, 0xc7, true, 0)) ThrowLast();
+            }
+            if (request.InteractiveTest || request.ManagedTest)
+            {
+                // Explicit test requests use the account's profile/environment.
+                // Ordinary QEMU launches retain their existing behavior.
+                SetErrorMode(0x8003);
+                stage = "prepare test-account environment";
+                var startupLogs = Path.Combine(request.Directory, "launchpad-startup-logs");
+                Directory.CreateDirectory(startupLogs);
+                childEnvironment = WindowsTestEnvironment.ForUser(token, temporary, startupLogs);
+                if (!childEnvironment.UserName.Equals(TestUserRunner.UserName, StringComparison.OrdinalIgnoreCase)
+                    || string.IsNullOrWhiteSpace(childEnvironment.UserProfile))
+                    throw new Win32Exception(13, "The loaded test-account profile/environment is unavailable.");
+                File.WriteAllText(Path.Combine(root, "startup-context.json"), JsonSerializer.Serialize(new
+                { account = childEnvironment.UserName, profile = childEnvironment.UserProfile, inheritedCallerEnvironment = false }));
+            }
+            var si = new StartupInfo { Size = Marshal.SizeOf<StartupInfo>(), Desktop = request.InteractiveTest ? null : stationName + "\\" + desktopName };
             var command = new StringBuilder(request.CommandLine);
-            if (!CreateProcessAsUser(restricted, request.Executable, command, ref attributes, ref attributes, false,
-                0x08000004, 0, request.Directory, ref si, out child)) ThrowLast();
+            stage = "create restricted app";
+            if (!CreateProcessAsUser(restricted, request.Executable, command, ref attributes, ref attributes, request.InteractiveTest,
+                childEnvironment is not null ? 0x08000404u : 0x08000004u, childEnvironment?.Block ?? 0, request.Directory, ref si, out child)) ThrowLast();
             VerifyChildToken(child.Process);
             WriteReply(root, new Reply(request.Nonce, child.ProcessId, child.Process.ToInt64(), child.Thread.ToInt64(),
                 station.ToInt64(), desktop.ToInt64(), 0, null));
@@ -242,14 +357,18 @@ public static class RestrictedHostLaunch
             or InvalidOperationException or JsonException or ArgumentException or System.Security.SecurityException)
         {
             var error = exception is Win32Exception native ? native.NativeErrorCode : 13;
-            WriteReply(root, new Reply(request?.Nonce ?? Path.GetFileName(root), 0, 0, 0, 0, 0, error, exception.Message));
+            var message = request?.InteractiveTest == true ? $"Windows testing startup failed at {stage}: {exception.Message}" : exception.Message;
+            WriteReply(root, new Reply(request?.Nonce ?? Path.GetFileName(root), 0, 0, 0, 0, 0, error, message));
             return error;
         }
         finally
         {
+            childEnvironment?.Dispose();
             if (!committed && child.Process != 0) TerminateProcess(child.Process, 1);
             if (child.Thread != 0) CloseHandle(child.Thread);
             if (child.Process != 0) CloseHandle(child.Process);
+            if (inheritedDesktop != 0) CloseDesktop(inheritedDesktop);
+            if (inheritedStation != 0) CloseWindowStation(inheritedStation);
             if (desktop != 0) CloseDesktop(desktop);
             if (station != 0) CloseWindowStation(station);
             if (descriptor != 0) LocalFree(descriptor);
@@ -406,4 +525,6 @@ public static class RestrictedHostLaunch
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern nint CreateDesktop(string name, string? device, nint mode, uint flags, uint access, ref SecurityAttributes attributes);
     [DllImport("user32.dll")] private static extern bool CloseWindowStation(nint station);
     [DllImport("user32.dll")] private static extern bool CloseDesktop(nint desktop);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool SetThreadDesktop(nint desktop);
+    [DllImport("kernel32.dll")] private static extern uint SetErrorMode(uint mode);
 }

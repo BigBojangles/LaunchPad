@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace LaunchPad.Services.Fence;
 
@@ -22,60 +24,103 @@ public static class LaunchAccountSetup
     public static bool TryCreate(out string message)
     {
         message = "";
-        if (TestUserRunner.LaunchAccountExists() && TestUserRunner.PasswordIsStored())
-            return true;
-
-        var password = NewPassword();
-        var secret = Path.Combine(Path.GetTempPath(), "bl-launch-account-" + Guid.NewGuid().ToString("N") + ".secret");
-        var script = Path.Combine(Path.GetTempPath(), "bl-launch-account-" + Guid.NewGuid().ToString("N") + ".ps1");
+        if (!OperatingSystem.IsWindows()) { message = "Windows setup is unavailable on this platform."; return false; }
+        var exists = TestUserRunner.LaunchAccountExists();
+        if (exists)
+        {
+            var check = TestUserRunner.CheckStoredCredential();
+            if (check.Ready) return true;
+            if (!check.Readable || check.Error is not (5 or 1331 or 1376)) { message = check.Message; return false; }
+        }
+        else if (TestUserRunner.PasswordIsStored() || Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "..", TestUserRunner.UserName)))
+        {
+            message = "The account is missing but previous account data remains. Restore the original Windows account; repair will not replace its identity.";
+            return false;
+        }
+        var password = exists ? null : NewPassword();
+        var work = Path.Combine(Path.GetTempPath(), "launchpad-account-" + Guid.NewGuid().ToString("N"));
+        var secret = password is null ? null : Path.Combine(work, "account.secret");
+        var script = Path.Combine(work, "account.ps1");
+        string? recovery = null;
         try
         {
-            File.WriteAllText(secret, password, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            Directory.CreateDirectory(work);
+            using var identity = WindowsIdentity.GetCurrent();
+            var acl = new DirectorySecurity();
+            acl.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+            foreach (var (sid, rights) in new[] { (identity.User!, FileSystemRights.FullControl),
+                (new SecurityIdentifier("S-1-5-32-544"), FileSystemRights.ReadAndExecute),
+                (new SecurityIdentifier("S-1-5-18"), FileSystemRights.FullControl) })
+                acl.AddAccessRule(new FileSystemAccessRule(sid, rights, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                    PropagationFlags.None, AccessControlType.Allow));
+            new DirectoryInfo(work).SetAccessControl(acl);
+            if (password is not null)
+            {
+                var plain = Encoding.UTF8.GetBytes(password);
+                try
+                {
+                    recovery = Path.Combine(Path.GetDirectoryName(TestUserRunner.CredentialPath)!, "fence-user-recovery-" + Guid.NewGuid().ToString("N") + ".bin");
+                    TestUserRunner.StoreProtectedPassword(TestUserRunner.Protect(plain), recovery, overwrite: false);
+                }
+                finally { CryptographicOperations.ZeroMemory(plain); }
+                File.WriteAllText(secret!, password, new UTF8Encoding(false));
+            }
             File.WriteAllText(script, CreateScript, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
-            if (!RunElevated(script, secret))
+            using var scriptLease = new FileStream(script, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var secretLease = secret is null ? null : new FileStream(secret, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var completed = RunElevated(script, secret);
+            if (password is not null && TestUserRunner.LaunchAccountExists())
             {
-                message = SealText.TestAccountMissing;
+                var check = TestUserRunner.CheckPassword(password);
+                if (check.Ready)
+                {
+                    TestUserRunner.StoreProtectedPassword(File.ReadAllBytes(recovery!), TestUserRunner.CredentialPath, overwrite: false);
+                    TryDelete(recovery!);
+                    recovery = null;
+                }
+            }
+            var final = TestUserRunner.CheckStoredCredential();
+            if (!completed || !final.Ready)
+            {
+                message = (!completed ? "The elevated account helper did not finish successfully. " : "") + final.Message
+                    + (recovery is null ? "" : " Encrypted recovery credential was preserved at " + recovery + ".");
                 return false;
             }
-
-            if (!TestUserRunner.LaunchAccountExists())
-            {
-                message = SealText.TestAccountMissing;
-                return false;
-            }
-
-            TestUserRunner.StorePassword(password);
             return true;
         }
         catch
         {
-            message = SealText.TestAccountMissing;
+            message = "Windows account setup did not finish. Existing state was preserved."
+                + (recovery is null ? "" : " Encrypted recovery credential was preserved at " + recovery + ".");
             return false;
         }
         finally
         {
-            TryDelete(secret);
+            if (secret is not null) TryDelete(secret);
             TryDelete(script);
+            try { if (Directory.Exists(work)) Directory.Delete(work); } catch { }
         }
     }
 
-    private static bool RunElevated(string script, string secret)
+    private static bool RunElevated(string script, string? secret)
     {
         try
         {
             var start = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = "-NoProfile -ExecutionPolicy Bypass -File \"" + script + "\" -Path \"" + secret + "\"",
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "WindowsPowerShell", "v1.0", "powershell.exe"),
                 UseShellExecute = true,
                 Verb = "RunAs",
                 WindowStyle = ProcessWindowStyle.Hidden
             };
+            foreach (var arg in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script }) start.ArgumentList.Add(arg);
+            if (secret is not null) { start.ArgumentList.Add("-Path"); start.ArgumentList.Add(secret); }
             using var process = Process.Start(start);
             if (process is null)
                 return false;
-            if (!process.WaitForExit(120_000))
-                return false;
+            // Do not lose ownership or delete inputs while an elevated helper
+            // is still running. The repair UI awaits this on a worker thread.
+            process.WaitForExit();
             return process.ExitCode == 0;
         }
         catch
@@ -117,31 +162,33 @@ public static class LaunchAccountSetup
         }
         catch
         {
-            // The elevated helper also deletes the secret file.
+            // Preserve any input that could not be removed rather than deleting its parent recursively.
         }
     }
 
     private const string CreateScript = """
-        param([Parameter(Mandatory=$true)][string]$Path)
+        param([string]$Path)
         $ErrorActionPreference = 'Stop'
-        $raw = [IO.File]::ReadAllText($Path)
-        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
-        $sec = ConvertTo-SecureString -String $raw -AsPlainText -Force
-        $raw = $null
         $name = 'BuildLaunchTest'
         if (-not (Get-LocalUser -Name $name -ErrorAction SilentlyContinue)) {
+            if (-not $Path) { throw 'A new account credential is required.' }
+            $raw = [IO.File]::ReadAllText($Path)
+            $sec = ConvertTo-SecureString -String $raw -AsPlainText -Force
+            $raw = $null
             New-LocalUser -Name $name -Password $sec -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires | Out-Null
-        } else {
-            Set-LocalUser -Name $name -Password $sec -PasswordNeverExpires -UserMayChangePassword $false
         }
         $sec = $null
-        $users = @(Get-LocalGroupMember -Group 'Users' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '\\BuildLaunchTest$' })
+        Enable-LocalUser -Name $name
+        $account = Get-LocalUser -Name $name
+        $usersGroup = (Get-LocalGroup -SID 'S-1-5-32-545').Name
+        $adminsGroup = (Get-LocalGroup -SID 'S-1-5-32-544').Name
+        $users = @(Get-LocalGroupMember -Group $usersGroup | Where-Object { $_.SID -eq $account.SID })
         if ($users.Count -eq 0) {
-            Add-LocalGroupMember -Group 'Users' -Member $name
+            Add-LocalGroupMember -Group $usersGroup -Member $name
         }
-        $admins = @(Get-LocalGroupMember -Group 'Administrators' -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '\\BuildLaunchTest$' })
+        $admins = @(Get-LocalGroupMember -Group $adminsGroup | Where-Object { $_.SID -eq $account.SID })
         if ($admins.Count -gt 0) {
-            Remove-LocalGroupMember -Group 'Administrators' -Member $name
+            Remove-LocalGroupMember -Group $adminsGroup -Member $name
         }
         exit 0
         """;

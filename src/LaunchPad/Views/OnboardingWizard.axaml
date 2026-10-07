@@ -4,7 +4,7 @@
         Title="LaunchPad setup"
         Width="560" Height="660"
         MinHeight="560" MinWidth="520"
-        CanResize="False"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Background="{StaticResource WindowBg}">
@@ -42,17 +42,17 @@
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Classes="BodyText" Margin="0,0,0,12"
-                               Text="This is the guided version of the Quick Start Guide. Three tools work together:"/>
+                               Text="Learn the project workflow by building a tiny checklist / to-do tracker with Agent Bob:"/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,6"
                                Text="• LaunchPad — The front door. Creates folders and opens your project."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,6"
-                               Text="• Agent Bob — The chat companion. Helps you plan, keep the scope small, and write the prompt."/>
+                               Text="• Agent Bob — Your planning and teaching companion in the chat service you choose."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,14"
-                               Text="• Grok Build — The programmer. Writes the code in a terminal window."/>
+                               Text="• Your coding agent — Grok Build, Codex CLI, Claude Code, or a custom program. Works in a terminal window."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,14"
-                               Text="You’ll be ready to build in minutes."/>
+                               Text="You’ll choose your coding agent before the project opens."/>
                     <TextBlock Classes="HintText"
-                               Text="We’ll go step by step and keep the first project small. That’s the best way to learn the tools."/>
+                               Text="Practice a small workflow: define the goal, review a plan, approve the build, then check the result. Add, check off and clear tasks; extras can wait."/>
                 </StackPanel>
 
                 <StackPanel x:Name="StepAgentBob" IsVisible="False">
@@ -60,26 +60,42 @@
                                Classes="TitleText"
                                Margin="0,0,0,14"/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,16"
-                               Text="Agent Bob lives in Grok chat. You add his instructions once. After that he helps you plan before any code is written."/>
-                    <Button Classes="CardButton" Click="CopyInstructions_Click" Margin="0,0,0,10">
+                               Text="Choose where you want to talk to Bob. Your chat companion and coding agent can be from different providers."/>
+                    <TextBlock Classes="HintText" Text="Chat companion" Margin="0,0,0,6"/>
+                    <ComboBox x:Name="CompanionBox" HorizontalAlignment="Stretch" Margin="0,0,0,12"
+                              SelectionChanged="Companion_SelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="CopyInstructionsButton" Classes="CardButton" Click="CopyInstructions_Click" Margin="0,0,0,10">
                         <StackPanel>
-                            <TextBlock x:Name="CopyLabel" Text="Copy instructions" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock Text="Copies the full Agent Bob prompt. Paste it into the Custom box."
+                            <TextBlock x:Name="CopyLabel" Text="Copy full companion instructions" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Keeps the teaching, planning, review and project-management guidance."
                                        Classes="HintText"
                                        Margin="0,6,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button Classes="CardButton" Click="OpenGrok_Click" Margin="0,0,0,16">
+                    <TextBlock x:Name="InstructionCount" Classes="HintText" Margin="0,0,0,10"/>
+                    <Button x:Name="OpenCompanionButton" Classes="CardButton" Click="OpenCompanion_Click" Margin="0,0,0,12">
                         <StackPanel>
-                            <TextBlock Text="Open Grok" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock Text="Opens grok.com in your browser."
+                            <TextBlock x:Name="OpenCompanionLabel" Text="Open your chat" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="CompanionAddress" Text="Opens the selected chat in your browser."
                                        Classes="HintText"
                                        Margin="0,6,0,0"/>
                         </StackPanel>
                     </Button>
+                    <TextBlock Classes="BodyText" Margin="0,0,0,12"
+                               Text="1. Copy the full instructions. 2. Open your chat and sign in if needed. 3. Paste them as the first message in a new conversation. Bob will ask about your project and coding tool. Keep that conversation open, then continue here."/>
+                    <TextBlock Classes="HintText" Margin="0,0,0,8"
+                               Text="Optional: save the full instructions in your provider's project/custom instructions if that field accepts them. Field sizes and availability vary. If they do not fit, paste the same full instructions into a new chat."/>
+                    <Button x:Name="CompanionHelpButton" Classes="QuietLink" Content="Provider instructions help" Click="OpenCompanionHelp_Click" Margin="0,0,0,8"/>
+                    <Expander Header="Read the full companion instructions" Margin="0,0,0,10">
+                        <TextBox x:Name="InstructionsPreview" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="240"/>
+                    </Expander>
                     <TextBlock Classes="HintText" Margin="0,0,0,10"
-                               Text="Click your profile picture (bottom left) → Settings → Customize → Custom, paste the instructions, then come back here."/>
-                    <Button Classes="QuietLink" Content="Open the full guide for screenshots of the settings steps" Click="OpenGuide_Click"/>
+                               Text="LaunchPad does not change your chat settings or send messages for you. For a fresh chat, paste the instructions again unless you saved them there."/>
+                    <Button Classes="QuietLink" Content="Open project documentation" Click="OpenGuide_Click"/>
                 </StackPanel>
 
                 <StackPanel x:Name="StepCreateProject" IsVisible="False">
@@ -87,7 +103,8 @@
                                Classes="TitleText"
                                Margin="0,0,0,14"/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,14"
-                               Text="We’ll create the first project for you so you don’t have to figure out the main screen yet."/>
+                               Text="Create a folder, then choose its agent and launch mode. You can change those choices later from the project menu."/>
+                    <TextBlock x:Name="RunModeHint" Classes="HintText" Margin="0,0,0,14" Text="VM agents work on a copy. Native agents work directly in the Windows folder using your account permissions."/>
                     <TextBlock Classes="HintText" Margin="0,0,0,6" Text="Project name"/>
                     <TextBox x:Name="ProjectNameBox"
                              Classes="FieldBox"
@@ -111,9 +128,9 @@
                     <TextBlock Classes="HintText" Margin="0,0,0,10"
                                Text="Start with a small, clear first project. A tiny checklist is enough. You can always make another one later."/>
                     <TextBlock Classes="HintText" Margin="0,0,0,8"
-                               Text="The first time Grok Build opens it may ask you to sign in with your browser. That is normal."/>
+                               Text="Your agent may ask you to sign in with its provider. Native mode uses an agent already installed on Windows."/>
                     <TextBlock Classes="HintText"
-                               Text="Grok Build may need to install some development tools the first time. That is also normal."/>
+                               Text="Your project may need development tools or dependencies before it can build."/>
                 </StackPanel>
 
                 <StackPanel x:Name="StepNext" IsVisible="False">
@@ -123,13 +140,13 @@
                     <TextBlock Classes="BodyText" Margin="0,0,0,12"
                                Text="This is the working loop:"/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,6"
-                               Text="1. Talk to Agent Bob in Grok chat"/>
+                               Text="1. Describe your checklist project to Bob in your chosen chat."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,6"
-                               Text="2. Copy the prompt he gives you"/>
+                               Text="2. Copy Bob's planning prompt into your chosen coding agent. Bring its plan back to Bob and review it."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,14"
-                               Text="3. Paste it into the Grok Build terminal"/>
+                               Text="3. Approve the plan, then use Bob's implementation prompt. Bring back results or errors and check the checklist together."/>
                     <TextBlock Classes="BodyText" Margin="0,0,0,10"
-                               Text="Leave the Grok Build window open while you work. That is the programmer."/>
+                               Text="The project folder is saved and launch has been requested. Check the agent terminal for sign-in, readiness or errors, and leave it open while you work."/>
                     <TextBlock Classes="HintText" Margin="0,0,0,6"
                                Text="First, paste this to Agent Bob so that he can help you plan the project:"/>
                     <Border Background="{StaticResource CardBg}"
@@ -148,7 +165,7 @@
                                  Text="i want to make a very small personal daily checklist app. one simple window. i can type a new item and add it. i can check items off when im done. i can clear the ones that are finished. nothing else for the first version. no saving between restarts yet. keep it really small so it can be built in one go."/>
                     </Border>
                     <TextBlock Classes="HintText" Margin="0,0,0,10"
-                               Text="Bob will give you a prompt to paste into the Grok Build window."/>
+                               Text="Done means you can add a task, check it off and clear completed tasks while unfinished tasks remain. This first version does not save between restarts."/>
                     <Button x:Name="CopyStarterButton"
                             Classes="GhostButton"
                             Content="Copy starter prompt"
@@ -156,7 +173,7 @@
                             Click="CopyStarter_Click"
                             Margin="0,0,0,14"/>
                     <Button Classes="GhostButton"
-                            Content="Open full guide"
+                            Content="Open project documentation"
                             HorizontalAlignment="Left"
                             Click="OpenGuide_Click"/>
                 </StackPanel>

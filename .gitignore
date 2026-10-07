@@ -65,6 +65,8 @@ installer/stage/
 *.pfx
 *.p12
 **/auth.json
+**/auth.dpapi
+**/notifications/destinations/
 **/fence-user.bin
 **/builder.pass
 *.secret

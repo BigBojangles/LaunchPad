@@ -19,6 +19,9 @@
                        Classes="HintText"
                        Margin="0,0,0,16"/>
             <ComboBox x:Name="AgentBox" FontSize="15" Padding="8,6" Margin="0,0,0,14" SelectionChanged="AgentBox_SelectionChanged"/>
+            <TextBlock Text="Run in" Classes="HintText"/>
+            <ComboBox x:Name="LaunchModeBox" Margin="0,6,0,10"/>
+            <TextBlock Text="Native runs directly in your Windows folder with your account permissions. VM mode uses the fenced project copy. Changes apply next launch." Classes="HintText" TextWrapping="Wrap" Margin="0,0,0,12"/>
             <StackPanel x:Name="CustomPanel" IsVisible="False">
                 <TextBlock Text="Program file" Classes="HintText" Margin="0,0,0,6"/>
                 <DockPanel Margin="0,0,0,8">

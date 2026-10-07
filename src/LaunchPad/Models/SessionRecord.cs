@@ -1,7 +1,7 @@
 namespace LaunchPad.Models;
 
 public enum SessionKind { VirtualMachine, HostWindow }
-public enum SessionLifecycle { Starting, Running, Busy, NeedsAnswer, Stopping, Stopped, Failed, Unknown }
+public enum SessionLifecycle { Starting, Running, Busy, NeedsAnswer, Stopping, Stopped, Failed, Unknown, Idle }
 
 /// <summary>UI-independent identity and lifecycle information for one session.</summary>
 public sealed record SessionRecord(
@@ -14,7 +14,8 @@ public sealed record SessionRecord(
     nint? WindowHandle,
     SessionLifecycle State,
     string? Error = null,
-    SessionWindowIdentity? Window = null);
+    SessionWindowIdentity? Window = null,
+    AgentActivitySnapshot? Activity = null);
 
 /// <summary>Process creation times prevent a reused PID or window from being selected.</summary>
 public sealed record SessionWindowIdentity(int ClientPid, long ClientStartTicks, long ConsoleHandle,

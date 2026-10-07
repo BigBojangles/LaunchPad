@@ -23,6 +23,9 @@ public sealed class SettingsStore
         var projectMemory = Current.ProjectMemoryMb ?? new Dictionary<string, int>();
         Current.ProjectMemoryMb = new Dictionary<string, int>(projectMemory, StringComparer.OrdinalIgnoreCase);
         Current.ProjectAgent = CaseMap(Current.ProjectAgent);
+        Current.ProjectLaunchMode = CaseMap(Current.ProjectLaunchMode);
+        Current.ProjectWindowsTestPermission = CaseMap(Current.ProjectWindowsTestPermission);
+        Current.ProjectPermissions = new(Current.ProjectPermissions ?? [], StringComparer.OrdinalIgnoreCase);
         Current.ProjectAgentProgram = CaseMap(Current.ProjectAgentProgram);
         Current.ProjectAgentSource = CaseMap(Current.ProjectAgentSource);
         var projects = JsonFile.Load<List<KnownProject>>(paths.ProjectsFile);
@@ -37,6 +40,7 @@ public sealed class SettingsStore
     }
 
     public AppSettings Current { get; private set; }
+    public AppPaths Paths => _paths;
     public List<KnownProject> KnownProjects { get; private set; }
     public event Action<string>? DisplayNamesChanged;
     public event Action? PreferencesChanged;
@@ -105,17 +109,60 @@ public sealed class SettingsStore
         PreferencesChanged?.Invoke();
     }
 
-    public void SavePreferences(bool tips, string defaultAgent, int memoryMb, int cores, bool resetTips = false)
+    public void SavePreferences(bool tips, string defaultAgent, int memoryMb, int cores, bool resetTips = false, bool preserveVmDefaults = false,
+        NotificationPreference? notifications = null, bool? rememberGrokSignIn = null)
     {
-        if (defaultAgent is not (AgentChoice.Grok or AgentChoice.Codex or AgentChoice.Claude) || memoryMb < 2048 || cores < 1)
+        if (defaultAgent is not (AgentChoice.Grok or AgentChoice.Codex or AgentChoice.Claude) || !preserveVmDefaults && (memoryMb < 2048 || cores < 1))
             throw new ArgumentException("Choose a bundled default agent and valid VM memory/CPU defaults.");
+        if (notifications?.Enabled == true && !Guid.TryParseExact(notifications.DestinationReference, "N", out _))
+            throw new ArgumentException("Configure a notification channel before enabling alerts.");
         lock (_gate)
         {
             var old = (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores);
             var oldTips = Current.SeenTips;
-            (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) = (tips, defaultAgent, memoryMb, cores);
+            var oldNotifications = (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch);
+            var oldSignIn = Current.RememberGrokSignIn;
+            if (rememberGrokSignIn is { } remember) Current.RememberGrokSignIn = remember;
+            (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) =
+                (tips, defaultAgent, preserveVmDefaults ? old.MachineMemoryMb : memoryMb, preserveVmDefaults ? old.MachineCores : cores);
             if (resetTips) Current.SeenTips = new(StringComparer.Ordinal);
-            try { SaveSettings(); } catch { (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) = old; Current.SeenTips = oldTips; throw; }
+            if (notifications is not null)
+            {
+                if (Current.NotificationsEnabled != notifications.Enabled || Current.NotificationDestination != notifications.DestinationReference)
+                    Current.NotificationEpoch = Guid.NewGuid().ToString("N");
+                (Current.NotificationsEnabled, Current.NotificationDestination) = (notifications.Enabled, notifications.DestinationReference);
+            }
+            try { SaveSettings(); } catch { (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) = old; Current.SeenTips = oldTips;
+                (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch) = oldNotifications; Current.RememberGrokSignIn = oldSignIn; throw; }
+        }
+        PreferencesChanged?.Invoke();
+    }
+
+    public NotificationConsent NotificationConsentFor(string path)
+    {
+        lock (_gate)
+        {
+            var project = KnownProjects.FirstOrDefault(project => MatchesProject(project.Path, Path.GetFullPath(path)));
+            return new(Current.NotificationsEnabled, project?.NotificationsEnabled == true,
+                Guid.TryParseExact(Current.NotificationDestination, "N", out _), Current.NotificationDestination,
+                Current.NotificationEpoch + ":" + project?.NotificationEpoch);
+        }
+    }
+
+    public void SaveProjectNotifications(string path, bool enabled)
+    {
+        lock (_gate)
+        {
+            var full = Path.GetFullPath(path);
+            var project = KnownProjects.FirstOrDefault(item => MatchesProject(item.Path, full));
+            var added = project is null;
+            project ??= new KnownProject { Name = FolderName(full), Path = full };
+            var old = (project.NotificationsEnabled, project.NotificationEpoch);
+            if (project.NotificationsEnabled != enabled) project.NotificationEpoch = Guid.NewGuid().ToString("N");
+            project.NotificationsEnabled = enabled;
+            if (added) KnownProjects.Add(project);
+            try { SaveKnownProjects(); }
+            catch { (project.NotificationsEnabled, project.NotificationEpoch) = old; if (added) KnownProjects.Remove(project); throw; }
         }
         PreferencesChanged?.Invoke();
     }
@@ -187,15 +234,19 @@ public sealed class SettingsStore
         }
     }
 
-    public void SaveAgent(string path, string id, string? program, string? sourceFile)
+    public void SaveAgent(string path, string id, string? program, string? sourceFile, string? launchMode = null)
     {
         lock (_gate)
         {
-            var old = (CaseMap(Current.ProjectAgent), CaseMap(Current.ProjectAgentProgram), CaseMap(Current.ProjectAgentSource));
+            if (launchMode is not (null or "native" or "fenced")) throw new ArgumentException("Choose Fenced VM or Native.");
+            var old = (CaseMap(Current.ProjectAgent), CaseMap(Current.ProjectAgentProgram), CaseMap(Current.ProjectAgentSource), CaseMap(Current.ProjectLaunchMode));
             var full = Path.GetFullPath(path);
             var chosen = AgentChoice.Normalize(id);
+            if (launchMode is not null) Current.ProjectLaunchMode[full] = launchMode;
             Current.ProjectAgent[full] = chosen;
-            if (chosen == AgentChoice.Custom && AgentChoice.SafeProgram(program))
+            if (chosen == AgentChoice.Custom && (AgentChoice.SafeProgram(program)
+                || LaunchModeFor(path) == "native" && !string.IsNullOrWhiteSpace(sourceFile)
+                && Path.IsPathFullyQualified(sourceFile) && NativeAgentLocator.Supported(sourceFile)))
             {
                 Current.ProjectAgentProgram[full] = program!;
                 if (!string.IsNullOrWhiteSpace(sourceFile))
@@ -207,7 +258,7 @@ public sealed class SettingsStore
                 Current.ProjectAgentSource.Remove(full);
             }
             try { SaveSettings(); }
-            catch { (Current.ProjectAgent, Current.ProjectAgentProgram, Current.ProjectAgentSource) = old; throw; }
+            catch { (Current.ProjectAgent, Current.ProjectAgentProgram, Current.ProjectAgentSource, Current.ProjectLaunchMode) = old; throw; }
         }
     }
 
@@ -260,6 +311,9 @@ public sealed class SettingsStore
         }
 
         Move(Current.ProjectAgent, oldFull, newFull);
+        Move(Current.ProjectLaunchMode, oldFull, newFull);
+        Move(Current.ProjectWindowsTestPermission, oldFull, newFull);
+        if (Current.ProjectPermissions.Remove(oldFull, out var policy)) Current.ProjectPermissions[newFull] = policy;
         Move(Current.ProjectAgentProgram, oldFull, newFull);
         Move(Current.ProjectAgentSource, oldFull, newFull);
 
@@ -277,6 +331,48 @@ public sealed class SettingsStore
         map[key] = value;
         try { SaveSettings(); }
         catch { if (existed) map[key] = previous!; else map.Remove(key); throw; }
+    }
+
+    public string LaunchModeFor(string path)
+    {
+        lock (_gate) return Current.ProjectLaunchMode.TryGetValue(Path.GetFullPath(path), out var mode) && mode == "native" ? "native" : "fenced";
+    }
+
+    public void SaveLaunchMode(string path, string mode)
+    {
+        if (mode is not ("native" or "fenced")) throw new ArgumentException("Choose Fenced VM or Native.");
+        lock (_gate) SaveEntry(Current.ProjectLaunchMode, Path.GetFullPath(path), mode);
+    }
+
+    public string WindowsTestPermissionFor(string path)
+    {
+        lock (_gate)
+        {
+            if (!Current.ProjectWindowsTestPermission.TryGetValue(Path.GetFullPath(path), out var value)) return "automatic";
+            if (value is not ("automatic" or "confirm")) throw new IOException("This project's Windows test permission is invalid. No test was approved.");
+            return value;
+        }
+    }
+
+    public ProjectPermissionPolicy PermissionPolicyFor(string path)
+    {
+        lock (_gate)
+            return PermissionPolicies.Validate(Current.ProjectPermissions.TryGetValue(Path.GetFullPath(path), out var policy)
+                ? policy : ProjectPermissionPolicy.Standard);
+    }
+
+    public void SavePermissionPolicy(string path, ProjectPermissionPolicy policy)
+    {
+        var validated = PermissionPolicies.Validate(policy);
+        lock (_gate) SaveEntry(Current.ProjectPermissions, Path.GetFullPath(path), validated);
+        PreferencesChanged?.Invoke();
+    }
+
+    public void SaveWindowsTestPermission(string path, string permission)
+    {
+        if (permission is not ("automatic" or "confirm")) throw new ArgumentException("Choose automatic Windows testing or confirmation per test.");
+        lock (_gate) SaveEntry(Current.ProjectWindowsTestPermission, Path.GetFullPath(path), permission);
+        PreferencesChanged?.Invoke();
     }
 
     private static bool MatchesProject(string? path, string full)

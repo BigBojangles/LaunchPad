@@ -8,11 +8,17 @@ public sealed record MaintenanceManifest(int Schema, string Version, Maintenance
     MaintenanceArtifact Initrd, MaintenanceArtifact Payload, string GuestScriptSha256);
 public sealed record MaintenanceKit(string Kernel, string Initrd, string Payload, MaintenanceManifest Manifest)
 {
-    public static MaintenanceKit Read(string runtimeRoot)
+    public static MaintenanceKit Read(string runtimeRoot, string manifestName = "maintenance.json")
     {
         var images = Path.Combine(runtimeRoot, "images");
-        if (!FenceFiles.TryResolveUnlinked(images, "maintenance.json", out var path)) throw new InvalidDataException("The maintenance location contains a link.");
-        var manifest = JsonSerializer.Deserialize<MaintenanceManifest>(File.ReadAllText(path), JsonFile.Options);
+        if (!RuntimeImages.ValidManifestName(manifestName) || !FenceFiles.TryResolveUnlinked(images, manifestName, out var path)) throw new InvalidDataException("The maintenance location contains a link.");
+        if (new FileInfo(path).Length > 65536) throw new InvalidDataException("The maintenance manifest is too large.");
+        var bytes = File.ReadAllBytes(path);
+        if (manifestName.StartsWith(RuntimeActivation.MaintenancePrefix, StringComparison.Ordinal)
+            && (manifestName.Length != RuntimeActivation.MaintenancePrefix.Length + 64 + 5
+                || !Convert.ToHexString(SHA256.HashData(bytes)).Equals(manifestName.Substring(RuntimeActivation.MaintenancePrefix.Length, 64), StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("The selected maintenance snapshot failed its address check.");
+        var manifest = JsonSerializer.Deserialize<MaintenanceManifest>(bytes, JsonFile.Options);
         if (manifest is null || manifest.Schema != 1 || string.IsNullOrWhiteSpace(manifest.Version)
             || manifest.GuestScriptSha256 is not { Length: 64 } || !manifest.GuestScriptSha256.All(Uri.IsHexDigit))
             throw new InvalidDataException("The offline maintenance manifest is invalid.");

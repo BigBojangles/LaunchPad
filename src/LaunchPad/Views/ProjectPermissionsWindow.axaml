@@ -1,0 +1,39 @@
+<Window x:Class="LaunchPad.Views.ProjectPermissionsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Project permissions" Width="560" Height="680" MinWidth="460" MinHeight="480" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+  <DockPanel Margin="24">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,12,0,0">
+      <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+        <Button Content="Close" Classes="GhostButton" Click="Close_Click"/>
+        <Button x:Name="SaveButton" Content="Save preset" Classes="PrimaryButton" Click="Save_Click"/>
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
+        <TextBlock x:Name="ProjectLabel" Classes="TitleText" TextTrimming="CharacterEllipsis"/>
+        <Slider x:Name="PresetSlider" Minimum="0" Maximum="2" TickFrequency="1" IsSnapToTickEnabled="True"/>
+        <Grid ColumnDefinitions="*,*,*">
+          <TextBlock Text="Strict" Classes="BodyText"/>
+          <TextBlock Grid.Column="1" Text="Standard" Classes="BodyText" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Column="2" Text="Troubleshoot" Classes="BodyText" HorizontalAlignment="Right"/>
+        </Grid>
+        <TextBlock x:Name="RequestedText" Classes="HintText" TextWrapping="Wrap"/>
+        <TextBlock x:Name="EffectiveText" Classes="BodyText" TextWrapping="Wrap"/>
+        <TextBlock Text="Approved destinations" Classes="BodyText"/>
+        <TextBox x:Name="DestinationsBox" AcceptsReturn="True" Height="76" Watermark="api.example.com:443 (one per line)"/>
+        <TextBlock Classes="HintText" TextWrapping="Wrap" Text="Destination filtering is still being finished. This list is saved for Strict; a Strict VM launch is refused until filtering is available. Changing this setting does not relabel a running VM."/>
+        <TextBlock Text="Temporary Windows test permission" Classes="BodyText"/>
+        <ComboBox x:Name="ToolBox" HorizontalAlignment="Stretch"/>
+        <TextBox x:Name="ProgramBox" Watermark="Snapshot .exe path, such as bin/app.exe"/>
+        <WrapPanel>
+          <Button x:Name="GrantButton" Content="Allow tool for 30 minutes" Classes="GhostButton" Click="Grant_Click" Margin="0,0,8,8"/>
+          <Button x:Name="RevokeButton" Content="Revoke temporary permissions" Classes="GhostButton" Click="Revoke_Click" Margin="0,0,0,8"/>
+        </WrapPanel>
+        <TextBlock x:Name="ExceptionsText" Classes="HintText" TextWrapping="Wrap"/>
+        <TextBlock Classes="HintText" TextWrapping="Wrap" Text="Troubleshoot keeps the Standard VM fence. A named permission skips confirmation for that Windows test tool in this session only, for at most 30 minutes. Expiry or revocation stops an unconfirmed owned test. Windows tests still use a copied project and the non-admin test account."/>
+        <TextBlock Classes="HintText" TextWrapping="Wrap" Text="The VM network currently has the existing Standard access, including possible services on this PC. Bundled agents use the guest policy; custom programs do not share that guest filesystem policy. These presets never grant admin or direct access to your original project."/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

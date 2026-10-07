@@ -76,8 +76,9 @@ public class FenceTests
     {
         Assert.True(QemuCommand.FsdevIsDisabled("qemu-system-x86_64.exe: -fsdev help: fsdev support is disabled"));
         Assert.False(QemuCommand.FsdevIsDisabled("fsdev options:\nlocal"));
-        Assert.Contains("no 9p file share", SealText.NoFileShare, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("will not mount this project", SealText.NoFileShare, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("9p", SealText.NoFileShare, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("copied into the VM", SealText.NoFileShare, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("not mounted there", SealText.NoFileShare, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -99,13 +100,14 @@ public class FenceTests
     }
 
     [Fact]
-    public void RepairSetsThePasswordOnTheExistingAccount()
+    public void RepairPreservesThePasswordOnTheExistingAccount()
     {
         var script = LaunchAccountSetup.AccountScript;
-        var setAt = script.IndexOf("Set-LocalUser", StringComparison.Ordinal);
+        var setAt = script.IndexOf("New-LocalUser", StringComparison.Ordinal);
         var clearAt = script.LastIndexOf("$sec = $null", StringComparison.Ordinal);
         Assert.True(setAt > 0);
         Assert.True(clearAt > setAt);
+        Assert.DoesNotContain("Set-LocalUser", script, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -298,7 +300,7 @@ public class FenceTests
     public void FirstWarningIsOneSentenceAndTheCheckboxSkipsTheNextLaunch()
     {
         Assert.Equal(
-            "This folder is not mounted. Grok works on a copy inside a small Debian machine.",
+            "VM agents work on a copy; native Windows agents work directly in your folder using your account permissions.",
             FirstWarning.Text);
         Assert.DoesNotContain("\n", FirstWarning.Text);
 
@@ -534,8 +536,8 @@ public class FenceTests
 
         var iss = File.ReadAllText(RepoFile("installer", "LaunchPad.iss"));
         Assert.Contains("qemu\\*", iss, StringComparison.Ordinal);
-        Assert.Contains("debian-12-builder.qcow2", iss, StringComparison.Ordinal);
-        Assert.Contains("debian-12-nocloud-amd64-20260601-2496.qcow2", iss, StringComparison.Ordinal);
+        Assert.Contains("#include RuntimeFilesInclude", iss, StringComparison.Ordinal);
+        Assert.DoesNotContain("Source: \"..\\..\\build-launch-qemu\\images\\debian-12-builder.qcow2\"", iss, StringComparison.Ordinal);
         Assert.DoesNotContain("Source: \"..\\dist\\grok.exe\"", iss, StringComparison.Ordinal);
         Assert.DoesNotContain("CreateCustomPage", iss, StringComparison.Ordinal);
         Assert.Contains("DisableWelcomePage=no", iss, StringComparison.Ordinal);
@@ -553,7 +555,10 @@ public class FenceTests
         Assert.DoesNotContain("qemu-system", prepare, StringComparison.Ordinal);
 
         Assert.DoesNotContain("SetupPublic.ps1", iss, StringComparison.Ordinal);
-        Assert.Contains("BuildLaunchTest:(OI)(CI)RX", iss, StringComparison.Ordinal);
+        Assert.Contains("--activate-runtime", iss, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildLaunchTest:(OI)(CI)RX", iss, StringComparison.Ordinal);
+        Assert.Contains("onlyifdoesntexist nocompression uninsneveruninstall",
+            File.ReadAllText(RepoFile("scripts", "installer-runtime-files.ps1")), StringComparison.Ordinal);
         Assert.DoesNotContain(@"C:\Users\Public\LaunchPad", File.ReadAllText(RepoFile("src", "LaunchPad", "Services", "Fence", "PublicRuntime.cs")), StringComparison.Ordinal);
 
         var root = @"C:\Users\Big Bojangles\AppData\Local\Programs\LaunchPad";
@@ -739,7 +744,7 @@ public class FenceTests
             Assert.False(table.OtherThan(11));
 
             Assert.Equal(20000, PortChoice.Next(Array.Empty<int>()));
-            Assert.Equal(20004, PortChoice.Next(new[] { 20000 }));
+            Assert.Equal(20005, PortChoice.Next(new[] { 20000 }));
             Assert.NotEqual(PortChoice.Next(Array.Empty<int>()), PortChoice.Next(new[] { 20000 }));
 
             var paths = new AppPaths(userProfile: root, appDataDir: Path.Combine(root, "appdata"));
@@ -1013,7 +1018,7 @@ public class FenceTests
             var fullRocket = RocketPicture.Lines(100);
             Assert.True(emptyRocket.Count >= 12);
             Assert.True(emptyRocket.All(line => line.Length == emptyRocket[0].Length && line.Length >= 15));
-            Assert.Contains("..::-----::..", emptyRocket[0], StringComparison.Ordinal);
+            Assert.Contains("****************", emptyRocket[0], StringComparison.Ordinal);
             Assert.Equal(emptyRocket[0], fullRocket[0]);
             Assert.DoesNotContain("o", string.Join("", RocketPicture.Mask(0)), StringComparison.Ordinal);
             Assert.Contains("e", string.Join("", RocketPicture.Mask(0)), StringComparison.Ordinal);
@@ -1027,6 +1032,7 @@ public class FenceTests
             Assert.Null(CopyMath.Remaining(65536, 262144, TimeSpan.FromMilliseconds(500)));
             var wide = RocketView.Frame(0, 100, 1, TimeSpan.Zero, 200, 60);
             var halfNose = RocketView.Half(RocketPicture.Lines(0))[0].Trim();
+            Assert.Equal("****************", halfNose);
             Assert.Contains(halfNose, wide, StringComparison.Ordinal);
             Assert.DoesNotContain("..::-----::..", wide, StringComparison.Ordinal);
             var frame = RocketView.Frame(65536, 262144, 2, TimeSpan.FromSeconds(2), 48, 30);
@@ -1176,6 +1182,11 @@ public class FenceTests
             Assert.Equal(half[0][index] != ' ', halfMask[0][index] != ' ');
 
         var opening = RocketView.Frame(0, 100, 1, TimeSpan.Zero, 200, 60, firstCopy: true);
+        Assert.Contains(SealText.WarmingUp, opening, StringComparison.Ordinal);
+        Assert.DoesNotContain(SealText.VmLaunching, opening, StringComparison.Ordinal);
+        var copied = RocketView.Frame(100, 100, 1, TimeSpan.FromSeconds(1), 200, 60);
+        Assert.Contains(SealText.VmLaunching, copied, StringComparison.Ordinal);
+        Assert.DoesNotContain(SealText.BlastOff, copied, StringComparison.Ordinal);
         Assert.Contains("Copying your project into the sandbox.", opening, StringComparison.Ordinal);
         Assert.Contains("First open, so this one takes a minute.", opening, StringComparison.Ordinal);
         Assert.Contains("\u001b[2m", opening, StringComparison.Ordinal);

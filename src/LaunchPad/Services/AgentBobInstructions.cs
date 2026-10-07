@@ -18,6 +18,6 @@ public static class AgentBobInstructions
             return "";
 
         using var reader = new StreamReader(stream);
-        return reader.ReadToEnd().TrimEnd() + Environment.NewLine;
+        return reader.ReadToEnd().Replace("\r\n", "\n").TrimEnd() + "\n";
     }
 }

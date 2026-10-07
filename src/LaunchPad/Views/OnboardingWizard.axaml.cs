@@ -9,13 +9,23 @@ public partial class OnboardingWizard : Window
 
     private readonly string _projectsRoot;
     private readonly Func<string, bool, OnboardingProjectStatus> _ensureProject;
+    private readonly Func<Window, string, bool, Task<bool>>? _openProject;
+    private bool _busy;
     private int _step;
 
-    public OnboardingWizard(string projectsRoot, Func<string, bool, OnboardingProjectStatus> ensureProject)
+    public OnboardingWizard(string projectsRoot, Func<string, bool, OnboardingProjectStatus> ensureProject,
+        Func<Window, string, bool, Task<bool>>? openProject = null, bool nativeOnly = false)
     {
         _projectsRoot = projectsRoot;
         _ensureProject = ensureProject;
+        _openProject = openProject;
         InitializeComponent();
+        InstructionsPreview.Text = AgentBobInstructions.Load();
+        InstructionCount.Text = $"Full instructions: {InstructionsPreview.Text.Length:N0} characters. Nothing is shortened.";
+        CompanionBox.ItemsSource = CompanionChoice.All;
+        CompanionBox.SelectedIndex = 0;
+        if (nativeOnly)
+            RunModeHint.Text = "This package runs installed Windows agents directly in your project folder using your account permissions. It has no VM runtime.";
         ShowStep(0);
     }
 
@@ -48,24 +58,12 @@ public partial class OnboardingWizard : Window
             ShowStep(_step - 1);
     }
 
-    private void Primary_Click(object sender, RoutedEventArgs e)
+    private async void Primary_Click(object sender, RoutedEventArgs e)
     {
+        if (_busy) return;
         if (_step == 2)
         {
-            var status = _ensureProject(ProjectNameBox.Text ?? "", false);
-            if (status.Result == OnboardingProjectStatus.Kind.Exists)
-            {
-                ProjectError.Text = status.Message;
-                UseExistingButton.IsVisible = true;
-                return;
-            }
-
-            if (status.Result != OnboardingProjectStatus.Kind.Ready)
-            {
-                ProjectError.Text = status.Message;
-                UseExistingButton.IsVisible = false;
-                return;
-            }
+            if (!await PrepareProjectAsync(reuseExisting: false)) return;
         }
 
         if (_step >= 3)
@@ -79,16 +77,43 @@ public partial class OnboardingWizard : Window
         ShowStep(_step + 1);
     }
 
-    private void UseExisting_Click(object sender, RoutedEventArgs e)
+    private async void UseExisting_Click(object sender, RoutedEventArgs e)
     {
-        var status = _ensureProject(ProjectNameBox.Text ?? "", true);
-        if (status.Result != OnboardingProjectStatus.Kind.Ready)
-        {
-            ProjectError.Text = status.Message;
-            return;
-        }
+        if (!_busy && await PrepareProjectAsync(reuseExisting: true)) ShowStep(3);
+    }
 
-        ShowStep(3);
+    private async Task<bool> PrepareProjectAsync(bool reuseExisting)
+    {
+        _busy = true;
+        PrimaryButton.IsEnabled = BackButton.IsEnabled = UseExistingButton.IsEnabled = false;
+        try
+        {
+            var status = _ensureProject(ProjectNameBox.Text ?? "", reuseExisting);
+            if (status.Result != OnboardingProjectStatus.Kind.Ready)
+            {
+                ProjectError.Text = status.Message;
+                UseExistingButton.IsVisible = status.Result == OnboardingProjectStatus.Kind.Exists;
+                return false;
+            }
+            if (_openProject is not null && !await _openProject(this, status.Path!, reuseExisting))
+            {
+                ProjectError.Text = "The folder is saved. Use this project to choose an agent and open it when you are ready.";
+                UseExistingButton.IsVisible = true;
+                return false;
+            }
+            return true;
+        }
+        catch (Exception error)
+        {
+            ProjectError.Text = error.Message;
+            UseExistingButton.IsVisible = true;
+            return false;
+        }
+        finally
+        {
+            _busy = false;
+            PrimaryButton.IsEnabled = BackButton.IsEnabled = UseExistingButton.IsEnabled = true;
+        }
     }
 
     private async void CopyInstructions_Click(object sender, RoutedEventArgs e)
@@ -100,8 +125,15 @@ public partial class OnboardingWizard : Window
             return;
         }
 
-        await UiDialogs.CopyAsync(this, text);
-        CopyLabel.Text = "Copied";
+        try
+        {
+            await UiDialogs.CopyAsync(this, text);
+            CopyLabel.Text = "Full instructions copied";
+        }
+        catch (Exception)
+        {
+            await UiDialogs.ShowAsync(this, "Could not copy the instructions. You can select and copy them from the full instructions preview.");
+        }
     }
 
     private async void CopyStarter_Click(object sender, RoutedEventArgs e)
@@ -110,7 +142,33 @@ public partial class OnboardingWizard : Window
         CopyStarterButton.Content = "Copied";
     }
 
-    private void OpenGrok_Click(object sender, RoutedEventArgs e) => ExternalLinks.Open(ExternalLinks.GrokChat);
+    private void Companion_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (OpenCompanionButton is null) return;
+        var choice = CompanionBox.SelectedItem as CompanionChoice;
+        OpenCompanionButton.IsEnabled = choice?.ChatUrl is not null;
+        OpenCompanionLabel.Text = choice?.ChatUrl is not null ? "Open " + choice.Name : "Open your preferred chat yourself";
+        CompanionAddress.Text = choice?.ChatUrl ?? "Copy the full instructions and paste them into your preferred chat.";
+        CompanionHelpButton.IsVisible = choice?.InstructionsUrl is not null;
+    }
+
+    private async void OpenCompanion_Click(object sender, RoutedEventArgs e)
+    {
+        if (CompanionBox.SelectedItem is CompanionChoice { ChatUrl: not null } choice)
+            await OpenLinkAsync(choice.ChatUrl);
+    }
+
+    private async void OpenCompanionHelp_Click(object sender, RoutedEventArgs e)
+    {
+        if (CompanionBox.SelectedItem is CompanionChoice { InstructionsUrl: not null } choice)
+            await OpenLinkAsync(choice.InstructionsUrl);
+    }
+
+    private async Task OpenLinkAsync(string url)
+    {
+        try { ExternalLinks.Open(url); }
+        catch (Exception) { await UiDialogs.ShowAsync(this, "Could not open your browser. Open this address yourself: " + url); }
+    }
 
     private void OpenGuide_Click(object sender, RoutedEventArgs e) => ExternalLinks.Open(ExternalLinks.Guide);
 

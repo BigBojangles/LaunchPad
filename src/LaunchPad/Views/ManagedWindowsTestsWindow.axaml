@@ -1,0 +1,49 @@
+<Window x:Class="LaunchPad.Views.ManagedWindowsTestsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Windows tests" Width="680" Height="680" MinWidth="540" MinHeight="520" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+  <DockPanel Margin="24">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+      <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>
+      <WrapPanel>
+        <Button x:Name="ApproveButton" Content="Allow this test" Classes="PrimaryButton" Click="Approve_Click" Margin="0,0,8,8"/>
+        <Button x:Name="DenyButton" Content="Deny" Classes="GhostButton" Click="Deny_Click" Margin="0,0,8,8"/>
+        <Button x:Name="ShowButton" Content="Show test desktop" Classes="GhostButton" Click="Show_Click" Margin="0,0,8,8"/>
+        <Button x:Name="ReturnButton" Content="Return to LaunchPad" Classes="GhostButton" Click="Return_Click" Margin="0,0,8,8"/>
+        <Button x:Name="CancelTestButton" Content="Cancel test" Classes="GhostButton" Click="CancelTest_Click" Margin="0,0,8,8"/>
+        <Button x:Name="ResultsButton" Content="Open saved results" Classes="GhostButton" Click="Results_Click" Margin="0,0,8,8"/>
+        <Button Content="Close" Classes="GhostButton" Click="Close_Click" Margin="0,0,8,8"/>
+      </WrapPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="10">
+        <TextBlock x:Name="ProjectLabel" Classes="TitleText" TextTrimming="CharacterEllipsis"/>
+        <TextBlock Text="Windows test permission" Classes="BodyText"/>
+        <Grid ColumnDefinitions="*,Auto">
+          <ComboBox x:Name="PermissionBox" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="Automatic managed tests"/>
+            <ComboBoxItem Content="Ask before each test"/>
+          </ComboBox>
+          <Button Grid.Column="1" Content="Save" Classes="GhostButton" Click="SavePermission_Click" Margin="8,0,0,0"/>
+        </Grid>
+        <TextBlock x:Name="PermissionHint" Classes="HintText" TextWrapping="Wrap" Text="Runs use the separate Windows test account and a copied snapshot. Confirmation lasts one minute and applies only to the selected request. Project permissions may require confirmation or grant a named, expiring exception."/>
+        <TextBlock x:Name="EmptyText" Classes="HintText" Text="No managed Windows tests yet. The VM needs the Windows test bridge installed before it can send requests." TextWrapping="Wrap"/>
+        <ListBox x:Name="RunsList" Height="140" SelectionChanged="Runs_SelectionChanged">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="{Binding State.Tool}"/>
+                <TextBlock Text="{Binding State.Stage}"/>
+                <TextBlock Text="{Binding State.RequestId}" TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBox x:Name="RequestText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="70" MaxHeight="160"/>
+        <TextBlock Text="Saved output" Classes="BodyText"/>
+        <TextBox x:Name="LogsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="90" MaxHeight="220"/>
+        <TextBlock Classes="HintText" TextWrapping="Wrap" Text="Closing this window leaves managed tests running. Return leaves an interactive test running. Cancel affects only the selected test. Saved logs and selected artifacts describe that run; test changes are never applied to your project automatically."/>
+        <Button Content="Open manual test preview…" Classes="GhostButton" Click="ManualPreview_Click" HorizontalAlignment="Left"/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

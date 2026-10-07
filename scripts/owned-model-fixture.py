@@ -8,7 +8,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
-def tool_call(tools, agent):
+def tool_call(tools, agent, background=False):
     candidates = [tool.get('function', tool) for tool in tools]
     for preferred in ['Bash', 'exec_command', 'shell_command', 'terminal', 'shell', 'run_terminal_command']:
         for tool in candidates:
@@ -16,7 +16,8 @@ def tool_call(tools, agent):
                 continue
             schema = tool.get('parameters', tool.get('input_schema', {}))
             properties = schema.get('properties', {})
-            helper = 'owned-agent-interruption.py' if pathlib.Path('owned_terminal.json').exists() else 'owned-agent-boundary.py'
+            helper = 'owned-codex-work.py' if pathlib.Path('owned_activity.json').exists() else (
+                'owned-agent-interruption.py' if pathlib.Path('owned_terminal.json').exists() else 'owned-agent-boundary.py')
             command = 'python3 ' + helper + ' ' + agent
             values = {}
             for name in ['cmd', 'command', 'commands']:
@@ -25,12 +26,24 @@ def tool_call(tools, agent):
                     break
             if not values:
                 continue
+            if background:
+                background_key = next((key for key in ['is_background', 'isBackground', 'background', 'run_in_background']
+                                       if properties.get(key, {}).get('type') == 'boolean'), None)
+                if background_key:
+                    values[background_key] = True
+                elif 'integer' in properties.get('block_until_ms', {}).get('type', []):
+                    # Observed Grok 1.0.46 schema: zero starts in background.
+                    values['block_until_ms'] = 0
+                else:
+                    raise RuntimeError('Pinned shell tool offers no supported background option')
             for name, value in [('description', 'Run the owned LaunchPad permission fixture'),
                                 ('workdir', '/home/builder/in/project'), ('cwd', '/home/builder/in/project'),
                                 ('yield_time_ms', 1000), ('max_output_tokens', 2000),
-                                ('timeout', 120000 if pathlib.Path('owned_terminal.json').exists() else 10000)]:
+                                ('timeout', 30000 if background else 120000 if pathlib.Path('owned_terminal.json').exists() else 10000)]:
                 if name in properties:
                     values[name] = value
+            if pathlib.Path('owned_activity.json').exists() and 'yield_time_ms' in properties:
+                values['yield_time_ms'] = 10000
             return tool['name'], values
     raise RuntimeError('No offered shell tool: ' + ','.join(tool.get('name', '?') for tool in candidates))
 
@@ -61,7 +74,7 @@ def poll_call(tools, session):
 
 class Fixture(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, agent, output):
+    def __init__(self, agent, output, *, grok_background=False):
         super().__init__(('127.0.0.1', 0), Handler)
         self.agent, self.output = agent, output
         self.records = []
@@ -69,6 +82,7 @@ class Fixture(ThreadingHTTPServer):
         self.command_calls = 0
         self.returned = False
         self.lock = threading.Lock()
+        self.grok_background = grok_background
 
     def record(self, **entry):
         with self.lock:
@@ -124,7 +138,18 @@ class Handler(BaseHTTPRequestHandler):
             self.respond('{"input_tokens": 100}')
             return
         try:
-            shell = (poll_call(tools, session) if session is not None else tool_call(tools, self.server.agent)) if tools and not has_result else None
+            if self.server.grok_background:
+                # Ignore auxiliary title/summary calls. Only the actual root
+                # model request advertises the shell, and only one owned child
+                # is requested; subsequent requests finish without a new tool.
+                shell_tools = [tool for tool in tools if tool.get('function', tool).get('name') == 'run_terminal_command']
+                if shell_tools and self.server.command_calls == 0:
+                    self.server.record(ownedShellSchema=shell_tools[0].get('function', shell_tools[0]).get('parameters', {}))
+                    shell = tool_call(shell_tools, self.server.agent, background=True)
+                else:
+                    shell = None
+            else:
+                shell = (poll_call(tools, session) if session is not None else tool_call(tools, self.server.agent)) if tools and not has_result else None
         except RuntimeError as error:
             self.server.record(error=str(error))
             shell = None

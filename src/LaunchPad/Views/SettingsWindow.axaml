@@ -8,7 +8,7 @@
         <Button x:Name="SaveButton" Content="Save" Classes="PrimaryButton" Click="Save_Click"/>
       </StackPanel>
     </StackPanel>
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="12">
         <TextBlock Text="Settings" Classes="TitleText"/>
         <CheckBox x:Name="TipsSwitch" Content="Show one-time tips"/>
@@ -19,7 +19,16 @@
         <ComboBox x:Name="MemoryBox" HorizontalAlignment="Stretch"/>
         <TextBlock Text="VM CPU default" Classes="BodyText"/>
         <ComboBox x:Name="CoresBox" HorizontalAlignment="Stretch"/>
-        <TextBlock Text="Defaults apply next time a VM opens. Project choices stay in the project menu." Classes="HintText"/>
+        <TextBlock x:Name="DefaultsHint" Text="Defaults apply next time a VM opens. Project choices stay in the project menu." Classes="HintText"/>
+        <CheckBox x:Name="RememberSignInSwitch" Content="Reuse Grok sign-in for new VM projects"/>
+        <TextBlock Text="Keeps an encrypted login cache for your Windows account. Turning this off stops sharing the login with new projects; existing VMs keep their own sign-in." Classes="HintText" TextWrapping="Wrap"/>
+        <Button x:Name="SetupRepairButton" Content="Repair setup…" Classes="GhostButton" HorizontalAlignment="Left" Click="RepairSetup_Click"/>
+        <TextBlock Text="Notifications" Classes="BodyText" Margin="0,12,0,0"/>
+        <CheckBox x:Name="NotificationsSwitch" Content="Enable optional agent alerts"/>
+        <TextBlock x:Name="NotificationsHint" Classes="HintText" TextWrapping="Wrap"/>
+        <Button x:Name="ConfigureNotificationsButton" Content="Configure channel…" Classes="GhostButton" HorizontalAlignment="Left" Click="ConfigureNotifications_Click"/>
+        <Button x:Name="NotificationHistoryButton" Content="View alert history" Classes="GhostButton" HorizontalAlignment="Left" Click="NotificationHistory_Click"/>
+        <TextBlock Text="Preview: agent event reporting is still being connected, so current sessions may produce no alerts. After enabling, turn alerts on for each project from its folder menu. Silence or closing a process does not mean a run finished. Background delivery continues after this window closes while alerts are enabled. Sleep and being offline can delay or prevent delivery." Classes="HintText" TextWrapping="Wrap"/>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

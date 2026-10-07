@@ -20,6 +20,44 @@ public sealed class GuestAgentToolsTests
     [Trait("Category", "Integration")]
     public Task ExactCliInterfacesAreRecordedInsideTheEnforcedGuest() => Run("interface");
 
+    [EnvironmentFact("LAUNCHPAD_ACTIVITY_INTERFACES", "1")]
+    [Trait("Category", "Integration")]
+    public Task ExactActivityInterfacesAreRecordedInsideTheEnforcedGuest() => Run("activity-interface");
+
+    [EnvironmentFact("LAUNCHPAD_CODEX_ACTIVITY", "1")]
+    [Trait("Category", "Integration")]
+    public Task APassiveObserverSeesTheActualInteractiveCodexRunWithoutTakingItsSession() => Run("activity-observe", "codex");
+
+    [EnvironmentFact("LAUNCHPAD_GROK_ACTIVITY", "1")]
+    [Trait("Category", "Integration")]
+    public Task PassiveHooksRecordActualRepeatedInteractiveGrokRuns() => Run("grok-activity", "grok");
+
+    [EnvironmentFact("LAUNCHPAD_GROK_BACKGROUND", "1")]
+    [Trait("Category", "Integration")]
+    public Task ActualGrokStopWithALiveBackgroundChildDoesNotFinishTheRootRun() => Run("grok-background", "grok");
+
+    [EnvironmentFact("LAUNCHPAD_GROK_REPLAY", "1")]
+    [Trait("Category", "Integration")]
+    public async Task RetainedActualGrokCallbacksCanBeVerifiedWithoutAnotherVmLaunch()
+    {
+        var roots = (Environment.GetEnvironmentVariable("LAUNCHPAD_GROK_REPLAY_ROOT")
+            ?? throw new InvalidOperationException("Explicit retained owned fixture required.")).Split(';', StringSplitOptions.RemoveEmptyEntries);
+        Assert.InRange(roots.Length, 1, 4);
+        var owned = Path.Combine(RepositoryRoot(), "tests", "LaunchPad.Tests", "TestResults", "guest");
+        foreach (var entry in roots)
+        {
+            var root = Path.GetFullPath(entry);
+            Assert.Equal(owned, Path.GetDirectoryName(root), ignoreCase: true);
+            Assert.Matches("^[a-f0-9]{12}$", Path.GetFileName(root));
+            using var receipt = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "agent-tools-private.json")));
+            Assert.True(receipt.RootElement.GetProperty("complete").GetBoolean());
+            Assert.True(receipt.RootElement.GetProperty("shutdown").GetBoolean());
+            var mode = receipt.RootElement.GetProperty("mode").GetString()!;
+            Assert.True(mode is "grok-activity" or "grok-background");
+            await VerifyRecordedGrokCallbacks(root, mode);
+        }
+    }
+
     [EnvironmentFact("LAUNCHPAD_AGENT_TOOLS", "1")]
     [Trait("Category", "Integration")]
     public Task ActualBundledAgentsExecuteControlledChildCommandsUnderThePolicy() => Run("probe");
@@ -78,11 +116,14 @@ public sealed class GuestAgentToolsTests
         }
         await File.WriteAllTextAsync(Path.Combine(project, "owned_targets.json"), targets);
         var supplied = new Dictionary<string, string>();
-        foreach (var name in mode == "interface" ? new[] { "guest-agent-tools.py" } :
-            new[] { "guest-agent-tools.py", "owned-model-fixture.py", "owned-agent-boundary.py" })
+        foreach (var name in mode is "interface" or "activity-interface" ? new[] { "guest-agent-tools.py" } : mode == "activity-observe"
+            ? new[] { "guest-agent-tools.py", "owned-model-fixture.py", "owned-codex-activity.py", "owned-codex-work.py", "codex-activity-observer.py" }
+            : mode is "grok-activity" or "grok-background" ? new[] { "guest-agent-tools.py", "owned-model-fixture.py", "owned-grok-activity.py", "owned-grok-hook.py", "owned-grok-work.py" }
+            : new[] { "guest-agent-tools.py", "owned-model-fixture.py", "owned-agent-boundary.py" })
         {
             var source = Path.Combine(RepositoryRoot(), "scripts", name);
-            var target = Path.Combine(project, name == "owned-model-fixture.py" ? "owned_model_fixture.py" : name);
+            var target = Path.Combine(project, name == "owned-model-fixture.py" ? "owned_model_fixture.py"
+                : name == "owned-grok-work.py" ? "owned-agent-boundary.py" : name);
             var bytes = await File.ReadAllBytesAsync(source);
             await File.WriteAllBytesAsync(target, bytes);
             supplied[name] = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
@@ -118,6 +159,7 @@ public sealed class GuestAgentToolsTests
             LaunchGate.Release(); launchGateHeld = false;
             using var size = await ConsoleSizeLink.ConnectAsync(port, deadline.Token);
             size?.Send(100, 30);
+            var nextPromptSent = false;
             capture = Task.Run(async () =>
             {
                 var buffer = new byte[4096];
@@ -126,6 +168,13 @@ public sealed class GuestAgentToolsTests
                     var count = await console.GetStream().ReadAsync(buffer, deadline.Token);
                     if (count == 0) break;
                     lock (output) output.Append(Encoding.UTF8.GetString(buffer, 0, count));
+                    if (mode is "activity-observe" or "grok-activity" or "grok-background" && Encoding.UTF8.GetString(buffer, 0, count).Contains("\u001b[6n", StringComparison.Ordinal))
+                        await console.GetStream().WriteAsync("\u001b[1;1R"u8.ToArray(), deadline.Token);
+                    if (mode is "grok-activity" or "grok-background" && !nextPromptSent && Output(output).Contains("GROK-ACTIVITY-NEXT", StringComparison.Ordinal))
+                    {
+                        nextPromptSent = true;
+                        await console.GetStream().WriteAsync("Finish this second owned fixture turn.\r"u8.ToArray(), deadline.Token);
+                    }
                 }
             });
             using (var fence = await Connect(QemuCommand.FencePort(port), machine, token))
@@ -174,6 +223,7 @@ public sealed class GuestAgentToolsTests
             deadline.Cancel();
             if (capture is not null) try { await capture; } catch (Exception error) when (error is IOException or OperationCanceledException or ObjectDisposedException) { }
             TestUserRunner.ReleaseMachine(machine.Id);
+            if (mode is "activity-observe" or "grok-activity" or "grok-background") await File.WriteAllTextAsync(Path.Combine(root, "activity-terminal-private.log"), Output(output));
             await File.WriteAllTextAsync(Path.Combine(root, "agent-tools-private.json"), JsonSerializer.Serialize(new
             {
                 mode, singleAgent, fixtureId, complete, shutdown, template, templateSha256 = expected, finalTemplateSha256 = HashFile(template), selectedHash, supplied, setupIdentities,
@@ -188,7 +238,7 @@ public sealed class GuestAgentToolsTests
         if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
         using var results = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "fixture-output", "results.json")));
         var rows = results.RootElement.GetProperty("results").EnumerateArray().ToArray();
-        Assert.Equal(mode == "interface" ? 4 : singleAgent is null ? 3 : 1, rows.Length);
+        Assert.Equal(mode == "interface" ? 4 : mode == "activity-interface" ? 3 : mode is "activity-observe" or "grok-activity" or "grok-background" ? 1 : singleAgent is null ? 3 : 1, rows.Length);
         foreach (var row in rows)
         {
             Assert.False(row.GetProperty("timedOut").GetBoolean(), row.ToString());
@@ -197,6 +247,31 @@ public sealed class GuestAgentToolsTests
         }
         Assert.True(ownedHost.LiveWitness);
         Assert.Equal(0, ownedHost.Connections);
+        if (mode is "grok-activity" or "grok-background")
+            await VerifyRecordedGrokCallbacks(root, mode);
+        if (mode == "activity-observe")
+        {
+            using var activityProof = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "fixture-output", "codex-activity-proof.json")));
+            Assert.True(activityProof.RootElement.GetProperty("interactive").GetBoolean());
+            Assert.True(activityProof.RootElement.GetProperty("completed").GetBoolean());
+            Assert.True(activityProof.RootElement.GetProperty("reconnectedActive").GetBoolean());
+            Assert.True(activityProof.RootElement.GetProperty("modelConsumedToolResult").GetBoolean());
+            Assert.True(activityProof.RootElement.GetProperty("configUnchanged").GetBoolean());
+            var eventLines = await File.ReadAllLinesAsync(Path.Combine(root, "fixture-output", "codex-activity-events.log"));
+            var firstState = eventLines.First(line => line.StartsWith(AgentActivityTracker.StatePrefix, StringComparison.Ordinal));
+            var state = JsonSerializer.Deserialize<LaunchPad.Models.AgentStateObservation>(firstState[AgentActivityTracker.StatePrefix.Length..], AgentActivityTracker.JsonOptions)!;
+            var tracker = new AgentActivityTracker(state.Generation);
+            var outcomes = 0;
+            foreach (var line in eventLines)
+            {
+                if (line.StartsWith(AgentActivityTracker.StatePrefix, StringComparison.Ordinal)) Assert.True(tracker.TryAcceptStateLine(line), line);
+                else { Assert.True(tracker.TryAcceptLine(line, out var accepted), line); Assert.Equal(LaunchPad.Models.AgentEventKind.RunFinished, accepted!.Kind); outcomes++; }
+            }
+            Assert.Equal(1, outcomes);
+            Assert.Equal(LaunchPad.Models.AgentActivity.Idle, tracker.Snapshot.State);
+            Assert.False(tracker.Snapshot.RunActive);
+            Assert.False(tracker.HistoryComplete);
+        }
         if (mode == "probe")
         {
             using var observed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "launchpad-policy-probe", "processes.json")));
@@ -257,6 +332,79 @@ public sealed class GuestAgentToolsTests
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
     }
+
+    private static async Task VerifyRecordedGrokCallbacks(string root, string mode)
+    {
+            using var proof = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "fixture-output", "grok-hook-proof.json")));
+            Assert.True(proof.RootElement.GetProperty("interactive").GetBoolean());
+            Assert.True(proof.RootElement.GetProperty("completed").GetBoolean());
+            Assert.Null(proof.RootElement.GetProperty("failure").GetString());
+            var generation = Guid.NewGuid().ToString("N");
+            var projection = new GrokActivityAdapter(generation, proof.RootElement.GetProperty("sessionId").GetString()!, "/home/builder/in/project");
+            var rowsFromHooks = new List<JsonDocument>();
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(Path.Combine(root, "fixture-output", "grok-hooks"), "*.json"))
+                    rowsFromHooks.Add(JsonDocument.Parse(await File.ReadAllTextAsync(file)));
+                var startedRuns = new HashSet<string>();
+                var endedRuns = new HashSet<string>();
+                var ambiguousStops = 0;
+                var authoritativeStarts = new HashSet<string>();
+                var generatedWakeups = new HashSet<string>();
+                foreach (var callback in rowsFromHooks.OrderBy(row => row.RootElement.GetProperty("capturedNs").GetInt64()))
+                {
+                    var value = callback.RootElement;
+                    var eventName = value.GetProperty("hookEventName").GetString();
+                    var accepted = projection.TryAccept(value.GetProperty("adapterInput").GetRawText(), out var projected);
+                    var identifiedStop = eventName == "Stop" && value.GetProperty("identity").TryGetProperty("promptId", out _);
+                    var hasBackground = identifiedStop && value.GetProperty("stopMetadata")
+                        .TryGetProperty("backgroundTasksCount", out var backgroundCount)
+                        && backgroundCount.ValueKind == JsonValueKind.Number && backgroundCount.GetInt32() > 0;
+                    if (hasBackground)
+                    {
+                        Assert.False(accepted);
+                        Assert.Null(projected);
+                        Assert.True(projection.Snapshot.RunActive);
+                        Assert.Equal(value.GetProperty("identity").GetProperty("promptId").GetString(), projection.Snapshot.RunId);
+                        ambiguousStops++;
+                    }
+                    else if (eventName is "SessionStart" or "UserPromptSubmit" || identifiedStop) Assert.True(accepted, value.GetRawText());
+                    else Assert.False(accepted);
+                    if (eventName == "UserPromptSubmit")
+                    {
+                        var sourcePrompt = value.GetProperty("identity").GetProperty("promptId").GetString()!;
+                        if (sourcePrompt.StartsWith("task-completed-", StringComparison.Ordinal))
+                        {
+                            generatedWakeups.Add(sourcePrompt);
+                            Assert.Equal(LaunchPad.Models.AgentEventKind.Working, projected!.Value.Kind);
+                            Assert.Contains(projected.Value.RunId!, authoritativeStarts);
+                        }
+                        else authoritativeStarts.Add(sourcePrompt);
+                    }
+                    if (projected?.Value.Kind == LaunchPad.Models.AgentEventKind.RunStarted) startedRuns.Add(projected.Value.RunId!);
+                    if (projected?.Value.Kind == LaunchPad.Models.AgentEventKind.RunFinished) endedRuns.Add(projected.Value.RunId!);
+                }
+                Assert.Equal(2, authoritativeStarts.Count);
+                if (mode == "grok-activity")
+                {
+                    Assert.Equal(2, startedRuns.Count);
+                    Assert.True(startedRuns.SetEquals(endedRuns));
+                    Assert.Equal(0, ambiguousStops);
+                }
+                else
+                {
+                    Assert.True(ambiguousStops > 0);
+                    Assert.Single(generatedWakeups);
+                    Assert.Equal(2, startedRuns.Count);
+                    Assert.True(authoritativeStarts.SetEquals(endedRuns));
+                    Assert.Empty(endedRuns.Intersect(generatedWakeups));
+                    Assert.Contains(projection.Snapshot.RunId!, endedRuns);
+                }
+                Assert.Equal(LaunchPad.Models.AgentActivity.Idle, projection.Snapshot.State);
+                Assert.False(projection.Snapshot.RunActive);
+            }
+            finally { foreach (var row in rowsFromHooks) row.Dispose(); }
+            }
 
     private static async Task WaitReady(string agent, StringBuilder output, CancellationToken token)
     {

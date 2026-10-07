@@ -5,7 +5,7 @@ namespace LaunchPad.Services;
 public static class FirstWarning
 {
     public const string Text =
-        "This folder is not mounted. Grok works on a copy inside a small Debian machine.";
+        "VM agents work on a copy; native Windows agents work directly in your folder using your account permissions.";
 
     public static bool ShouldShow(AppSettings settings) => !settings.OnboardingCompleted;
 

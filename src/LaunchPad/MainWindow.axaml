@@ -45,12 +45,15 @@
 
         <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,12,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
-                <TextBlock Classes="CreditText" Foreground="{StaticResource Muted}" Text="Casey Nielsen  ·  " VerticalAlignment="Center"/>
+                <Button Classes="PadLink" Content="Casey Nielsen" Click="CaseyLink_RequestNavigate"/>
+                <TextBlock Classes="CreditText" Text="  ·  " VerticalAlignment="Center"/>
                 <Viewbox Width="10" Height="10" Margin="0,0,5,0" VerticalAlignment="Center">
                     <Path Fill="{StaticResource Muted}"
                           Data="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.725-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
                 </Viewbox>
-                <Button Classes="PadLink" Content="@BigBojangles_" Click="CreditLink_RequestNavigate"/><TextBlock Classes="CreditText" Text="  ·  made with Grok Build 4.6" VerticalAlignment="Center"/>
+                <Button Classes="PadLink" Content="@BigBojangles_" Click="CreditLink_RequestNavigate"/>
+                <TextBlock Classes="CreditText" Text="  ·  " VerticalAlignment="Center"/>
+                <Button Classes="PadLink" Content="GitHub" Click="GitHubLink_RequestNavigate"/>
             </StackPanel>
             <Button x:Name="RetryButton"
                     DockPanel.Dock="Left"

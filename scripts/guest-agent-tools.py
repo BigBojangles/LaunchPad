@@ -13,7 +13,7 @@ root = pathlib.Path('/home/builder/in/project')
 assert pathlib.Path.cwd() == root
 assert os.getuid() == os.geteuid() == 1000
 parser = argparse.ArgumentParser()
-parser.add_argument('mode', choices=['interface', 'probe'])
+parser.add_argument('mode', choices=['interface', 'activity-interface', 'activity-observe', 'grok-activity', 'grok-background', 'probe'])
 parser.add_argument('--agent', choices=['grok', 'codex', 'claude'])
 args = parser.parse_args()
 output = root / 'fixture-output'
@@ -44,6 +44,14 @@ environment = dict(os.environ)
 environment.update(CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC='1', DISABLE_TELEMETRY='1',
                    DO_NOT_TRACK='1', TERM='xterm-256color')
 
+if args.mode == 'activity-observe':
+    # Use the real guest foreground console, not an extra PTY allocation from
+    # inside the agent policy. The owned observer writes the fixture result.
+    os.execvpe('python3', ['python3', 'owned-codex-activity.py'], environment)
+
+if args.mode in ['grok-activity', 'grok-background']:
+    os.execvpe('python3', ['python3', 'owned-grok-activity.py'] + (['--background'] if args.mode == 'grok-background' else []), environment)
+
 def confined(command, name, timeout=50):
     full = ['/usr/bin/aa-exec', '-p', 'launchpad-agent', '--', '/usr/bin/setpriv', '--no-new-privs', '--', *command]
     path = output / (name + '.log')
@@ -64,7 +72,11 @@ def confined(command, name, timeout=50):
     return dict(name=name, pid=process.pid, exit=code, timedOut=False)
 
 try:
-    if args.mode == 'interface':
+    if args.mode == 'activity-interface':
+        results.append(confined(['grok', 'inspect', '--json'], 'grok-inspect'))
+        results.append(confined(['codex', 'features', 'list'], 'codex-features'))
+        results.append(confined(['codex', 'app-server', '--help'], 'codex-app-server-help'))
+    elif args.mode == 'interface':
         for agent in ['grok', 'codex', 'claude']:
             results.append(confined([agent, '--help'], agent + '-help'))
         results.append(confined(['codex', 'exec', '--help'], 'codex-exec-help'))

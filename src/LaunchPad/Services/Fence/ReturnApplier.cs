@@ -17,7 +17,7 @@ public static class ReturnApplier
         public FileStream? Output;
         public string NewHash = "";
         public string? OldHash;
-        public string? Previous;
+        public FileStream? Previous;
         public bool Changed;
         public bool Created;
         public bool Unchanged;
@@ -77,12 +77,27 @@ public static class ReturnApplier
             if (!await backup().ConfigureAwait(false)) return Block("The backup did not complete. Returned files were preserved.");
             foreach (var entry in entries.Where(entry => !entry.Unchanged && entry.Output is not null))
             {
-                entry.Previous = Path.Combine(recovery.DirectoryPath, "previous", entry.Relative.Replace('/', Path.DirectorySeparatorChar));
-                Directory.CreateDirectory(Path.GetDirectoryName(entry.Previous)!);
-                using var previous = new FileStream(entry.Previous, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
-                entry.Output!.Position = 0;
-                entry.Output.CopyTo(previous);
-                previous.Flush(flushToDisk: true);
+                var relative = "previous/" + entry.Relative;
+                if (!FenceFiles.TryResolveUnlinked(recovery.DirectoryPath, relative, out var previousPath))
+                    return Block("An original-file recovery path contains a link. Saved copies were preserved.");
+                Directory.CreateDirectory(Path.GetDirectoryName(previousPath)!);
+                if (!FenceFiles.TryResolveUnlinked(recovery.DirectoryPath, relative, out previousPath))
+                    return Block("An original-file recovery path changed to a link. Saved copies were preserved.");
+                var retained = File.Exists(previousPath);
+                entry.Previous = new FileStream(previousPath, retained ? FileMode.Open : FileMode.CreateNew,
+                    retained ? FileAccess.Read : FileAccess.ReadWrite, FileShare.Read);
+                if (!HasOneLink(entry.Previous))
+                    return Block("An original-file recovery copy has multiple links or could not be verified.");
+                if (!retained)
+                {
+                    entry.Output!.Position = 0;
+                    entry.Output.CopyTo(entry.Previous);
+                    entry.Previous.Flush(flushToDisk: true);
+                }
+                // A previous failed attempt may already have saved this original.
+                // Reuse only identical bytes, held against write/delete until rollback ends.
+                if (Hash(entry.Previous) != entry.OldHash)
+                    return Block("An original-file recovery copy does not match the verified Windows original. Saved copies were preserved; no returned files were applied.");
                 entry.Output.Position = 0;
             }
             recovery.Record("applying", "Original Windows files are retained under previous for recovery.");
@@ -124,7 +139,8 @@ public static class ReturnApplier
                     }
                     else
                     {
-                        using var previous = File.OpenRead(entry.Previous!);
+                        var previous = entry.Previous!;
+                        previous.Position = 0;
                         entry.Output!.Position = 0;
                         previous.CopyTo(entry.Output);
                         entry.Output.SetLength(previous.Length);
@@ -142,7 +158,7 @@ public static class ReturnApplier
         }
         finally
         {
-            foreach (var entry in entries) { entry.Input?.Dispose(); entry.Output?.Dispose(); }
+            foreach (var entry in entries) { entry.Input?.Dispose(); entry.Output?.Dispose(); entry.Previous?.Dispose(); }
         }
 
         ReturnApplyResult Block(string message)

@@ -55,5 +55,8 @@ if [ ! -e /var/lib/launchpad/import.json ]; then
     install -o root -g root -m 0600 baseline.json /var/lib/launchpad/import.json
 fi
 # Project, auth, history, home and network policy remain unchanged.
+if [ -d windows-test ]; then
+    ( cd windows-test; /bin/sh apply.sh )
+fi
 sync
 printf 'MAINTENANCE-APPLY-OK\n'

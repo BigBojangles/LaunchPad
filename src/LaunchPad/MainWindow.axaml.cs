@@ -97,7 +97,7 @@ public partial class MainWindow : Window
 
     public void ShowHome()
     {
-        _home ??= new HomeView(this) { DataContext = _board };
+        _home ??= new HomeView(this, _services.Runtime.NativeOnly) { DataContext = _board };
         _projects ??= new ExistingProjectsView(_services, OpenProject, OpenUnfenced, ShowNewProject);
         _board.ProjectMenu = _projects.CreateProjectMenu;
         Host.Content = _home;
@@ -121,7 +121,8 @@ public partial class MainWindow : Window
 
             if (choice.SelectedPath == OnboardingPath.AgentBob)
             {
-                var wizard = new OnboardingWizard(_services.Paths.ProjectsRoot, EnsureOnboardingProject);
+                var wizard = new OnboardingWizard(NewProjectsRoot, (name, reuse) => EnsureOnboardingProject(name, reuse),
+                    ConfigureAndOpenProjectAsync, _services.Runtime.NativeOnly);
                 await wizard.ShowDialog(this);
                 if (wizard.Completed)
                     MarkOnboardingComplete();
@@ -129,7 +130,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var welcome = new WelcomeDialog();
+            var welcome = new WelcomeDialog(_services.Runtime.NativeOnly);
             await welcome.ShowDialog(this);
             if (welcome.DontShowAgain)
                 MarkOnboardingComplete();
@@ -156,51 +157,73 @@ public partial class MainWindow : Window
 
     public async Task ShowNewProject()
     {
-        var dialog = new NewProjectDialog(_services.Paths.ProjectsRoot);
+        var dialog = new NewProjectDialog(NewProjectsRoot);
         if (await dialog.ShowDialog<bool>(this) != true || string.IsNullOrWhiteSpace(dialog.ProjectName))
             return;
 
-        var error = CreateProjectFolder(dialog.ProjectName);
+        var status = EnsureOnboardingProject(dialog.ProjectName, reuseExisting: false, projectsRoot: dialog.ProjectsRoot);
+        var error = status.Result == OnboardingProjectStatus.Kind.Ready ? null : status.Message;
         if (error is not null)
         {
             await UiDialogs.ShowAsync(this, error);
         }
 
         _projects?.Reload();
+        if (error is null)
+        {
+            if (dialog.RememberLocation)
+            {
+                var previous = _services.Settings.Current.NewProjectsRoot;
+                _services.Settings.Current.NewProjectsRoot = dialog.ProjectsRoot;
+                try { _services.Settings.SaveSettings(); }
+                catch
+                {
+                    _services.Settings.Current.NewProjectsRoot = previous;
+                    await UiDialogs.ShowAsync(this, "The project was created, but its default location could not be saved.");
+                }
+            }
+            await ConfigureAndOpenProjectAsync(this, dialog.ProjectPath, reuseExisting: false);
+        }
     }
 
-    private string? CreateProjectFolder(string rawName)
+    private string NewProjectsRoot
     {
-        var status = EnsureOnboardingProject(rawName, reuseExisting: false);
-        return status.Result == OnboardingProjectStatus.Kind.Ready ? null : status.Message;
+        get
+        {
+            var saved = _services.Settings.Current.NewProjectsRoot;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(saved) && Path.IsPathFullyQualified(saved))
+                {
+                    var full = Path.GetFullPath(saved);
+                    if (!File.Exists(full)) return full;
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or IOException) { }
+            return _services.Paths.ProjectsRoot;
+        }
     }
 
-    private OnboardingProjectStatus EnsureOnboardingProject(string rawName, bool reuseExisting)
+    private OnboardingProjectStatus EnsureOnboardingProject(string rawName, bool reuseExisting, string? projectsRoot = null)
     {
         if (!ProjectNames.TrySanitize(rawName, out var name, out var error))
             return OnboardingProjectStatus.Fail(error);
 
-        var folder = Path.Combine(_services.Paths.ProjectsRoot, name);
+        projectsRoot ??= NewProjectsRoot;
+        var folder = Path.Combine(projectsRoot, name);
         try
         {
             if (Directory.Exists(folder))
             {
-                if (_services.Runtime.IsHostOpen(folder))
-                {
-                    _services.Settings.RememberProject(name, folder);
-                    return OnboardingProjectStatus.Ok(folder);
-                }
-
                 if (!reuseExisting)
                     return OnboardingProjectStatus.AlreadyExists(folder,
                         $"A project named “{name}” already exists. Use it, or type a different name.");
 
                 _services.Settings.RememberProject(name, folder);
-                OpenProject(folder);
                 return OnboardingProjectStatus.Ok(folder);
             }
 
-            Directory.CreateDirectory(_services.Paths.ProjectsRoot);
+            Directory.CreateDirectory(projectsRoot);
             Directory.CreateDirectory(folder);
             _services.Settings.RememberProject(name, folder);
         }
@@ -209,8 +232,18 @@ public partial class MainWindow : Window
             return OnboardingProjectStatus.Fail("Couldn’t create that folder. Try a different name.");
         }
 
-        OpenProject(folder);
         return OnboardingProjectStatus.Ok(folder);
+    }
+
+    private async Task<bool> ConfigureAndOpenProjectAsync(Window owner, string path, bool reuseExisting)
+    {
+        if (!reuseExisting || !_services.Settings.Current.ProjectAgent.ContainsKey(Path.GetFullPath(path)))
+        {
+            var agent = new AgentWindow(_services.Settings, path, _services.Settings.DisplayNameFor(path), _services.Runtime.NativeOnly);
+            if (await agent.ShowDialog<bool>(owner) != true) return false;
+        }
+        OpenProject(path);
+        return true; // Launch requested; provider readiness is reported separately.
     }
 
     public async void OpenProject(string path)
@@ -238,9 +271,14 @@ public partial class MainWindow : Window
 
         try
         {
-            if (!_services.Runtime.HasVirtualMachine)
+            if (_services.Runtime.NativeOnly || _services.Settings.LaunchModeFor(path) == "native")
             {
                 await LaunchWindowsGrok(path);
+                return;
+            }
+            if (!_services.Runtime.HasVirtualMachine)
+            {
+                await UiDialogs.ShowAsync(this, "The fenced VM runtime is not installed or is incomplete. Install the full package, or choose Native (no sandbox) in the project Agent menu.");
                 return;
             }
 
@@ -260,7 +298,8 @@ public partial class MainWindow : Window
             return;
         }
         var previous = StatusText.Text;
-        StatusText.Text = "Checking which files to copy…";
+        StatusText.Text = SealText.WarmingUp;
+        var launched = false;
         try
         {
             var plan = await Task.Run(() => SendList.Collect(path, false));
@@ -288,15 +327,18 @@ public partial class MainWindow : Window
 
             var progress = new Progress<string>(text =>
             {
-                if (text == "The machine could not read its config. Starting again.")
+                if (!launched && (text is SealText.WarmingUp or SealText.VmLaunching or SealText.BlastOff
+                    || text == "The machine could not read its config. Starting again."))
                     StatusText.Text = text;
             });
             await _services.Runtime.OpenFencedAsync(path, CancellationToken.None, progress);
+            launched = true;
+            StatusText.Text = SealText.BlastOff;
         }
         finally
         {
             CopyScope.SendAll.Value = false;
-            StatusText.Text = previous;
+            if (!launched) StatusText.Text = previous;
         }
     }
 
@@ -335,12 +377,8 @@ public partial class MainWindow : Window
 
     private async Task LaunchWindowsGrok(string path)
     {
-        if (!await _services.Runtime.EnsureHostAgentAsync().ConfigureAwait(true))
-        {
-            await UiDialogs.ShowAsync(this, "Grok Build isn’t ready yet. Check your internet and try again.");
-            return;
-        }
-
+        if (_services.Runtime.NativeOnly) _services.Settings.SaveLaunchMode(path, "native");
+        await Task.CompletedTask;
         if (!_services.Runtime.TryLaunchHostAgent(path, GetLaunchPlacement(), out var error) && !string.IsNullOrEmpty(error))
             await UiDialogs.ShowAsync(this, error);
     }
@@ -379,7 +417,7 @@ public partial class MainWindow : Window
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
-    private async void Settings_Click(object? sender, RoutedEventArgs e) => await new SettingsWindow(_services.Settings, _services.Resources).ShowDialog(this);
+    private async void Settings_Click(object? sender, RoutedEventArgs e) => await new SettingsWindow(_services.Settings, _services.Resources, _services.Runtime.NativeOnly, _services.Notifications).ShowDialog(this);
 
     private void MainWindow_StateChanged(object? sender, EventArgs e)
     {
@@ -451,8 +489,9 @@ public partial class MainWindow : Window
             var color = ColorIndex(project.Path, known, projects);
             if (_services.Runtime.IsFencedOpen(project.Path))
                 tiles.Add(new LiveTile(project.Path, project.Name, color, IsVm: true, _services.Runtime.DescribeFenced(project.Path), _services.Settings.DisplayNameFor(project.Path, "vm:" + QemuLayout.ProjectKey(project.Path))));
-            if (_services.Runtime.IsHostOpen(project.Path))
-                tiles.Add(new LiveTile(project.Path, project.Name, color, IsVm: false, _services.Runtime.DescribeHost(project.Path), _services.Settings.DisplayNameFor(project.Path, "host:" + QemuLayout.ProjectKey(project.Path))));
+            var host = _services.Runtime.DescribeHost(project.Path);
+            if (_services.Runtime.IsHostOpen(project.Path) || host?.State == SessionLifecycle.Failed)
+                tiles.Add(new LiveTile(project.Path, project.Name, color, IsVm: false, host, _services.Settings.DisplayNameFor(project.Path, "host:" + QemuLayout.ProjectKey(project.Path))));
         }
 
         return tiles;
@@ -511,6 +550,18 @@ public partial class MainWindow : Window
     private void CreditLink_RequestNavigate(object sender, RoutedEventArgs e)
     {
         ExternalLinks.Open("https://x.com/BigBojangles_");
+        e.Handled = true;
+    }
+
+    private void CaseyLink_RequestNavigate(object sender, RoutedEventArgs e)
+    {
+        ExternalLinks.Open("https://caseynielsen.tech");
+        e.Handled = true;
+    }
+
+    private void GitHubLink_RequestNavigate(object sender, RoutedEventArgs e)
+    {
+        ExternalLinks.Open("https://github.com/BigBojangles/LaunchPad");
         e.Handled = true;
     }
 

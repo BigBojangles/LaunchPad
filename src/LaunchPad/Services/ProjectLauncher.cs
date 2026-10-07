@@ -1,263 +1,97 @@
 using System.Diagnostics;
+using LaunchPad.Services.Fence;
 
 namespace LaunchPad.Services;
 
 public sealed class ProjectLauncher
 {
-    private readonly GrokLocator _locator;
+    private readonly AppPaths _paths;
+    private readonly NativeAgentLocator _locator;
     private readonly SetupLog _log;
-    private readonly LaunchWatch _watch = new();
-    private readonly Dictionary<int, Process> _watched = new();
-    private readonly object _processGate = new();
-
     public ProjectLauncher(GrokLocator locator, SetupLog log)
     {
-        _locator = locator;
+        _paths = locator.Paths;
+        _locator = new NativeAgentLocator(locator, _paths);
         _log = log;
     }
-
-    public string? AgentExecutable => _locator.FindGrokExecutable();
-
-    public bool TryLaunch(string projectPath, out string error, LaunchPlacement? placement = null)
+    public string? AgentExecutable => _locator.Find(AgentLaunch.Grok);
+    public string? FindAgent(AgentLaunch agent) => _locator.Find(agent);
+    public string? SessionDirectory(string project)
+        => FenceFiles.TryResolveUnlinked(_paths.AppDataDir, "windows/native/" + QemuLayout.ProjectKey(project), out var directory) ? directory : null;
+    public NativeLaunchRecord? Record(string project)
+    {
+        var record = SessionDirectory(project) is { } directory ? NativeAgentTerminal.Read(directory) : null;
+        return record is not null && string.Equals(Path.GetFullPath(project), record.Project, StringComparison.OrdinalIgnoreCase) ? record : null;
+    }
+    public bool WasLaunched(string project) => LiveRecord(project) is not null;
+    public (bool Starting, int[] ProcessIds)? Describe(string project)
+        => LiveRecord(project) is { } record ? (record.State == "starting", new[] { record.Pid }) : null;
+    public (int Pid, long StartTicks)? TrackedProcess(string project)
+        => LiveRecord(project) is { Pid: > 0 } record ? (record.Pid, record.StartTicks) : null;
+    private NativeLaunchRecord? LiveRecord(string project)
+    {
+        var record = Record(project);
+        if (record is { Pid: > 0, StartTicks: > 0, State: "starting" or "running" }
+            && WindowsSessionWindow.MatchesProcess(record.Pid, record.StartTicks)) return record;
+        // Reserve startup before the helper publishes its PID; stale requests expire.
+        if (record is { State: "starting", Pid: 0 } && SessionDirectory(project) is { } directory
+            && FenceFiles.TryResolveUnlinked(directory, NativeAgentTerminal.RecordFile, out var file))
+        {
+            var age = DateTime.UtcNow - File.GetLastWriteTimeUtc(file);
+            if (age >= TimeSpan.Zero && age < TimeSpan.FromSeconds(15)) return record;
+        }
+        return null;
+    }
+    public bool TryLaunch(string project, out string error, LaunchPlacement? placement = null)
+        => TryLaunch(project, AgentLaunch.Grok, out error, placement);
+    public bool TryLaunch(string project, AgentLaunch agent, out string error, LaunchPlacement? placement = null)
     {
         error = "";
-
-        if (!Directory.Exists(projectPath))
+        if (!Directory.Exists(project)) { error = "That project folder is no longer there."; return false; }
+        if (LiveRecord(project) is not null) return true;
+        if (_locator.Find(agent) is not { } program)
         {
-            error = "That project folder is no longer there.";
+            error = $"{AgentChoice.Find(agent.Id)?.Label ?? agent.Id} is not installed for native Windows use. Install its Windows CLI and sign in, or choose a Windows program in the project Agent menu.";
             return false;
         }
-
-        var grok = _locator.FindGrokExecutable();
-        if (grok is null)
-        {
-            error = "Grok Build isn’t ready yet. Check your internet and try again.";
-            return false;
-        }
-
-        if (WasLaunched(projectPath))
-        {
-            _log.Write($"Grok Build is already open for {projectPath}");
-            return true;
-        }
-
-        var generation = _watch.TryBegin(projectPath);
-        if (generation == 0)
-        {
-            _log.Write($"Grok Build is already open for {projectPath}");
-            return true;
-        }
-
+        if (SessionDirectory(project) is not { } directory) { error = "Native session storage is unavailable."; return false; }
+        string? requestedGeneration = null;
         try
         {
-            var before = GrokProcesses.SnapshotIds();
-            var directPid = 0;
-            if (TryLaunchWithWindowsTerminal(grok, projectPath, placement))
-            {
-                WatchForGrok(projectPath, generation, before);
-                _log.Write($"Opened Grok Build with Windows Terminal in {projectPath}");
-                return true;
-            }
-
-            if (TryLaunchDirect(grok, projectPath, out directPid))
-            {
-                if (directPid > 0)
-                    Attach(projectPath, generation, directPid);
-                else
-                    WatchForGrok(projectPath, generation, before);
-
-                _log.Write($"Opened Grok Build in {projectPath}");
-                return true;
-            }
-
-            _watch.CancelStart(projectPath, generation);
-            error = "Couldn’t open Grok Build. Try again.";
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _watch.CancelStart(projectPath, generation);
-            _log.Write("Launch failed: " + ex.Message);
-            error = "Couldn’t open Grok Build. Try again.";
-            return false;
-        }
-    }
-
-    public bool WasLaunched(string projectPath)
-    {
-        _watch.PruneDead(projectPath, GrokProcesses.IsRunning);
-        return _watch.IsOpen(projectPath);
-    }
-
-    public (bool Starting, int[] ProcessIds)? Describe(string projectPath) => _watch.Describe(projectPath);
-
-    public (int Pid, long StartTicks)? TrackedProcess(string projectPath)
-    {
-        if (_watch.Describe(projectPath) is not { } launch) return null;
-        lock (_processGate)
-            foreach (var pid in launch.ProcessIds)
-                if (_watched.TryGetValue(pid, out var process))
-                {
-                    try { if (!process.HasExited) return (pid, process.StartTime.ToUniversalTime().Ticks); }
-                    catch (Exception error) when (error is InvalidOperationException or System.ComponentModel.Win32Exception) { }
-                }
-        return null;
-    }
-
-    private void WatchForGrok(string projectPath, int generation, HashSet<int> before)
-    {
-        _ = Task.Run(async () =>
-        {
-            var deadline = DateTime.UtcNow.AddSeconds(20);
-            while (DateTime.UtcNow < deadline)
-            {
-                foreach (var pid in GrokProcesses.FindNewInDirectory(before, projectPath))
-                    Attach(projectPath, generation, pid);
-
-                await Task.Delay(250).ConfigureAwait(false);
-            }
-
-            _watch.CancelStart(projectPath, generation);
-        });
-    }
-
-    private void Attach(string projectPath, int generation, int pid)
-    {
-        if (!_watch.NotePid(projectPath, generation, pid))
-            return;
-
-        try
-        {
-            var process = Process.GetProcessById(pid);
-            process.EnableRaisingEvents = true;
-            process.Exited += (_, _) => Finish(projectPath, generation, pid, process);
-            lock (_processGate)
-                _watched[pid] = process;
-
-            if (process.HasExited)
-                Finish(projectPath, generation, pid, process);
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            if (!GrokProcesses.IsRunning(pid))
-                _watch.NoteExited(projectPath, generation, pid);
-        }
-    }
-
-    private void Finish(string projectPath, int generation, int pid, Process process)
-    {
-        _watch.NoteExited(projectPath, generation, pid);
-        lock (_processGate)
-        {
-            if (_watched.Remove(pid))
-                process.Dispose();
-        }
-    }
-
-    private bool TryLaunchWithWindowsTerminal(string grokExe, string projectPath, LaunchPlacement? placement)
-    {
-        var wt = FindWindowsTerminal();
-        if (wt is null)
-            return false;
-
-        // Do not use --focus: in Windows Terminal that means focus mode,
-        // which hides the title bar and window controls.
-        // wt.exe exits on its own. The stored pid is the grok process, not wt.
-        var nearLauncher = placement is null
-            ? ""
-            : $"--pos {placement.X},{placement.Y} --size {placement.Columns},{placement.Rows} ";
-
-        var cleanArgs = "-w new " + nearLauncher +
-                        "new-tab --useApplicationTitle --title \"Grok Build\" --tabColor #F07828 " +
-                        $"-d \"{projectPath}\" -- \"{grokExe}\"";
-        var titledArgs = "-w new new-tab --useApplicationTitle --title \"Grok Build\" --tabColor #F07828 " +
-                         $"-d \"{projectPath}\" -- \"{grokExe}\"";
-        var simpleArgs = $"-d \"{projectPath}\" -- \"{grokExe}\"";
-
-        if (TryStartWindowsTerminal(wt, cleanArgs, projectPath))
-            return true;
-
-        if (TryStartWindowsTerminal(wt, titledArgs, projectPath))
-            return true;
-
-        if (TryStartWindowsTerminal(wt, simpleArgs, projectPath))
-            return true;
-
-        return false;
-    }
-
-    private bool TryStartWindowsTerminal(string wt, string arguments, string projectPath)
-    {
-        try
-        {
-            var start = new ProcessStartInfo
-            {
-                FileName = wt,
-                Arguments = arguments,
-                UseShellExecute = true,
-                WorkingDirectory = projectPath,
-                WindowStyle = ProcessWindowStyle.Normal
-            };
-
-            using var process = Process.Start(start);
-            return process is not null || File.Exists(wt);
-        }
-        catch (Exception ex)
-        {
-            _log.Write("Windows Terminal launch failed: " + ex.Message);
-            return false;
-        }
-    }
-
-    private bool TryLaunchDirect(string grok, string projectPath, out int pid)
-    {
-        pid = 0;
-        var process = Process.Start(new ProcessStartInfo
-        {
-            FileName = grok,
-            WorkingDirectory = projectPath,
-            UseShellExecute = true
-        });
-
-        if (process is null)
-            return false;
-
-        try
-        {
-            if (GrokProcesses.IsGrokProcessName(process.ProcessName) && process.Id > 0)
-                pid = process.Id;
-        }
-        catch
-        {
-            pid = 0;
-        }
-
-        return true;
-    }
-
-    private static string? FindWindowsTerminal()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var alias = Path.Combine(localAppData, "Microsoft", "WindowsApps", "wt.exe");
-        if (File.Exists(alias))
-            return alias;
-
-        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-        foreach (var entry in path.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
+            Directory.CreateDirectory(directory);
+            using var startGate = new Mutex(false, "Local\\LaunchPad.Native.Start." + QemuLayout.ProjectKey(directory));
+            bool held;
+            try { held = startGate.WaitOne(0); } catch (AbandonedMutexException) { held = true; }
+            if (!held) { error = "A native launch is already being prepared for this project."; return false; }
             try
             {
-                var candidate = Path.Combine(entry, "wt.exe");
-                if (File.Exists(candidate))
-                    return candidate;
+                if (LiveRecord(project) is not null) return true;
+                var request = new NativeLaunchRecord(Path.GetFullPath(project), agent.Id, program, Guid.NewGuid().ToString("N"),
+                    AppDataDirectory: _paths.AppDataDir);
+                requestedGeneration = request.Generation;
+                NativeAgentTerminal.Save(directory, request);
+                TuiWindow.SaveDisplayTitle(directory, new SettingsStore(_paths).DisplayNameFor(project, "host:" + QemuLayout.ProjectKey(project)));
+                var start = new ProcessStartInfo(_paths.ExePath) { UseShellExecute = false, WorkingDirectory = project };
+                start.ArgumentList.Add(NativeAgentTerminal.Argument); start.ArgumentList.Add(directory);
+                using var process = Process.Start(start) ?? throw new IOException("The native terminal did not start.");
+                // The helper publishes running only after the actual agent starts.
+                // Do not overwrite its state from this desktop process.
+                _log.Write("Opened native " + agent.Id + " in " + project);
+                return true;
             }
-            catch
-            {
-                // Ignore malformed PATH entries.
-            }
+            finally { startGate.ReleaseMutex(); }
         }
-
-        return null;
+        catch (Exception failure)
+        {
+            // Retire only our unstarted request; do not replace a newer/live helper's record.
+            try
+            {
+                if (NativeAgentTerminal.Read(directory) is { State: "starting", Pid: 0 } pending && pending.Generation == requestedGeneration)
+                    NativeAgentTerminal.Save(directory, pending with { State = "failed", Error = failure.Message });
+            }
+            catch { }
+            _log.Write("Native launch failed: " + failure.Message); error = failure.Message; return false;
+        }
     }
 }
 

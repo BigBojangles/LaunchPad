@@ -1,6 +1,9 @@
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 namespace LaunchPad.Services.Fence;
+
+public sealed record LaunchCredentialCheck(bool Ready, bool Readable, int Error, string Message);
 
 public sealed class TestUserRunner
 {
@@ -19,12 +22,57 @@ public sealed class TestUserRunner
     internal static void StorePassword(string password)
     {
         var plain = System.Text.Encoding.UTF8.GetBytes(password);
-        var protectedBytes = Protect(plain);
-        var directory = Path.GetDirectoryName(PasswordPath);
-        if (!string.IsNullOrEmpty(directory))
-            Directory.CreateDirectory(directory);
-        File.WriteAllBytes(PasswordPath, protectedBytes);
+        try { StoreProtectedPassword(Protect(plain), PasswordPath); }
+        finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(plain); }
     }
+
+    internal static void StoreProtectedPassword(byte[] cipher, string path, bool overwrite = true)
+    {
+        var directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        Directory.CreateDirectory(directory);
+        if (!FenceFiles.TryResolveUnlinked(directory, Path.GetFileName(path), out var target))
+            throw new IOException("Launch-account credential storage contains a link.");
+        var temporary = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            { stream.Write(cipher); stream.Flush(flushToDisk: true); }
+            File.Move(temporary, target, overwrite);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
+    public static LaunchCredentialCheck CheckStoredCredential()
+    {
+        if (!OperatingSystem.IsWindows()) return new(false, false, 50, "Windows setup is unavailable on this platform.");
+        if (!LaunchAccountExists()) return new(false, false, 2221, "The Windows test account is missing.");
+        if (!PasswordIsStored()) return new(false, false, 2, "The saved launch-account credential is missing. Restore it; an existing account password will not be reset.");
+        string password;
+        try { password = ReadPassword(); }
+        catch { return new(false, false, 13, "The saved launch-account credential cannot be read. Its file was preserved."); }
+        return CheckPassword(password);
+    }
+
+    internal static LaunchCredentialCheck CheckPassword(string password)
+    {
+        if (!LogonUserW(UserName, ".", password, 2, 0, out var token))
+        {
+            var error = Marshal.GetLastWin32Error();
+            return new(false, true, error, "Windows rejected the saved launch-account sign-in (" + error + "). Repair never resets an existing password.");
+        }
+        try
+        {
+            using var identity = new WindowsIdentity(token);
+            var administrator = identity.Groups?.Any(group => group.Value == "S-1-5-32-544") == true;
+            return administrator ? new(false, true, 5, "The Windows test account belongs to Administrators; repair removes that membership.")
+                : identity.Groups?.Any(group => group.Value == "S-1-5-32-545") != true
+                    ? new(false, true, 1376, "The Windows test account is missing Users membership; repair restores that membership.")
+                    : new(true, true, 0, "The enabled Windows test account accepts its saved credential and has no Administrators membership.");
+        }
+        finally { CloseHandle(token); }
+    }
+
+    internal static string CredentialPath => PasswordPath;
 
     public static int LastStartError { get; private set; }
 
@@ -160,9 +208,17 @@ public sealed class TestUserRunner
 
     private static string ReadPassword()
     {
+        if (!FenceFiles.TryResolveUnlinked(Path.GetDirectoryName(PasswordPath)!, Path.GetFileName(PasswordPath), out _)
+            || new FileInfo(PasswordPath).Length > 65536) throw new IOException("Invalid launch-account credential file.");
         var protectedBytes = File.ReadAllBytes(PasswordPath);
         var plain = Unprotect(protectedBytes);
-        return System.Text.Encoding.UTF8.GetString(plain);
+        try
+        {
+            var password = new System.Text.UTF8Encoding(false, true).GetString(plain);
+            if (password.Length is 0 or > 256 || password.Contains('\0')) throw new IOException("Invalid launch-account credential.");
+            return password;
+        }
+        finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(plain); }
     }
 
     internal static byte[] Protect(byte[] plain)
@@ -239,6 +295,49 @@ public sealed class TestUserRunner
             ParkJob, out process, out var error);
         LastStartError = error;
         return started;
+    }
+
+    internal static bool TryStartInteractive(string exe, IReadOnlyList<string> arguments, string workingDirectory,
+        InteractiveTestDesktop desktop, Func<int, nint, bool> park, out System.Diagnostics.Process? process, out int error, out string? failure)
+    {
+        process = null;
+        error = 50;
+        failure = null;
+        if (!OperatingSystem.IsWindows()) return false;
+        if (!LaunchAccountReady()) { error = 1326; return false; }
+        if (!File.Exists(exe) || !Directory.Exists(workingDirectory)) { error = 2; return false; }
+        var command = Quote(exe) + string.Concat(arguments.Select(argument => " " + Quote(argument)));
+        try { return RestrictedHostLaunch.StartInteractive(exe, command, workingDirectory, ReadPassword(), park, desktop, out process, out error, out failure); }
+        catch (Exception startError) when (startError is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        { error = startError is System.ComponentModel.Win32Exception native ? native.NativeErrorCode : 13; failure = startError.Message; return false; }
+    }
+
+    internal static bool TryStartManagedTest(string exe, IReadOnlyList<string> arguments, string workingDirectory,
+        Func<int, nint, bool> park, CancellationToken token, out System.Diagnostics.Process? process, out int error, out string? failure)
+    {
+        process = null;
+        error = 50;
+        failure = null;
+        if (!OperatingSystem.IsWindows()) return false;
+        if (!LaunchAccountReady()) { error = 1326; failure = "BuildLaunchTest is not ready. Use Windows setup/Repair setup."; return false; }
+        var command = QuoteManaged(exe) + string.Concat(arguments.Select(argument => " " + QuoteManaged(argument)));
+        try { return RestrictedHostLaunch.StartManagedTest(exe, command, workingDirectory, ReadPassword(), park, token, out process, out error, out failure); }
+        catch (Exception startError) when (startError is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        { error = startError is System.ComponentModel.Win32Exception native ? native.NativeErrorCode : 13; failure = startError.Message; return false; }
+    }
+
+    private static string QuoteManaged(string value)
+    {
+        var result = new System.Text.StringBuilder("\"");
+        var slashes = 0;
+        foreach (var character in value)
+        {
+            if (character == '\\') { slashes++; continue; }
+            if (character == '"') result.Append('\\', slashes * 2 + 1).Append('"');
+            else result.Append('\\', slashes).Append(character);
+            slashes = 0;
+        }
+        return result.Append('\\', slashes * 2).Append('"').ToString();
     }
 
     private const uint KillOnJobClose = 0x2000;
@@ -470,4 +569,7 @@ public sealed class TestUserRunner
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
+
+    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool LogonUserW(string user, string domain, string password, int logonType, int provider, out IntPtr token);
 }

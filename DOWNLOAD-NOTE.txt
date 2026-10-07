@@ -10,4 +10,7 @@ or scan the file with Windows Security / your preferred tool first.
 This software is provided as-is under the MIT License, with no warranty.
 Use at your own risk. See LICENSE for the full terms.
 
-Guide and updates: https://github.com/BigBojangles/launch-pad
+The Native package runs installed Windows agents directly in your project.
+The full package includes the fenced VM runtime. Choose the package for your workflow.
+
+Guide and updates: https://github.com/BigBojangles/LaunchPad

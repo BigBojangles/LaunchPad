@@ -5,8 +5,8 @@ namespace LaunchPad.Views;
 public partial class ShareDialog : Window
 {
     public const string ShareMessage =
-        "LaunchPad makes starting with Grok Build easy. Installs like a normal Windows program. No command line.\n" +
-        "https://github.com/BigBojangles/launch-pad";
+        "LaunchPad opens coding-agent projects with Grok Build, Codex CLI, Claude Code, or a custom program. Choose a fenced Linux VM or native Windows execution. Windows beta work is in progress.\n" +
+        ExternalLinks.Repo;
 
     public ShareDialog()
     {

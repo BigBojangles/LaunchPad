@@ -25,6 +25,7 @@
                 <TextBlock Text="Cores" Classes="HintText" Margin="0,0,0,6"/>
                 <ComboBox x:Name="CoresBox" FontSize="15" Padding="8,6" Margin="0,0,0,4"/>
             </StackPanel>
+            <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap" Margin="0,12,0,0"/>
         </StackPanel>
     </DockPanel>
 </Window>

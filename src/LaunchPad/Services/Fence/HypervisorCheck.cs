@@ -5,6 +5,7 @@ using LaunchPad.Models;
 namespace LaunchPad.Services.Fence;
 
 public sealed record HypervisorState(bool FeatureEnabled, bool HypervisorPresent, bool FirmwareEnabled, string Vendor);
+public sealed record HypervisorEnableResult(bool Success, bool RestartRequired);
 
 public sealed record HypervisorDecision(
     bool Show,
@@ -44,7 +45,7 @@ public static class HypervisorCheck
                 RequestElevation: true,
                 SetResume: true,
                 ClearResume: false,
-                Message: "Windows Hypervisor Platform is off. One administrator click turns it on. Windows restarts, then LaunchPad continues.");
+                Message: "Windows Hypervisor Platform is off. Administrator approval can enable it. Restart Windows if requested, then reopen LaunchPad.");
         }
 
         if (!state.FirmwareEnabled)
@@ -71,7 +72,7 @@ public static class HypervisorCheck
             RequestElevation: false,
             SetResume: resumePending,
             ClearResume: false,
-            Message: "Restart Windows so the hypervisor can start. LaunchPad continues after that restart.");
+            Message: "Restart Windows so the hypervisor can start, then reopen LaunchPad.");
     }
 
     public static HypervisorDecision Apply(AppSettings settings, HypervisorState state, Action save)
@@ -103,28 +104,32 @@ public static class HypervisorCheck
         return 1;
     }
 
-    public static bool TryEnableFeature()
+    public static bool TryEnableFeature() => EnableFeature().Success;
+    public static HypervisorEnableResult EnableFeature()
     {
         try
         {
             var start = new ProcessStartInfo
             {
-                FileName = "dism.exe",
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "dism.exe"),
                 Arguments = "/online /Enable-Feature /FeatureName:HypervisorPlatform /NoRestart",
                 UseShellExecute = true,
                 Verb = "RunAs",
                 WindowStyle = ProcessWindowStyle.Hidden
             };
             using var process = Process.Start(start);
-            if (process is null || !process.WaitForExit(180_000))
-                return false;
-            return process.ExitCode == 0;
+            if (process is null)
+                return new(false, false);
+            process.WaitForExit();
+            return FeatureResult(process.ExitCode);
         }
         catch
         {
-            return false;
+            return new(false, false);
         }
     }
+
+    public static HypervisorEnableResult FeatureResult(int exitCode) => new(exitCode is 0 or 3010, exitCode == 3010);
 
     private static bool WhpxFeatureEnabled()
     {

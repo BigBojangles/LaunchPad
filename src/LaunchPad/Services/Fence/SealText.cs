@@ -2,6 +2,9 @@ namespace LaunchPad.Services.Fence;
 
 public static class SealText
 {
+    public const string WarmingUp = "Warming up the engines....";
+    public const string VmLaunching = "VM is launching";
+    public const string BlastOff = "Blast off!";
     public const string Running =
         "Grok is running in a small Debian machine with no screen and no graphics card. It works on a copy of this project. This folder is not mounted in that machine.";
 
@@ -36,5 +39,5 @@ public static class SealText
         "A fenced session is already running.";
 
     public const string NoFileShare =
-        "This QEMU build has no 9p file share. LaunchPad will not mount this project.";
+        "Projects are copied into the VM. Your Windows project folder is not mounted there.";
 }

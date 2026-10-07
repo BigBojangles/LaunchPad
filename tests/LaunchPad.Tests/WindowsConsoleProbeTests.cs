@@ -193,7 +193,8 @@ internal sealed class HiddenConsole : IDisposable
     {
         foreach (var character in text)
         {
-            var records = new[] { new InputRecord { EventType = 1, KeyDown = true, RepeatCount = 1, UnicodeChar = character }, new InputRecord { EventType = 1, KeyDown = false, RepeatCount = 1, UnicodeChar = character } };
+            var key = character == '\r' ? (short)13 : (short)0;
+            var records = new[] { new InputRecord { EventType = 1, KeyDown = true, RepeatCount = 1, VirtualKeyCode = key, UnicodeChar = character }, new InputRecord { EventType = 1, KeyDown = false, RepeatCount = 1, VirtualKeyCode = key, UnicodeChar = character } };
             if (!WriteConsoleInputW(_input, records, records.Length, out _)) throw new Win32Exception(Marshal.GetLastWin32Error());
         }
     }
