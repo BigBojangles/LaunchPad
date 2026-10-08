@@ -4,9 +4,10 @@ public sealed class PublicRuntime
 {
     public const string BaseName = "debian-12-nocloud-amd64-20260601-2496.qcow2";
 
-    private PublicRuntime(string root, string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version, string maintenanceManifestName)
+    private PublicRuntime(string root, string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version, string maintenanceManifestName, VerifiedDirectBoot? directBoot)
     {
         Root = root;
+        DirectBoot = directBoot;
         MaintenanceManifestName = maintenanceManifestName;
         QemuDirectory = qemuDirectory;
         QemuExe = qemuExe;
@@ -17,6 +18,7 @@ public sealed class PublicRuntime
         Version = version;
     }
 
+    public VerifiedDirectBoot? DirectBoot { get; }
     public string QemuDirectory { get; }
     public string Root { get; }
     public string MaintenanceManifestName { get; }
@@ -64,6 +66,7 @@ public sealed class PublicRuntime
 
         var selection = RuntimeImages.Read(root);
         RuntimeImages.Verify(root, selection);
+        var boot = RuntimeBoot.Read(root, selection.Manifest);
         var kept = selection.ImagePath;
         var baseImage = Path.Combine(root, "images", BaseName);
         if (!File.Exists(kept) || !File.Exists(baseImage))
@@ -76,9 +79,14 @@ public sealed class PublicRuntime
                 .Select(item => Path.Combine(root, "images", item.File)))
             RestrictedRuntimeAccess.ReadFile(image);
 
+        if (boot is not null)
+        {
+            RestrictedRuntimeAccess.ReadFile(boot.Kernel);
+            RestrictedRuntimeAccess.ReadFile(boot.Initrd);
+        }
         var sessions = Path.Combine(root, "sessions");
         Directory.CreateDirectory(sessions);
         return new PublicRuntime(root, launchDir, qemuExe, imgExe, kept, sessions, Path.GetFullPath(firmwareDir), selection.Manifest?.Version,
-            selection.Manifest?.MaintenanceManifest ?? "maintenance.json");
+            selection.Manifest?.MaintenanceManifest ?? "maintenance.json", boot);
     }
 }

@@ -330,14 +330,15 @@ public sealed class FenceSession : IFencedProjectSession
             }
             RestrictedRuntimeAccess.ModifyDirectory(sessionDir);
             File.WriteAllText(Path.Combine(sessionDir, "session-user.txt"), user, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
-            args = QemuCommand.Build("whpx", overlay, 0, qmp, "fence", share: null, serialLog: serialLog, memoryMb: machine.MemoryMb, cores: machine.Cores, firmwareDir: runtime.FirmwareDir, workingDirectory: sessionDir);
+            var directBoot = RuntimeBoot.ForSession(runtime.DirectBoot, runtime.Version, sessionDir, File.Exists(overlay));
+            args = QemuCommand.Build("whpx", overlay, 0, qmp, "fence", share: null, serialLog: serialLog, memoryMb: machine.MemoryMb, cores: machine.Cores, firmwareDir: runtime.FirmwareDir, workingDirectory: sessionDir, directBoot: directBoot);
             RejectLivePath(args, liveFull);
             cancellationToken.ThrowIfCancellationRequested();
             var existingSession = File.Exists(overlay);
             if (!existingSession)
             {
                 RunTool(img, Path.GetDirectoryName(img)!, "create", "-f", "qcow2", "-b", backing, "-F", "qcow2", overlay);
-                ReturnRecovery.SaveAtomic(Path.Combine(sessionDir, "session-runtime.json"), new { version = runtime.Version });
+                ReturnRecovery.SaveAtomic(Path.Combine(sessionDir, "session-runtime.json"), new { version = runtime.Version, directBoot = directBoot?.Manifest });
             }
 
             // The payload starts as BuildLaunchTest. A failed logon does not start it as the signed-in user.

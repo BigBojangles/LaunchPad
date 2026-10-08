@@ -23,7 +23,8 @@ public static class QemuCommand
         int memoryMb = 0,
         int cores = 0,
         string? firmwareDir = null,
-        string? workingDirectory = null)
+        string? workingDirectory = null,
+        VerifiedDirectBoot? directBoot = null)
     {
         _ = accel;
         _ = sshPort;
@@ -78,6 +79,12 @@ public static class QemuCommand
             "-device", "virtio-net-pci,netdev=net0"
         };
 
+        if (directBoot is not null)
+        {
+            args.AddRange(new[] { "-kernel", string.IsNullOrWhiteSpace(workingDirectory) ? directBoot.Kernel : MaintenancePath(directBoot.Kernel, workingDirectory),
+                "-initrd", string.IsNullOrWhiteSpace(workingDirectory) ? directBoot.Initrd : MaintenancePath(directBoot.Initrd, workingDirectory),
+                "-append", "root=/dev/vda1 ro console=ttyS0,115200 quiet" });
+        }
         return args;
     }
 
