@@ -59,12 +59,26 @@ if ($runtimeManifest.image -isnot [PSCustomObject] -or $runtimeManifest.dependen
 
 $selectedImages = @($runtimeManifest.image) + @($runtimeManifest.dependencies)
 $maintenanceArtifacts = @($maintenanceManifest.kernel, $maintenanceManifest.initrd, $maintenanceManifest.payload)
+$bootArtifacts = @()
+if ($null -ne $runtimeManifest.directBoot) {
+    $boot = $runtimeManifest.directBoot
+    if ($boot -isnot [PSCustomObject] -or $boot.kernelRelease -isnot [string] -or
+        $boot.kernelRelease -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$') { throw 'Invalid normal direct-boot declaration.' }
+    $bootArtifacts = @($boot.kernel, $boot.initrd)
+    if ($bootArtifacts.Count -ne 2 -or $boot.kernel.file -eq $boot.initrd.file) { throw 'Direct boot requires distinct kernel and initrd assets.' }
+}
 $names = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $files = [Collections.Generic.List[object]]::new()
-foreach ($item in @($selectedImages + $maintenanceArtifacts)) {
+foreach ($item in @($selectedImages + $maintenanceArtifacts + $bootArtifacts)) {
     if ($item -isnot [PSCustomObject] -or $item.file -isnot [string] -or $item.sha256 -isnot [string] -or
-        $item.file -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$' -or $item.sha256 -notmatch '^[A-Fa-f0-9]{64}$' -or -not $names.Add([string]$item.file)) {
+        $item.file -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$' -or $item.sha256 -notmatch '^[A-Fa-f0-9]{64}$') {
         throw 'Runtime artifact has an unsafe/duplicate name or invalid checksum.'
+    }
+    if (-not $names.Add([string]$item.file)) {
+        $prior = @($files | Where-Object { $_.file -ieq $item.file })
+        if ($prior.Count -ne 1 -or $prior[0].sha256 -cne $item.sha256.ToLowerInvariant() -or
+            $selectedImages -contains $item) { throw 'Runtime artifact declarations conflict.' }
+        continue # Identical immutable boot/maintenance assets are packaged once.
     }
     if ($selectedImages -contains $item -and $item.file -notmatch '\.qcow2$') { throw 'A selected image is not qcow2.' }
     $inputPath = Join-Path $imagesPath $item.file

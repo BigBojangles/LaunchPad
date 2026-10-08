@@ -100,6 +100,8 @@ public static class WindowsRuntimeRepair
             if (selected.Manifest is not null)
             {
                 Add("images/" + runtimeManifestName);
+                if (selected.Manifest.DirectBoot is { } boot)
+                    foreach (var artifact in new[] { boot.Kernel, boot.Initrd }) Add("images/" + artifact.File);
                 foreach (var image in selected.Manifest.Dependencies.Prepend(selected.Manifest.Image)) Add("images/" + image.File);
                 if (selected.Manifest.MaintenanceManifest is { } maintenanceName)
                 {

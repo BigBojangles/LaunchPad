@@ -51,6 +51,8 @@ public static class RuntimeActivation
             var maintenanceName = manifest.MaintenanceManifest ?? throw new InvalidDataException("The package does not identify its maintenance kit.");
             Manifest(maintenanceName, MaintenancePrefix);
             foreach (var image in manifest.Dependencies.Prepend(manifest.Image)) Hold(image.File);
+            if (manifest.DirectBoot is { } boot)
+                foreach (var artifact in new[] { boot.Kernel, boot.Initrd }) Hold(artifact.File);
             RuntimeImages.Verify(root, selected);
             var declared = manifest.Dependencies.Prepend(manifest.Image).Select(image => Safe(image.File)).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var actual = RestrictedRuntimeAccess.BackingChain(selected.ImagePath, images, images);
