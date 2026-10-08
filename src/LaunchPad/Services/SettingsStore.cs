@@ -110,18 +110,24 @@ public sealed class SettingsStore
     }
 
     public void SavePreferences(bool tips, string defaultAgent, int memoryMb, int cores, bool resetTips = false, bool preserveVmDefaults = false,
-        NotificationPreference? notifications = null, bool? rememberGrokSignIn = null)
+        NotificationPreference? notifications = null, bool? rememberGrokSignIn = null, string? theme = null)
     {
+        if (theme is not null && !Appearance.IsValid(theme)) throw new ArgumentException("Choose Light, Dark or Match Windows.");
         if (defaultAgent is not (AgentChoice.Grok or AgentChoice.Codex or AgentChoice.Claude) || !preserveVmDefaults && (memoryMb < 2048 || cores < 1))
             throw new ArgumentException("Choose a bundled default agent and valid VM memory/CPU defaults.");
         if (notifications?.Enabled == true && !Guid.TryParseExact(notifications.DestinationReference, "N", out _))
             throw new ArgumentException("Configure a notification channel before enabling alerts.");
+        using (var notificationGuard = notifications is null ? null : new NotificationDestinationStore(
+            Path.Combine(_paths.AppDataDir, "notifications", "destinations"), new WindowsNotificationSecretProtector()).AcquireGuard())
+        {
         lock (_gate)
         {
             var old = (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores);
             var oldTips = Current.SeenTips;
             var oldNotifications = (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch);
             var oldSignIn = Current.RememberGrokSignIn;
+            var oldTheme = Current.Theme;
+            if (theme is not null) Current.Theme = theme;
             if (rememberGrokSignIn is { } remember) Current.RememberGrokSignIn = remember;
             (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) =
                 (tips, defaultAgent, preserveVmDefaults ? old.MachineMemoryMb : memoryMb, preserveVmDefaults ? old.MachineCores : cores);
@@ -133,7 +139,43 @@ public sealed class SettingsStore
                 (Current.NotificationsEnabled, Current.NotificationDestination) = (notifications.Enabled, notifications.DestinationReference);
             }
             try { SaveSettings(); } catch { (Current.ShowTips, Current.DefaultAgent, Current.MachineMemoryMb, Current.MachineCores) = old; Current.SeenTips = oldTips;
-                (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch) = oldNotifications; Current.RememberGrokSignIn = oldSignIn; throw; }
+                (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch) = oldNotifications; Current.RememberGrokSignIn = oldSignIn; Current.Theme = oldTheme; throw; }
+        }
+        }
+        PreferencesChanged?.Invoke();
+    }
+
+    public void SaveBoardGroup(string sessionId, string projectPath)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 512 || sessionId.Any(char.IsControl))
+            throw new ArgumentException("Invalid session identity.");
+        var path = Path.GetFullPath(projectPath);
+        lock (_gate)
+        {
+            Current.SessionBoardGroups ??= new(StringComparer.OrdinalIgnoreCase);
+            var existed = Current.SessionBoardGroups.TryGetValue(sessionId, out var previous);
+            Current.SessionBoardGroups[sessionId] = path;
+            try { SaveSettings(); }
+            catch
+            {
+                if (existed) Current.SessionBoardGroups[sessionId] = previous!;
+                else Current.SessionBoardGroups.Remove(sessionId);
+                throw;
+            }
+        }
+    }
+
+    // NotificationService holds the credential guard across this save and purge.
+    internal void DisconnectNotifications()
+    {
+        lock (_gate)
+        {
+            var previous = (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch);
+            Current.NotificationsEnabled = false;
+            Current.NotificationDestination = null;
+            Current.NotificationEpoch = Guid.NewGuid().ToString("N");
+            try { SaveSettings(); }
+            catch { (Current.NotificationsEnabled, Current.NotificationDestination, Current.NotificationEpoch) = previous; throw; }
         }
         PreferencesChanged?.Invoke();
     }

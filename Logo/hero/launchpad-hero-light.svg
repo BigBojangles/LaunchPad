@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#F7F6F3"/>
+  <svg x="661.6" y="175.0" width="276.8" height="290.0" viewBox="14.0 13.0 946.0 991.0" fill="none"><g stroke="#B04614" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" transform="translate(333 670) rotate(43.5)">
+      <!-- body -->
+      <path d="M -100.0 0.0 L 100.0 0.0 C 150.0 -150.0 170.0 -300.0 160.0 -450.0 C 150.0 -620.0 90.0 -780.0 0.0 -857.0 C -90.0 -780.0 -150.0 -620.0 -160.0 -450.0 C -170.0 -300.0 -150.0 -150.0 -100.0 0.0 Z"/>
+      <!-- nose seam -->
+      <path d="M -140.0 -590.0 Q 0 -560.0 140.0 -590.0"/>
+      <!-- window -->
+      <path d="M -60 -305 L 60 -305 L 60 -440 L 0 -515 L -60 -440 Z"/>
+      <!-- left fin -->
+      <path d="M -155.6 -250.0 C -228.0 -238.0 -276.0 -150.0 -276.0 -35.0 C -276.0 25.0 -266.0 80.0 -250.0 116.0 C -212.0 72.0 -160.0 28.0 -103.9 -12.0"/>
+      <!-- right fin -->
+      <path d="M 155.6 -250.0 C 228.0 -238.0 276.0 -150.0 276.0 -35.0 C 276.0 25.0 266.0 80.0 250.0 116.0 C 212.0 72.0 160.0 28.0 103.9 -12.0"/>
+      <!-- engine band -->
+      <path d="M -78 65 L 78 65"/>
+      <!-- exhaust -->
+      <path d="M -72 124 Q -86 196 -60 269"/>
+      <!-- exhaust -->
+      <path d="M 72 124 Q 86 196 60 269"/>
+      <!-- exhaust -->
+      <path d="M 0 232 L 0 412"/>
+  </g></svg>
+  <text x="800.0" y="598.0" text-anchor="middle" font-family="Inter" font-weight="600" font-size="88.0" fill="#2E2A27">LaunchPad</text>
+  <text x="800.0" y="660.0" text-anchor="middle" font-family="Inter" font-weight="400" font-size="34.0" fill="#46423E">Put the agent in a box. Watch it work.</text>
+</svg>

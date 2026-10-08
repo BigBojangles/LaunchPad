@@ -6,7 +6,7 @@
         CanResize="True" MinWidth="380"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28">
         <Button DockPanel.Dock="Bottom"
                 Classes="PrimaryButton"

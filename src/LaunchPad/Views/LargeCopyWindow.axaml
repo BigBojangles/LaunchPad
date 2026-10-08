@@ -6,7 +6,7 @@
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28">
         <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
             <CheckBox x:Name="StartGitBox" Content="Start git for this folder" Margin="0,0,0,14"/>
@@ -20,7 +20,7 @@
             <TextBlock Text="This copy is large" Classes="TitleText" Margin="0,0,0,12"/>
             <TextBlock x:Name="Body" TextWrapping="Wrap" FontSize="15" Margin="0,0,0,8"/>
             <TextBlock x:Name="Hint" Classes="HintText" Margin="0,0,0,12"/>
-            <ListBox x:Name="Folders" Height="220" BorderBrush="{StaticResource BorderSubtle}">
+            <ListBox x:Name="Folders" Height="220" BorderBrush="{DynamicResource BorderSubtle}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <CheckBox Content="{Binding Label}" IsChecked="{Binding Include, Mode=TwoWay}"/>

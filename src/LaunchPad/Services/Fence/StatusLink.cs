@@ -10,6 +10,7 @@ public sealed class StatusLink : IDisposable
     private readonly NetworkStream _stream;
     private readonly StatusBuffer _buffer;
     private readonly SessionActivityContext? _activityContext;
+    private readonly GrokHookLamp? _hookLamp;
     private readonly object _gate = new();
     private readonly object _writeGate = new();
     private readonly TimeProvider _time;
@@ -31,6 +32,7 @@ public sealed class StatusLink : IDisposable
         _client = client;
         _stream = client.GetStream();
         _activityContext = activityContext;
+        if (activityContext?.AgentId == AgentChoice.Grok) _hookLamp = new(activityContext.Generation, _time);
         _notify = notify;
         if (_notify is null && activityContext?.ProjectPath is { } project && AgentChoice.Known(activityContext.AgentId))
         {
@@ -38,7 +40,7 @@ public sealed class StatusLink : IDisposable
             _notify = accepted => notifications.Queue(accepted, project, activityContext.AgentId!);
         }
         var previous = activityContext is null ? null : SessionActivityStore.Read(activityContext.Directory, activityContext.Generation);
-        _buffer = new(activityContext?.Generation, previous?.Activity);
+        _buffer = new(activityContext?.Generation, previous?.Source == "grok-hook-lamp" ? null : previous?.Activity);
         _historyComplete = previous?.HistoryComplete ?? true;
         _ = Task.Run(ReadLoop);
         if (activityContext is not null)
@@ -71,8 +73,17 @@ public sealed class StatusLink : IDisposable
 
     public AgentActivitySnapshot AgentActivity
     {
-        get { lock (_gate) return _closed || !ProducerCurrent ? AgentActivitySnapshot.Unavailable : _buffer.ActivitySnapshot; }
+        get
+        {
+            lock (_gate) return _closed ? AgentActivitySnapshot.Unavailable
+                : _buffer.ActivitySnapshot.LastSequence > 0
+                    ? ProducerCurrent ? _buffer.ActivitySnapshot : AgentActivitySnapshot.Unavailable
+                    : _hookLamp?.Snapshot ?? AgentActivitySnapshot.Unavailable;
+        }
     }
+
+    public bool UsesHookLamp { get { lock (_gate) return !_closed && _buffer.ActivitySnapshot.LastSequence == 0
+        && _hookLamp?.Snapshot.State is Models.AgentActivity.Idle or Models.AgentActivity.Working or Models.AgentActivity.NeedsAttention; } }
 
     private bool ProducerCurrent => _hasFreshActivity && _time.GetElapsedTime(_producerReceived) <= SessionActivityStore.Freshness;
 
@@ -235,14 +246,26 @@ public sealed class StatusLink : IDisposable
         HookDiagnostic[] diagnostics;
         bool connected;
         bool synchronized;
+        string? source = null;
         lock (_gate)
         {
             activity = _buffer.ActivitySnapshot;
             accepted = _buffer.TakeAcceptedEvents();
             diagnostics = _buffer.TakeDiagnostics();
+            if (_hookLamp is not null)
+                foreach (var diagnostic in diagnostics) _hookLamp.Observe(diagnostic);
             connected = !_closed;
             synchronized = ProducerCurrent;
             _historyComplete &= _buffer.HistoryComplete;
+            if (activity.LastSequence == 0 && _hookLamp?.Snapshot is { LastSequence: > 0 } hookState)
+            {
+                activity = hookState;
+                synchronized = connected;
+                source = "grok-hook-lamp";
+                // State-only hooks do not supply a matched completion history.
+                // No hook event is added to accepted/pendingNotifications.
+                _historyComplete = false;
+            }
         }
         HookDiagnostics.Append(_activityContext, diagnostics);
         if (_notify is not null)
@@ -272,7 +295,7 @@ public sealed class StatusLink : IDisposable
         }
         try
         {
-            SessionActivityStore.Publish(_activityContext, activity, connected, _pendingEvents, synchronized, _historyComplete);
+            SessionActivityStore.Publish(_activityContext, activity, connected, _pendingEvents, synchronized, _historyComplete, source);
             _pendingEvents.Clear();
             lock (_gate) _observationError = null;
         }

@@ -136,17 +136,16 @@ public sealed class NotificationIntegrationTests
         var settings = new SettingsStore(paths); Enable(settings);
         var root = Path.Combine(paths.AppDataDir, "notifications"); Directory.CreateDirectory(root);
         var ownerFile = Path.Combine(root, "delivery.owner");
-        var tryStop = typeof(NotificationDeliveryOwner).GetMethod("TryStop", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
-            .CreateDelegate<Func<AppPaths, FileStream, bool>>();
+        bool TryStop(FileStream lease) => NotificationDeliveryOwner.TryStop(paths, lease, () => true);
         using var owned = new FileStream(ownerFile, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         Enable(settings, false);
         var stoppingSnapshot = new SettingsStore(paths);
         Assert.False(stoppingSnapshot.Current.NotificationsEnabled);
         Enable(settings); // Re-enable after the old owner decided it could stop.
-        Assert.False(tryStop(paths, owned));
+        Assert.False(TryStop(owned));
         Assert.Throws<IOException>(() => new FileStream(ownerFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None));
         Enable(settings, false);
-        Assert.True(tryStop(paths, owned));
+        Assert.True(TryStop(owned));
         using var replacement = new FileStream(ownerFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
     }
 
@@ -207,6 +206,14 @@ public sealed class NotificationIntegrationTests
     {
         var paths = Fixture();
         var settings = new SettingsStore(paths); Enable(settings);
+        // Disposable metadata uses this test process as its live console owner.
+        // This checks worker lifetime, not actual GUI/agent integration.
+        using var terminal = Process.GetCurrentProcess();
+        var project = Path.Combine(paths.UserProfile, "owned-terminal");
+        var directory = Path.Combine(paths.AppDataDir, "windows", "native", QemuLayout.ProjectKey(project));
+        Directory.CreateDirectory(directory);
+        NativeAgentTerminal.Save(directory, new(project, AgentChoice.Codex, paths.ExePath, Guid.NewGuid().ToString("N"),
+            terminal.Id, terminal.StartTime.ToUniversalTime().Ticks, "running", AppDataDirectory: paths.AppDataDir));
         // No events or credential configuration: this process cannot enter any provider transport.
         Process Start()
         {

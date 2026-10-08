@@ -7,6 +7,31 @@ namespace LaunchPad.Tests;
 public sealed class DisplaySettingsTests
 {
     [Fact]
+    public void ThemeAndBoardPlacementSurviveRestartWithoutChangingProjectChoicesOrFiles()
+    {
+        using var fixture = new Fixture();
+        fixture.Settings.RememberProject("real-folder", fixture.Project);
+        fixture.Settings.SaveAgent(fixture.Project, AgentChoice.Codex, null, null);
+        fixture.Settings.SavePreferences(true, AgentChoice.Grok, 4096, 2, theme: Appearance.Dark);
+        fixture.Settings.SaveBoardGroup("vm:owned-session", Path.Combine(fixture.Root, "display-target"));
+        var reloaded = fixture.Reload();
+        Assert.Equal(Appearance.Dark, reloaded.Current.Theme);
+        Assert.Equal(Path.Combine(fixture.Root, "display-target"), reloaded.Current.SessionBoardGroups["vm:owned-session"]);
+        Assert.Equal(AgentChoice.Codex, reloaded.AgentFor(fixture.Project).Id);
+        Assert.Equal("keep original", File.ReadAllText(Path.Combine(fixture.Project, "work.txt")));
+    }
+
+    [Fact]
+    public void OldSettingsDefaultToWindowsThemeAndInvalidThemeDoesNotReplacePreferences()
+    {
+        using var fixture = new Fixture();
+        Assert.Equal(Appearance.System, fixture.Reload().Current.Theme);
+        Assert.Throws<ArgumentException>(() => fixture.Settings.SavePreferences(false, AgentChoice.Claude, 8192, 4, theme: "invalid"));
+        Assert.Equal(Appearance.System, fixture.Reload().Current.Theme);
+        Assert.True(fixture.Reload().Current.ShowTips);
+    }
+
+    [Fact]
     public void ProjectAndSessionAliasesPersistWithoutChangingFolderOrIdentity()
     {
         using var fixture = new Fixture();

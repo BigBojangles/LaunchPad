@@ -16,7 +16,8 @@ FIELDS = {'hookEventName', 'hook_event_name', 'sessionId', 'session_id', 'turnId
           'title', 'cwd', 'workspaceRoot', 'workspace_root', 'toolName', 'toolInput',
           'tool_name', 'tool_input', 'toolUseId', 'requestId', 'agentId', 'subagentId',
           'parentSessionId', 'stopHookActive', 'stop_hook_active', 'backgroundTasks',
-          'background_tasks', 'sessionCrons', 'session_crons', 'reason', 'stopReason', 'status'}
+          'background_tasks', 'sessionCrons', 'session_crons', 'reason', 'stopReason', 'status',
+          'subagentType', 'subagent_type', 'subagent_id', 'parent_session_id'}
 NOTIFICATION_TYPES = {'permission_prompt', 'idle_prompt', 'elicitation_dialog', 'auth_success',
                       'info', 'warning', 'task_complete'}
 MAX_LOG = 1024 * 1024
@@ -40,11 +41,15 @@ def project(value, nonce):
     notice = field('notificationType', 'notification_type')
     # Some versions may call this "type". Capture its schema; don't guess its meaning.
     stop = field('stopHookActive', 'stop_hook_active')
-    return dict(version=1, nonce=nonce, capturedUnixMs=time.time_ns() // 1000000,
+    return dict(version=2, nonce=nonce, capturedUnixMs=time.time_ns() // 1000000,
                 event=event, fields={name: type(item).__name__ for name, item in value.items()
                                      if name in FIELDS},
                 sessionHash=identifier_hash(field('sessionId', 'session_id')),
                 turnHash=identifier_hash(field('turnId', 'turn_id')),
+                promptHash=identifier_hash(field('promptId', 'prompt_id')),
+                childSession=any(value.get(name) not in (None, '') for name in
+                    ('subagentId', 'subagent_id', 'subagentType', 'subagent_type',
+                     'parentSessionId', 'parent_session_id')),
                 notificationType=notice if isinstance(notice, str) and notice in NOTIFICATION_TYPES else
                     ('absent' if notice is None else 'other'),
                 stopHookActive=stop if isinstance(stop, bool) else None,

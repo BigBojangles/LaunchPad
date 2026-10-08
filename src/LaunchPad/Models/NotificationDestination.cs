@@ -34,7 +34,8 @@ public sealed class NotificationDestination
             NotificationProvider.Email => Uri.CheckHostName(SmtpHost ?? "") != UriHostNameType.Unknown
                 && SmtpPort is > 0 and <= 65535 && Enum.IsDefined(SmtpSecurity)
                 && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrEmpty(Password)
-                && MailboxAddress.TryParse(From ?? "", out _) && MailboxAddress.TryParse(To ?? "", out _),
+                && MailboxAddress.TryParse(From ?? "", out var sender) && MailboxAddress.TryParse(To ?? "", out var recipient)
+                && string.Equals(sender.Address, recipient.Address, StringComparison.OrdinalIgnoreCase),
             NotificationProvider.Telegram => Regex.IsMatch(Token ?? "", @"\A[0-9]{1,20}:[A-Za-z0-9_-]{15,200}\z")
                 && (long.TryParse(ChatId, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var chat) && chat != 0
                     || Regex.IsMatch(ChatId ?? "", @"\A@[A-Za-z0-9_]{5,64}\z")),
@@ -46,7 +47,7 @@ public sealed class NotificationDestination
                 && (string.IsNullOrEmpty(Token) || Regex.IsMatch(Token, @"\A[A-Za-z0-9_-]{1,512}\z")),
             _ => false
         };
-        if (!valid) throw new ArgumentException("Complete the selected notification provider's required setup. HTTPS and encrypted SMTP are required.");
+        if (!valid) throw new ArgumentException("Complete the selected notification provider's required setup. HTTPS and encrypted SMTP are required. Email alerts must return to the sending address.");
     }
 
     private static bool HttpsUri(string? value, out Uri uri)

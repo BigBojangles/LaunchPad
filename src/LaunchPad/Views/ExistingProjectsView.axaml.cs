@@ -13,6 +13,7 @@ public partial class ExistingProjectsView : UserControl
     private readonly Func<string, Task> _openUnfenced;
     private readonly Func<Task> _newProject;
     private readonly DispatcherTimer _tipTimer = new() { Interval = TimeSpan.FromSeconds(8) };
+    private TopLevel? _sizingHost;
 
     public ExistingProjectsView(AppServices services, Action<string> openProject, Func<string, Task> openUnfenced, Func<Task> newProject)
     {
@@ -21,11 +22,33 @@ public partial class ExistingProjectsView : UserControl
         _openUnfenced = openUnfenced;
         _newProject = newProject;
         InitializeComponent();
+        AttachedToVisualTree += (_, _) =>
+        {
+            if (_sizingHost is { } previous) previous.SizeChanged -= Top_SizeChanged;
+            if (TopLevel.GetTopLevel(this) is { } top)
+            {
+                _sizingHost = top;
+                top.SizeChanged += Top_SizeChanged;
+                UpdateListHeight(top);
+            }
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_sizingHost is { } top) top.SizeChanged -= Top_SizeChanged;
+            _sizingHost = null;
+        };
         _tipTimer.Tick += (_, _) => { TipText.IsVisible = false; _tipTimer.Stop(); };
         Loaded += (_, _) => { _services.Settings.PreferencesChanged += RefreshPreferences; ShowTip(); };
         Unloaded += (_, _) => { _services.Settings.PreferencesChanged -= RefreshPreferences; _tipTimer.Stop(); };
         Reload();
     }
+
+    private void Top_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is TopLevel top) UpdateListHeight(top);
+    }
+    private void UpdateListHeight(TopLevel top)
+        => MaxHeight = Math.Max(120, top.Bounds.Height - 150);
 
     private void ShowTip()
     {

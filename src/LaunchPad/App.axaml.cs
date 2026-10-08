@@ -32,6 +32,7 @@ public partial class App : Application
                 try
                 {
                     Services = CreateServices(paths);
+                    Appearance.Apply(Services.Settings.Current.Theme);
                     var main = new MainWindow(Services);
                     var restarting = desktop.MainWindow is SettingsRecoveryWindow;
                     desktop.MainWindow = main;

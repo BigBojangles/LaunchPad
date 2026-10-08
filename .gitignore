@@ -91,3 +91,6 @@ Desktop.ini
 
 # Local agent rules — keep on disk, not public
 AGENTS.md
+
+# Third-party agent logos (not affiliated; local only, never commit)
+/non affiliated logos/

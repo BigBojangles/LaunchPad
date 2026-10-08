@@ -1,6 +1,6 @@
 <Window x:Class="LaunchPad.Views.ProjectPermissionsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Project permissions" Width="560" Height="680" MinWidth="460" MinHeight="480" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBg}">
   <DockPanel Margin="24">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,12,0,0">
       <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>

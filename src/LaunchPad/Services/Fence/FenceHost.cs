@@ -19,9 +19,9 @@ public sealed class HandOff
 public static class FenceHost
 {
     public static async Task<HandOff> HandOffAsync(string project, int qmpPort, string title, string pidFile, CancellationToken cancellationToken, AgentLaunch agent = default,
-        bool existingSession = false, bool resumeOnly = false)
+        bool existingSession = false, bool resumeOnly = false, string? identityColor = null)
     {
-        var tui = TuiWindow.Show(title, QemuCommand.TuiPort(qmpPort), pidFile);
+        var tui = TuiWindow.Show(title, QemuCommand.TuiPort(qmpPort), pidFile, identityColor);
         var sessionDir = Path.GetDirectoryName(pidFile);
         var directory = sessionDir ?? throw new IOException("The session directory is missing.");
         StatusLink? status = null;

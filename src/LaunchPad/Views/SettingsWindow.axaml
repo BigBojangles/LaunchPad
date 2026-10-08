@@ -1,8 +1,8 @@
 <Window x:Class="LaunchPad.Views.SettingsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Settings" Width="440" Height="500" MinWidth="360" MinHeight="400" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+        Title="Settings" Width="440" Height="500" MinWidth="360" MinHeight="400" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBg}">
   <DockPanel Margin="28">
     <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
-      <TextBlock x:Name="StatusText" Classes="HintText"/>
+      <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
         <Button Content="Cancel" Classes="GhostButton" Click="Cancel_Click"/>
         <Button x:Name="SaveButton" Content="Save" Classes="PrimaryButton" Click="Save_Click"/>
@@ -11,6 +11,8 @@
     <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="12">
         <TextBlock Text="Settings" Classes="TitleText"/>
+        <TextBlock Text="Appearance" Classes="BodyText"/>
+        <ComboBox x:Name="ThemeBox" HorizontalAlignment="Stretch"/>
         <CheckBox x:Name="TipsSwitch" Content="Show one-time tips"/>
         <Button x:Name="ResetTipsButton" Content="Reset tips" Classes="GhostButton" HorizontalAlignment="Left" Click="ResetTips_Click"/>
         <TextBlock Text="Default agent" Classes="BodyText"/>
@@ -21,14 +23,19 @@
         <ComboBox x:Name="CoresBox" HorizontalAlignment="Stretch"/>
         <TextBlock x:Name="DefaultsHint" Text="Defaults apply next time a VM opens. Project choices stay in the project menu." Classes="HintText"/>
         <CheckBox x:Name="RememberSignInSwitch" Content="Reuse Grok sign-in for new VM projects"/>
-        <TextBlock Text="Keeps an encrypted login cache for your Windows account. Turning this off stops sharing the login with new projects; existing VMs keep their own sign-in." Classes="HintText" TextWrapping="Wrap"/>
+        <TextBlock Text="Optional reuse is off for new users. New host caches are encrypted for your Windows account. Turning this off stops sharing with new projects; existing saved logins and VM sign-ins remain. Native agents manage their own sign-in." Classes="HintText" TextWrapping="Wrap"/>
         <Button x:Name="SetupRepairButton" Content="Repair setup…" Classes="GhostButton" HorizontalAlignment="Left" Click="RepairSetup_Click"/>
         <TextBlock Text="Notifications" Classes="BodyText" Margin="0,12,0,0"/>
         <CheckBox x:Name="NotificationsSwitch" Content="Enable optional agent alerts"/>
         <TextBlock x:Name="NotificationsHint" Classes="HintText" TextWrapping="Wrap"/>
         <Button x:Name="ConfigureNotificationsButton" Content="Configure channel…" Classes="GhostButton" HorizontalAlignment="Left" Click="ConfigureNotifications_Click"/>
+        <Button x:Name="DisconnectNotificationsButton" Content="Disconnect" Classes="GhostButton" HorizontalAlignment="Left" Click="DisconnectNotifications_Click"/>
+        <TextBlock Text="Disconnect immediately turns alerts off and removes all notification secrets saved by LaunchPad, including older channel setups. Cancel does not undo it. Revoke the app password or token at your provider separately. A send already underway may still arrive." Classes="HintText" TextWrapping="Wrap"/>
+        <TextBlock x:Name="TestPageTarget" Classes="HintText" TextWrapping="Wrap"/>
+        <Button x:Name="SendTestPageButton" Content="Send test page" Classes="GhostButton" HorizontalAlignment="Left" Click="SendTestPage_Click"/>
+        <TextBlock Text="The test button sends one page to the channel shown above. It does not turn on automatic alerts. Replies are not connected to your agent." Classes="HintText" TextWrapping="Wrap"/>
         <Button x:Name="NotificationHistoryButton" Content="View alert history" Classes="GhostButton" HorizontalAlignment="Left" Click="NotificationHistory_Click"/>
-        <TextBlock Text="Preview: agent event reporting is still being connected, so current sessions may produce no alerts. After enabling, turn alerts on for each project from its folder menu. Silence or closing a process does not mean a run finished. Background delivery continues after this window closes while alerts are enabled. Sleep and being offline can delay or prevent delivery." Classes="HintText" TextWrapping="Wrap"/>
+        <TextBlock Text="Preview: agent event reporting is still being connected, so current sessions may produce no alerts. After enabling, turn alerts on for each project from its folder menu. Silence or closing a process does not mean a run finished. The pager can continue after LaunchPad closes while a managed agent terminal is open. Closing the last terminal lets queued alerts finish for up to 30 seconds, then the sender stops. Turning alerts off cancels delivery; an already submitted message may still arrive. Sleep and being offline can delay or prevent delivery." Classes="HintText" TextWrapping="Wrap"/>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

@@ -22,8 +22,9 @@ public static class TuiWindow
         return text;
     }
 
-    public static string TerminalArguments(string exe, int port, string title, string pidFile)
+    public static string TerminalArguments(string exe, int port, string title, string pidFile, string? identityColor = null)
     {
+        if (identityColor is not null && !ProjectIdentity.IsColorHex(identityColor)) throw new ArgumentException("Invalid project color.");
         // Windows Terminal splits this line into words and joins them again.
         // cmd.exe then deletes one pair of quotes when the command starts with
         // a quote, so a quoted "C:\Users\Big Bojangles\..." becomes the folder
@@ -35,14 +36,20 @@ public static class TuiWindow
         var cmd = Path.Combine(Environment.SystemDirectory, "cmd.exe");
         // -w new is a separate window. -w 0 attaches a tab to the terminal
         // the user already has open, and resizing that window resizes their tabs.
-        return "-w new new-tab --useApplicationTitle --title " + Quote(title) + " -- " + cmd + " /c " + launched;
+        return "-w new new-tab --useApplicationTitle --title " + Quote(title)
+            + (identityColor is null ? "" : " --tabColor " + identityColor) + " -- " + cmd + " /c " + launched;
     }
 
-    public static Process? Show(string title, int port, string pidFile)
+    public static Process? Show(string title, int port, string pidFile, string? identityColor = null)
     {
         var exe = Environment.ProcessPath
             ?? throw new InvalidOperationException("LaunchPad could not find its own program.");
         SaveDisplayTitle(Path.GetDirectoryName(pidFile)!, title);
+        if (identityColor is not null)
+        {
+            try { SaveDisplayColor(Path.GetDirectoryName(pidFile)!, identityColor, exclusiveWindow: true); }
+            catch (Exception paintError) when (paintError is IOException or UnauthorizedAccessException or ArgumentException) { }
+        }
         // Display names can contain shell punctuation. Carry them through a
         // local record, never through cmd.exe's command text.
         var args = Arguments(port, "LaunchPad", pidFile);
@@ -54,7 +61,7 @@ public static class TuiWindow
             using (Process.Start(new ProcessStartInfo
             {
                 FileName = wt,
-                Arguments = TerminalArguments(exe, port, "LaunchPad", pidFile),
+                Arguments = TerminalArguments(exe, port, "LaunchPad", pidFile, identityColor),
                 UseShellExecute = true
             }))
             {
@@ -232,6 +239,13 @@ public static class TuiWindow
         if (title.Length > 512 || title.Any(char.IsControl) || !FenceFiles.TryResolveUnlinked(directory, "display-title.json", out var path))
             throw new InvalidDataException("The window display name or session location is invalid.");
         ReturnRecovery.SaveAtomic(path, new { title });
+    }
+
+    public static void SaveDisplayColor(string directory, string color, bool exclusiveWindow = false)
+    {
+        if (!ProjectIdentity.IsColorHex(color) || !FenceFiles.TryResolveUnlinked(directory, "display-color.json", out var path))
+            throw new InvalidDataException("The project color or session location is invalid.");
+        ReturnRecovery.SaveAtomic(path, new { color, exclusiveWindow });
     }
 
     private static StreamWriter Writer(int stdHandle)

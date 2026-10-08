@@ -8,7 +8,8 @@ namespace LaunchPad.Services.Fence;
 public sealed record HookDiagnostic(int Version, string Nonce, long CapturedUnixMs,
     string Event, Dictionary<string, string> Fields, string? SessionHash,
     string? TurnHash, string NotificationType, bool? StopHookActive,
-    int BackgroundTasksCount, int SessionCronsCount, bool CwdMatchesProject);
+    int BackgroundTasksCount, int SessionCronsCount, bool CwdMatchesProject,
+    string? PromptHash = null, bool? ChildSession = null);
 
 public static class HookDiagnostics
 {
@@ -28,7 +29,8 @@ public static class HookDiagnostics
         "promptId", "prompt_id", "notificationType", "notification_type", "type", "message",
         "title", "cwd", "workspaceRoot", "workspace_root", "toolName", "toolInput",
         "tool_name", "tool_input", "toolUseId", "requestId", "agentId", "subagentId",
-        "parentSessionId", "stopHookActive", "stop_hook_active", "backgroundTasks",
+        "parentSessionId", "subagentType", "subagent_type", "subagent_id", "parent_session_id",
+        "stopHookActive", "stop_hook_active", "backgroundTasks",
         "background_tasks", "sessionCrons", "session_crons", "reason", "stopReason", "status"
     };
     private static readonly HashSet<string> Types = new(StringComparer.Ordinal)
@@ -45,13 +47,14 @@ public static class HookDiagnostics
         try
         {
             var value = JsonSerializer.Deserialize<HookDiagnostic>(line.AsSpan(Prefix.Length), Options);
-            if (value is null || value.Version != 1 || value.Nonce is null
+            if (value is null || value.Version is not (1 or 2) || value.Nonce is null
                 || !Regex.IsMatch(value.Nonce, "\\A[0-9a-f]{32}\\z")
                 || value.CapturedUnixMs < 0 || value.CapturedUnixMs > 4102444800000
                 || value.Event is null || !Events.Contains(value.Event)
                 || value.Fields is null || value.Fields.Count > FieldNames.Count
                 || value.Fields.Any(item => !FieldNames.Contains(item.Key) || !Types.Contains(item.Value))
-                || !Hash(value.SessionHash) || !Hash(value.TurnHash)
+                || !Hash(value.SessionHash) || !Hash(value.TurnHash) || !Hash(value.PromptHash)
+                || value.Version == 2 && value.ChildSession is null
                 || value.NotificationType is null || !NotificationTypes.Contains(value.NotificationType)
                 || value.BackgroundTasksCount is < -1 or > 1000000
                 || value.SessionCronsCount is < -1 or > 1000000) return null;

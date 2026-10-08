@@ -9,7 +9,7 @@
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28,24,28,24">
         <Button DockPanel.Dock="Bottom"
                 Classes="GhostButton"
@@ -24,8 +24,8 @@
                        Margin="0,0,0,10"/>
             <TextBlock Classes="HintText" Margin="0,0,0,10"
                        Text="Copy the message, then open X, LinkedIn, or TikTok to paste it."/>
-            <Border Background="{StaticResource CardBg}"
-                    BorderBrush="{StaticResource BorderSubtle}"
+            <Border Background="{DynamicResource CardBg}"
+                    BorderBrush="{DynamicResource BorderSubtle}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="14"

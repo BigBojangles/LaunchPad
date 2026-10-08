@@ -1,9 +1,9 @@
 namespace LaunchPad.Models;
 
-public enum AgentNotificationKind { NeedsAttention, RunEnded }
+public enum AgentNotificationKind { NeedsAttention, RunEnded, ChannelTest }
 public enum NotificationState { Pending, Sending, Accepted, NotAccepted, Unknown, Suppressed }
 public enum ProviderAcceptance { Accepted, NotAccepted, Unknown }
-public enum AgentNotificationOutcome { NeedsAttention, Finished, Failed, Interrupted }
+public enum AgentNotificationOutcome { NeedsAttention, Finished, Failed, Interrupted, ChannelTest }
 
 public sealed record NotificationConsent(bool GlobalEnabled = false, bool ProjectEnabled = false,
     bool Configured = false, string? DestinationReference = null, string? Epoch = null)
@@ -16,13 +16,17 @@ public sealed record NotificationConsent(bool GlobalEnabled = false, bool Projec
 public sealed record AgentNotificationMessage(string ProjectName, string AgentName, string RunId,
     AgentNotificationKind Kind, AgentNotificationOutcome Outcome, DateTimeOffset OccurredUtc)
 {
-    public string Subject => ProjectName + (Kind == AgentNotificationKind.NeedsAttention ? ": agent needs attention" : ": agent run ended");
-    public string Text => $"Project: {ProjectName}\nAgent: {AgentName}\nRun: {RunId}\n{OutcomeText}\nTime: {OccurredUtc:u}";
+    public string Subject => Kind == AgentNotificationKind.ChannelTest ? "LaunchPad test page"
+        : ProjectName + (Kind == AgentNotificationKind.NeedsAttention ? ": agent needs attention" : ": agent run ended");
+    public string Text => Kind == AgentNotificationKind.ChannelTest
+        ? $"This is the test page you requested in LaunchPad Settings.\nTest: {RunId}\nTime: {OccurredUtc:u}\nThis checks channel delivery only. It does not enable automatic agent alerts."
+        : $"Project: {ProjectName}\nAgent: {AgentName}\nRun: {RunId}\n{OutcomeText}\nTime: {OccurredUtc:u}";
     public string OutcomeText => Outcome switch
     {
         AgentNotificationOutcome.NeedsAttention => "The agent is waiting for a question, choice or approval.",
         AgentNotificationOutcome.Failed => "The agent run failed.",
         AgentNotificationOutcome.Interrupted => "The agent run was interrupted.",
+        AgentNotificationOutcome.ChannelTest => "This is a requested channel test, not an agent outcome.",
         _ => "The agent run finished. Project completion and tests are separate."
     };
 }

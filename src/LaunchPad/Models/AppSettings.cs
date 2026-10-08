@@ -11,13 +11,15 @@ public sealed class AppSettings
     public int MachineMemoryMb { get; set; }
     public int MachineCores { get; set; }
     public bool ShowTips { get; set; } = true;
+    public string Theme { get; set; } = "system";
+    public Dictionary<string, string> SessionBoardGroups { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public bool NotificationsEnabled { get; set; }
     public string? NotificationDestination { get; set; }
     public string? NotificationEpoch { get; set; }
     public HashSet<string> SeenTips { get; set; } = new(StringComparer.Ordinal);
     public string DefaultAgent { get; set; } = "grok";
     public string? NewProjectsRoot { get; set; }
-    public bool RememberGrokSignIn { get; set; } = true;
+    public bool RememberGrokSignIn { get; set; }
     public Dictionary<string, int> ProjectMemoryMb { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> ProjectAgent { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> ProjectLaunchMode { get; set; } = new(StringComparer.OrdinalIgnoreCase);

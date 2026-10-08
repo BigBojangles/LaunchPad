@@ -17,7 +17,7 @@ public sealed class NotificationProviderTests
     private static readonly AgentNotificationMessage Message = new("Project @everyone", "Codex CLI", "run-1",
         AgentNotificationKind.RunEnded, AgentNotificationOutcome.Finished, DateTimeOffset.UtcNow);
     private static NotificationDestination Email() => new() { Provider = NotificationProvider.Email, SmtpHost = "smtp.example.invalid",
-        Username = "test@example.invalid", Password = "fixture-password", From = "test@example.invalid", To = "phone@example.invalid" };
+        Username = "phone@example.invalid", Password = "fixture-password", From = "phone@example.invalid", To = "phone@example.invalid" };
     private static NotificationDestination Telegram() => new() { Provider = NotificationProvider.Telegram,
         Token = "123456:fixture_token_not_a_real_bot", ChatId = "-123456" };
     private static NotificationDestination Discord() => new() { Provider = NotificationProvider.Discord,
@@ -105,7 +105,7 @@ public sealed class NotificationProviderTests
         var original = File.ReadAllBytes(Path.Combine(directory, first + ".bin"));
         Assert.DoesNotContain("fixture-password", Encoding.UTF8.GetString(original));
         Assert.DoesNotContain("phone@example.invalid", Encoding.UTF8.GetString(original));
-        destination.To = "other@example.invalid";
+        destination.Username = destination.From = destination.To = "other@example.invalid";
         var second = store.Add(destination);
         Assert.NotEqual(first, second);
         var reopened = new NotificationDestinationStore(directory, new WindowsNotificationSecretProtector());
@@ -284,5 +284,30 @@ public sealed class NotificationProviderTests
         var ntfy = Ntfy(); ntfy.ServerUrl = "http://notify.example.invalid";
         Assert.Throws<ArgumentException>(() => store.Add(ntfy));
         Assert.Empty(Directory.EnumerateFiles(directory));
+    }
+
+    [Fact]
+    public async Task SeparateEmailRecipientIsRejectedOnSaveAndLegacyReadBeforeTransport()
+    {
+        var store = Store(out var directory);
+        var destination = Email();
+        destination.To = "different@example.invalid";
+        Assert.Throws<ArgumentException>(() => store.Add(destination));
+        Assert.Empty(Directory.EnumerateFiles(directory));
+        var reference = Guid.NewGuid().ToString("N");
+        var plaintext = JsonSerializer.SerializeToUtf8Bytes(new NotificationDestinationStore.Envelope
+            { Reference = reference, Destination = destination }, JsonFile.Options);
+        var encrypted = new WindowsNotificationSecretProtector().Protect(plaintext);
+        var path = Path.Combine(directory, reference + ".bin");
+        File.WriteAllBytes(path, encrypted); // Simulate an old owned fixture channel, not user data.
+        using var handler = new FakeHttp((_, _) => throw new InvalidOperationException("Unexpected network request."));
+        using var http = new HttpClient(handler);
+        var email = new FakeEmail();
+        using var transport = new NotificationTransport(store, http, email);
+        Assert.Throws<IOException>(() => store.Read(reference));
+        Assert.Equal(ProviderAcceptance.NotAccepted, await transport.SendAsync(reference, Message, default));
+        Assert.Equal(0, email.Calls);
+        Assert.Equal(0, handler.Calls);
+        Assert.Equal(encrypted, File.ReadAllBytes(path));
     }
 }

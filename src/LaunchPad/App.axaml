@@ -1,47 +1,77 @@
 <Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="LaunchPad.App">
   <Application.Resources>
-    <SolidColorBrush x:Key="WindowBg" Color="#E9E4DC"/>
-    <SolidColorBrush x:Key="CardBg" Color="#FBF7F1"/>
-    <SolidColorBrush x:Key="TextPrimary" Color="#2B2B2E"/>
-    <SolidColorBrush x:Key="TextSecondary" Color="#5C5752"/>
-    <SolidColorBrush x:Key="Accent" Color="#F07828"/>
-    <SolidColorBrush x:Key="AccentHover" Color="#D45F16"/>
-    <SolidColorBrush x:Key="AccentSoft" Color="#FFE6CC"/>
-    <SolidColorBrush x:Key="Navy" Color="#2C3D5C"/>
-    <SolidColorBrush x:Key="BorderSubtle" Color="#D4C8BA"/>
-    <SolidColorBrush x:Key="Danger" Color="#B45309"/>
-    <SolidColorBrush x:Key="Ink" Color="#954B1E"/>
-    <SolidColorBrush x:Key="Muted" Color="#8C623E"/>
-    <SolidColorBrush x:Key="Panel" Color="#E7E1C4"/>
-    <SolidColorBrush x:Key="AppBackground" Color="#F2EFDB"/>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="WindowBg" Color="#F7F6F3"/>
+          <SolidColorBrush x:Key="CardBg" Color="#FFFFFF"/>
+          <SolidColorBrush x:Key="TextPrimary" Color="#2E2A27"/>
+          <SolidColorBrush x:Key="TextSecondary" Color="#6E6863"/>
+          <SolidColorBrush x:Key="Accent" Color="#2E2A27"/>
+          <SolidColorBrush x:Key="AccentHover" Color="#48423D"/>
+          <SolidColorBrush x:Key="AccentSoft" Color="#ECEAE5"/>
+          <SolidColorBrush x:Key="Navy" Color="#2E2A27"/>
+          <SolidColorBrush x:Key="BorderSubtle" Color="#D8D5CE"/>
+          <SolidColorBrush x:Key="Danger" Color="#B42318"/>
+          <SolidColorBrush x:Key="Ink" Color="#2E2A27"/>
+          <SolidColorBrush x:Key="Muted" Color="#6E6863"/>
+          <SolidColorBrush x:Key="Panel" Color="#ECEAE5"/>
+          <SolidColorBrush x:Key="AppBackground" Color="#F7F6F3"/>
+          <SolidColorBrush x:Key="HoverBg" Color="#E2DFD8"/>
+          <SolidColorBrush x:Key="PressedBg" Color="#D8D5CE"/>
+          <SolidColorBrush x:Key="Rust" Color="#954B1E"/>
+          <SolidColorBrush x:Key="PrimaryText" Color="#FFFFFF"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="WindowBg" Color="#131313"/>
+          <SolidColorBrush x:Key="CardBg" Color="#2A2A2A"/>
+          <SolidColorBrush x:Key="TextPrimary" Color="#E6E6E6"/>
+          <SolidColorBrush x:Key="TextSecondary" Color="#969696"/>
+          <SolidColorBrush x:Key="Accent" Color="#DE8C5F"/>
+          <SolidColorBrush x:Key="AccentHover" Color="#EBA37C"/>
+          <SolidColorBrush x:Key="AccentSoft" Color="#2A2A2A"/>
+          <SolidColorBrush x:Key="Navy" Color="#E6E6E6"/>
+          <SolidColorBrush x:Key="BorderSubtle" Color="#484848"/>
+          <SolidColorBrush x:Key="Danger" Color="#FF8585"/>
+          <SolidColorBrush x:Key="Ink" Color="#E6E6E6"/>
+          <SolidColorBrush x:Key="Muted" Color="#969696"/>
+          <SolidColorBrush x:Key="Panel" Color="#1E1E1E"/>
+          <SolidColorBrush x:Key="AppBackground" Color="#131313"/>
+          <SolidColorBrush x:Key="HoverBg" Color="#363636"/>
+          <SolidColorBrush x:Key="PressedBg" Color="#424242"/>
+          <SolidColorBrush x:Key="Rust" Color="#DE8C5F"/>
+          <SolidColorBrush x:Key="PrimaryText" Color="#131313"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
   </Application.Resources>
   <Application.Styles>
     <SimpleTheme/>
     <Style Selector="Window">
       <Setter Property="Icon" Value="avares://LaunchPad/Assets/LaunchPad.ico"/>
       <Setter Property="FontFamily" Value="Segoe UI"/>
-      <Setter Property="Background" Value="{StaticResource WindowBg}"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Background" Value="{DynamicResource WindowBg}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
     </Style>
     <Style Selector="TextBlock.TitleText">
       <Setter Property="FontSize" Value="22"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
     </Style>
     <Style Selector="TextBlock.BodyText">
       <Setter Property="FontSize" Value="15"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
       <Setter Property="LineHeight" Value="22"/>
     </Style>
     <Style Selector="TextBlock.HintText">
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
     <Style Selector="Button.PrimaryButton">
-      <Setter Property="Background" Value="{StaticResource Accent}"/>
-      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource Accent}"/>
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
       <Setter Property="FontSize" Value="15"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Padding" Value="20,10"/>
@@ -51,25 +81,25 @@
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.PrimaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource AccentHover}"/>
+      <Setter Property="Background" Value="{DynamicResource AccentHover}"/>
     </Style>
     <Style Selector="Button.GhostButton">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
       <Setter Property="FontSize" Value="15"/>
       <Setter Property="Padding" Value="16,10"/>
       <Setter Property="MinWidth" Value="100"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.GhostButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.BackButton">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="Padding" Value="12,8"/>
       <Setter Property="MinWidth" Value="88"/>
@@ -77,11 +107,11 @@
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.BackButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.CardButton">
-      <Setter Property="Background" Value="{StaticResource CardBg}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Padding" Value="24,22"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -89,31 +119,31 @@
       <Setter Property="CornerRadius" Value="16"/>
     </Style>
     <Style Selector="Button.CardButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="TextBox.FieldBox">
       <Setter Property="FontSize" Value="16"/>
       <Setter Property="Padding" Value="12,10"/>
-      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Background" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="CheckBox.CheckLabel">
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.TipCard">
-      <Setter Property="Background" Value="{StaticResource CardBg}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="14"/>
       <Setter Property="Padding" Value="18,16"/>
     </Style>
     <Style Selector="Button.QuietLink">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource Navy}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Navy}"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="Padding" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -122,15 +152,15 @@
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.QuietLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="TextBlock.CreditText">
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
     </Style>
     <Style Selector="Button.RowAction">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Padding" Value="8,4"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -141,7 +171,7 @@
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.RowAction:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.PlainRowButton">
       <Setter Property="Background" Value="Transparent"/>
@@ -153,66 +183,81 @@
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.PlainRowButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.CornerButton">
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="0"/>
       <Setter Property="Width" Value="32"/>
       <Setter Property="Height" Value="24"/>
-      <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="CornerRadius" Value="6"/>
     </Style>
     <Style Selector="Button.CornerButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.NewProjectButton">
+      <Setter Property="Foreground" Value="{DynamicResource Rust}"/>
+      <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="Height" Value="34"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="Background" Value="#F2EFDB"/>
-      <Setter Property="BorderBrush" Value="#C4A882"/>
+      <Setter Property="Background" Value="{DynamicResource AppBackground}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Rust}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.NewProjectButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="Button.ProjectBubble">
       <Setter Property="Margin" Value="2,3"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HorizontalContentAlignment" Value="Left"/>
-      <Setter Property="Background" Value="#FBF9F2"/>
-      <Setter Property="BorderBrush" Value="#E2D9C2"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="10"/>
       <Setter Property="Padding" Value="12,7"/>
     </Style>
     <Style Selector="Button.ProjectBubble:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
     </Style>
     <Style Selector="ContextMenu.BubbleMenu">
-      <Setter Property="Background" Value="#FBF9F2"/>
-      <Setter Property="BorderBrush" Value="#C4A882"/>
-      <Setter Property="Foreground" Value="#954B1E"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtle}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
       <Setter Property="FontSize" Value="13"/>
     </Style>
     <Style Selector="Button.PadLink">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="0"/>
-      <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="CornerRadius" Value="10"/>
     </Style>
     <Style Selector="Button.PadLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#E4D7B4"/>
+      <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
+    </Style>
+    <Style Selector="Button.NewProjectButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource PressedBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Rust}"/>
+    </Style>
+    <Style Selector="Button.ProjectBubble:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondary}"/>
+    </Style>
+    <Style Selector="Button.PadLink:pointerover :is(TextBlock)">
+      <Setter Property="TextDecorations" Value="Underline"/>
+    </Style>
+    <Style Selector="Button.QuietLink:pointerover :is(TextBlock)">
+      <Setter Property="TextDecorations" Value="Underline"/>
     </Style>
   </Application.Styles>
 </Application>

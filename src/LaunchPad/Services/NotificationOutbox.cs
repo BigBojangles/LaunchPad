@@ -164,8 +164,11 @@ public sealed class NotificationOutbox
     private void Validate(Ledger ledger)
     {
         if (ledger.Version != 1 || ledger.Items is null || ledger.Items.Count > _capacity
-            || ledger.Items.Any(item => item is null || !Enum.IsDefined(item.State) || !Enum.IsDefined(item.Kind)
-                || !Enum.IsDefined(item.Outcome) || (item.Kind == AgentNotificationKind.NeedsAttention) != (item.Outcome == AgentNotificationOutcome.NeedsAttention)
+            || ledger.Items.Any(item => item is null || !Enum.IsDefined(item.State)
+                || item.Kind is not (AgentNotificationKind.NeedsAttention or AgentNotificationKind.RunEnded)
+                || item.Outcome is not (AgentNotificationOutcome.NeedsAttention or AgentNotificationOutcome.Finished
+                    or AgentNotificationOutcome.Failed or AgentNotificationOutcome.Interrupted)
+                || (item.Kind == AgentNotificationKind.NeedsAttention) != (item.Outcome == AgentNotificationOutcome.NeedsAttention)
                 || !AgentChoice.Known(item.AgentId) || !AgentActivityTracker.ValidIdentifier(item.AgentSessionId)
                 || !AgentActivityTracker.ValidIdentifier(item.RunId)
                 || (item.Kind == AgentNotificationKind.NeedsAttention ? !AgentActivityTracker.ValidIdentifier(item.QuestionId) : item.QuestionId is not null)

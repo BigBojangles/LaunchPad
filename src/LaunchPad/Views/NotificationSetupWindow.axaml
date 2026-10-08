@@ -1,5 +1,5 @@
 <Window x:Class="LaunchPad.Views.NotificationSetupWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Notification channel" Width="500" Height="650" MinWidth="380" MinHeight="400" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+        Title="Notification channel" Width="500" Height="650" MinWidth="380" MinHeight="400" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBg}">
   <DockPanel Margin="24">
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
       <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>
@@ -14,14 +14,22 @@
         <TextBlock Text="Use your own provider. LaunchPad needs no messaging account. Saving checks the setup format; it sends no test message." Classes="HintText" TextWrapping="Wrap"/>
         <ComboBox x:Name="ProviderBox" HorizontalAlignment="Stretch" SelectionChanged="Provider_Changed"/>
         <StackPanel x:Name="EmailPanel" Spacing="8">
-          <TextBlock Text="SMTP server" Classes="BodyText"/><TextBox x:Name="HostBox" Watermark="smtp.example.com"/>
-          <TextBlock Text="Port" Classes="BodyText"/><TextBox x:Name="PortBox" Text="587"/>
-          <TextBlock Text="Encryption (required)" Classes="BodyText"/><ComboBox x:Name="SecurityBox" HorizontalAlignment="Stretch"/>
-          <TextBlock Text="SMTP username" Classes="BodyText"/><TextBox x:Name="UserBox"/>
+          <TextBlock Text="Your email address" Classes="BodyText"/><TextBox x:Name="FromBox" Watermark="you@gmail.com" TextChanged="SenderEmail_Changed"/>
+          <TextBlock Text="LaunchPad sends notifications from this address back to the same address." Classes="HintText" TextWrapping="Wrap"/>
+          <TextBlock Text="Email service" Classes="BodyText"/><ComboBox x:Name="EmailServiceBox" HorizontalAlignment="Stretch" SelectionChanged="EmailService_Changed"/>
+          <TextBlock x:Name="EmailPresetHint" Classes="HintText" TextWrapping="Wrap"/>
+          <Button x:Name="EmailSignInHelpButton" Content="Open provider sign-in help" Classes="GhostButton" HorizontalAlignment="Left" IsVisible="False" Click="EmailSignInHelp_Click"/>
           <TextBlock Text="SMTP password or app password" Classes="BodyText"/><TextBox x:Name="PasswordBox" PasswordChar="●"/>
-          <TextBlock Text="From email" Classes="BodyText"/><TextBox x:Name="FromBox"/>
-          <TextBlock Text="To email" Classes="BodyText"/><TextBox x:Name="ToBox"/>
-          <TextBlock Text="Use your provider's SMTP settings. OAuth sign-in is not supported here. Some providers require an app password or disable password SMTP." Classes="HintText" TextWrapping="Wrap"/>
+          <TextBlock Text="When your provider supports app passwords, generate a separate one named LaunchPad. Enter that instead of your normal account password. You can revoke it at your provider when you stop using notifications." Classes="HintText" TextWrapping="Wrap"/>
+          <Expander x:Name="AdvancedEmailSettings" Header="Server settings" HorizontalAlignment="Stretch" IsExpanded="True">
+            <StackPanel Spacing="8" Margin="0,8,0,0">
+              <TextBlock Text="SMTP server" Classes="BodyText"/><TextBox x:Name="HostBox" Watermark="smtp.example.com" TextChanged="ServerIdentity_Changed"/>
+              <TextBlock Text="Port" Classes="BodyText"/><TextBox x:Name="PortBox" Text="587"/>
+              <TextBlock Text="Encryption (required)" Classes="BodyText"/><ComboBox x:Name="SecurityBox" HorizontalAlignment="Stretch"/>
+              <TextBlock Text="SMTP username" Classes="BodyText"/><TextBox x:Name="UserBox" TextChanged="ServerIdentity_Changed"/>
+              <TextBlock Text="Known services fill these fields automatically. You can edit them, or choose a service for a custom-domain account. Saving setup sends no message." Classes="HintText" TextWrapping="Wrap"/>
+            </StackPanel>
+          </Expander>
         </StackPanel>
         <StackPanel x:Name="TokenPanel" Spacing="8">
           <TextBlock x:Name="TokenLabel" Classes="BodyText"/><TextBox x:Name="TokenBox" PasswordChar="●"/>

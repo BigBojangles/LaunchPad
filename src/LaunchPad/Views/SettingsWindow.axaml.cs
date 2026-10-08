@@ -1,5 +1,6 @@
 using LaunchPad.Services;
 using LaunchPad.Services.Fence;
+using LaunchPad.Models;
 
 namespace LaunchPad.Views;
 
@@ -12,6 +13,9 @@ public partial class SettingsWindow : Window
     private readonly NotificationService _notifications;
     private string? _notificationReference;
     private readonly IWindowsSetupRepair _repair;
+    private readonly CancellationTokenSource _testCancellation = new();
+    private bool _testBusy;
+    private string? _testedReference;
     public SettingsWindow(SettingsStore settings, IHostResources? resources = null, bool nativeOnly = false, NotificationService? notifications = null,
         IWindowsSetupRepair? repair = null)
     {
@@ -21,6 +25,8 @@ public partial class SettingsWindow : Window
         _notifications = notifications ?? new NotificationService(settings.Paths);
         _notificationReference = settings.Current.NotificationDestination;
         InitializeComponent();
+        ThemeBox.ItemsSource = new[] { "Match Windows", "Light", "Dark" };
+        ThemeBox.SelectedIndex = settings.Current.Theme switch { Appearance.Light => 1, Appearance.Dark => 2, _ => 0 };
         SetupRepairButton.Content = nativeOnly ? "Windows test setup…" : "Repair setup…";
         SetupRepairButton.IsEnabled = OperatingSystem.IsWindows() || repair is not null;
         var host = resources ?? HostResources.Current;
@@ -32,6 +38,8 @@ public partial class SettingsWindow : Window
         RememberSignInSwitch.IsEnabled = !nativeOnly;
         NotificationsSwitch.IsChecked = settings.Current.NotificationsEnabled;
         NotificationsHint.Text = _notificationReference is null ? "Off until you configure and enable your own channel." : "A channel is saved. Saving channel setup does not verify delivery.";
+        UpdateTestPageTarget();
+        Closed += (_, _) => _testCancellation.Cancel();
         var installed = host.InstalledMemoryMegabytes ?? GuestMemory.DefaultMegabytes + 2048;
         var maxGb = Math.Max(2, (installed - 2048) / 1024);
         MemoryBox.ItemsSource = Enumerable.Range(2, maxGb - 1).Select(gb => gb + " GB").ToArray();
@@ -56,7 +64,65 @@ public partial class SettingsWindow : Window
         {
             _notificationReference = setup.ResultReference;
             NotificationsHint.Text = "Channel prepared. Save Settings to apply it; turn on alerts separately for each project.";
+            UpdateTestPageTarget();
         }
+    }
+    private void UpdateTestPageTarget()
+    {
+        SendTestPageButton.IsEnabled = false;
+        TestPageTarget.Text = "Configure a channel to test delivery.";
+        if (_notificationReference is null) return;
+        try
+        {
+            TestPageTarget.Text = _notifications.TestTargetSummary(_notificationReference);
+            SendTestPageButton.IsEnabled = !_testBusy && _testedReference != _notificationReference;
+        }
+        catch { TestPageTarget.Text = "Saved channel could not be opened. Configure a replacement; the existing setup is preserved."; }
+    }
+    private void DisconnectNotifications_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_testBusy) return;
+        try
+        {
+            _notifications.Disconnect(_settings);
+            ClearNotificationSetup();
+            StatusText.Text = "Disconnected. Locally saved notification secrets were removed. Revoke the app password or token at your provider separately.";
+        }
+        catch (NotificationDisconnectException)
+        {
+            ClearNotificationSetup();
+            StatusText.Text = "Alerts are off, but some saved notification secrets could not be removed. Close other settings windows and try Disconnect again.";
+        }
+        catch { StatusText.Text = "Disconnect could not save the change. No notification secrets were removed. Reopen Settings and try again."; }
+    }
+    private void ClearNotificationSetup()
+    {
+        _notificationReference = null;
+        _testedReference = null;
+        NotificationsSwitch.IsChecked = false;
+        NotificationsHint.Text = "Off. Configure a new channel to reconnect.";
+        UpdateTestPageTarget();
+    }
+    private async void SendTestPage_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_testBusy || _notificationReference is null || _testedReference == _notificationReference) return;
+        var reference = _notificationReference;
+        _testBusy = true;
+        _testedReference = reference;
+        SendTestPageButton.IsEnabled = ConfigureNotificationsButton.IsEnabled = DisconnectNotificationsButton.IsEnabled = false;
+        StatusText.Text = "Sending one test page…";
+        try
+        {
+            var result = await _notifications.SendTestPageAsync(reference, _testCancellation.Token);
+            StatusText.Text = result switch
+            {
+                ProviderAcceptance.Accepted => "Provider accepted the test page. Check your inbox, spam folder and phone notifications.",
+                ProviderAcceptance.NotAccepted => "Provider did not accept the test page. Check the channel settings.",
+                _ => "Delivery is unconfirmed. Check your inbox before sending another test; it will not retry automatically."
+            };
+        }
+        catch { StatusText.Text = "The test could not finish or record its result. Check your inbox before trying again; it will not retry automatically."; }
+        finally { _testBusy = false; ConfigureNotificationsButton.IsEnabled = DisconnectNotificationsButton.IsEnabled = true; UpdateTestPageTarget(); }
     }
     private async void NotificationHistory_Click(object? sender, RoutedEventArgs e)
     {
@@ -96,7 +162,9 @@ public partial class SettingsWindow : Window
                 _nativeOnly ? _settings.Current.MachineCores : CoresBox.SelectedIndex + 1,
                 resetTips: _resetTips, preserveVmDefaults: _nativeOnly,
                 notifications: new NotificationPreference(NotificationsSwitch.IsChecked == true, _notificationReference),
-                rememberGrokSignIn: _nativeOnly ? null : RememberSignInSwitch.IsChecked == true);
+                rememberGrokSignIn: _nativeOnly ? null : RememberSignInSwitch.IsChecked == true,
+                theme: ThemeBox.SelectedIndex switch { 1 => Appearance.Light, 2 => Appearance.Dark, _ => Appearance.System });
+            Appearance.Apply(_settings.Current.Theme);
             try { if (_settings.Current.NotificationsEnabled) _notifications.StartDelivery(); }
             catch { NotificationsHint.Text = "Settings saved; background delivery could not start. It will be retried when LaunchPad opens or an alert is queued."; return; }
             Close(true);

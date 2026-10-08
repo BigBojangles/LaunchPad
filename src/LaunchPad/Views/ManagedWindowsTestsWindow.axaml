@@ -1,6 +1,6 @@
 <Window x:Class="LaunchPad.Views.ManagedWindowsTestsWindow" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Windows tests" Width="680" Height="680" MinWidth="540" MinHeight="520" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBg}">
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBg}">
   <DockPanel Margin="24">
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
       <TextBlock x:Name="StatusText" Classes="HintText" TextWrapping="Wrap"/>

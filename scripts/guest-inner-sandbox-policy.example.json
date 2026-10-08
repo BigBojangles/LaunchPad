@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "agents": {
+    "grok": { "version": "1.0.46", "binarySha256": null },
+    "codex": { "version": "0.160.0", "binarySha256": null },
+    "claude": { "version": null, "binarySha256": null }
+  }
+}

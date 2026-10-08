@@ -28,6 +28,7 @@ public sealed class NotificationDestinationStore
     public string Add(NotificationDestination destination)
     {
         destination.Validate();
+        using var guard = AcquireGuard();
         var reference = Guid.NewGuid().ToString("N");
         var plain = JsonSerializer.SerializeToUtf8Bytes(new Envelope { Reference = reference, Destination = destination }, JsonFile.Options);
         var temp = SafePath(reference + ".tmp");
@@ -45,6 +46,7 @@ public sealed class NotificationDestinationStore
 
     public NotificationDestination Read(string reference)
     {
+        using var guard = AcquireGuard();
         if (!Guid.TryParseExact(reference, "N", out _)) throw new IOException("Invalid notification destination reference.");
         var path = SafePath(reference + ".bin");
         if (new FileInfo(path).Length > 64 * 1024) throw new IOException("Saved notification setup is too large; it was preserved.");
@@ -61,6 +63,32 @@ public sealed class NotificationDestinationStore
         { throw new IOException("Saved notification setup is invalid; it was preserved."); }
         finally { CryptographicOperations.ZeroMemory(plain); }
     }
+
+    // Disconnect removes every owned revision, including abandoned setup and
+    // damaged encrypted records. Do not decrypt, back up, recurse or touch other files.
+    public int ForgetAll()
+    {
+        using var guard = AcquireGuard();
+        return ForgetAllUnderGuard();
+    }
+
+    internal int ForgetAllUnderGuard()
+    {
+        var files = Directory.EnumerateFileSystemEntries(_directory)
+            .Select(Path.GetFileName)
+            .Where(name => name is not null && Guid.TryParseExact(Path.GetFileNameWithoutExtension(name), "N", out _)
+                && Path.GetExtension(name) is ".bin" or ".tmp")
+            .Select(name => SafePath(name!)).ToArray();
+        foreach (var file in files)
+            if ((File.GetAttributes(file) & (FileAttributes.Directory | FileAttributes.ReparsePoint)) != 0)
+                throw new IOException("Notification credential storage contains an unsafe entry.");
+        foreach (var file in files) File.Delete(file);
+        if (files.Any(File.Exists)) throw new IOException("Some notification credentials could not be removed.");
+        return files.Length;
+    }
+
+    internal FileStream AcquireGuard() => new(SafePath("destinations.guard"), FileMode.OpenOrCreate,
+        FileAccess.ReadWrite, FileShare.None);
 
     private string SafePath(string name) => FenceFiles.TryResolveUnlinked(_directory, name, out var path)
         ? path : throw new IOException("Notification credential storage contains a link or unsafe path.");

@@ -44,14 +44,14 @@ sub relay_hook_diagnostics {
             promptId prompt_id notificationType notification_type type message title cwd workspaceRoot
             workspace_root toolName toolInput tool_name tool_input toolUseId requestId agentId subagentId
             parentSessionId stopHookActive stop_hook_active backgroundTasks background_tasks sessionCrons
-            session_crons reason stopReason status);
+            session_crons reason stopReason status subagentType subagent_type subagent_id parent_session_id);
         my %types = map { $_ => 1 } qw(str int float bool list dict NoneType);
         my %events = map { $_ => 1 } qw(SessionStart SessionEnd UserPromptSubmit PreToolUse PostToolUse
             PostToolUseFailure PermissionDenied Stop StopFailure Notification SubagentStart SubagentStop
             PreCompact PostCompact Unknown);
         my %notices = map { $_ => 1 } qw(permission_prompt idle_prompt elicitation_dialog auth_success info
             warning task_complete other absent);
-        next unless ($row->{version} // '') eq '1' && !ref($row->{event})
+        next unless ($row->{version} // '') =~ /\A[12]\z/ && !ref($row->{event})
             && $events{$row->{event} // ''} && ref($row->{fields}) eq 'HASH'
             && !ref($row->{notificationType}) && $notices{$row->{notificationType} // ''};
         my %fields;
@@ -59,7 +59,7 @@ sub relay_hook_diagnostics {
             my $type = $row->{fields}{$key};
             $fields{$key} = $type if $names{$key} && !ref($type) && $types{$type // ''};
         }
-        my %safe = (version => 1, nonce => $hook_nonce, event => $row->{event}, fields => \%fields,
+        my %safe = (version => 0 + $row->{version}, nonce => $hook_nonce, event => $row->{event}, fields => \%fields,
             notificationType => $row->{notificationType});
         for my $key (qw(capturedUnixMs backgroundTasksCount sessionCronsCount)) {
             my $value = $row->{$key};
@@ -67,11 +67,13 @@ sub relay_hook_diagnostics {
             $safe{$key} = 0 + $value;
         }
         next unless exists($safe{capturedUnixMs}) && exists($safe{backgroundTasksCount}) && exists($safe{sessionCronsCount});
-        for my $key (qw(sessionHash turnHash)) {
+        for my $key (qw(sessionHash turnHash promptHash)) {
             my $value = $row->{$key};
             $safe{$key} = defined($value) && !ref($value) && $value =~ /\A[0-9a-f]{64}\z/ ? $value : undef;
         }
         $safe{stopHookActive} = JSON::PP::is_bool($row->{stopHookActive}) ? $row->{stopHookActive} : undef;
+        $safe{childSession} = JSON::PP::is_bool($row->{childSession}) ? $row->{childSession} : undef;
+        next if $safe{version} == 2 && !defined($safe{childSession});
         $safe{cwdMatchesProject} = JSON::PP::is_bool($row->{cwdMatchesProject}) ? $row->{cwdMatchesProject} : JSON::PP::false;
         # The Windows decoder makes a typed allowlisted projection before logging.
         # Never use guest values as command text, paths, permissions, or state.

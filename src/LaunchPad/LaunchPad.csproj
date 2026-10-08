@@ -24,6 +24,8 @@
     <Compile Remove="Assets\WindowsTestRunner.cs" />
     <AvaloniaResource Include="Assets\LaunchPad.ico" />
     <AvaloniaResource Include="Assets\launchpad-rocket.png" />
+    <AvaloniaResource Include="Assets\launchpad-icon-64.png" />
+    <AvaloniaResource Include="Assets\*-icon.png" />
     <EmbeddedResource Include="Assets\launchpad-loading-rocket.txt" LogicalName="LaunchPad.LoadingRocket.txt" />
     <EmbeddedResource Include="Assets\AgentBobInstructions.txt" />
   </ItemGroup>

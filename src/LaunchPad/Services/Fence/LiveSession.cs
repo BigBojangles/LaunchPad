@@ -157,6 +157,7 @@ public static class LiveSession
             SessionKind.VirtualMachine, entry.ProcessId, terminal, null, state,
             !connected ? "The status connection closed. VM work is preserved; activity is unavailable."
                 : ready && activity.State == AgentActivity.Unknown ? "This runtime has not reported supported agent activity."
+                : entry.Status.UsesHookLamp ? "Last state reported by Grok hooks; run-completion alerts are not verified by these lamps."
                 : AgentActivityTracker.OutcomeText(activity)
                     ?? (entry.Status.ObservationError is not null ? "Activity history could not be saved; current status is live." : null),
             Activity: activity);

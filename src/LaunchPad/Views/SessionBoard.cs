@@ -54,6 +54,11 @@ public sealed record LiveTile(string ProjectPath, string ProjectName, int ColorI
 public sealed class SessionBoard
 {
     private string _signature = "\u0000";
+    private IReadOnlyList<LiveTile> _tiles = Array.Empty<LiveTile>();
+    public Func<string, string?>? GroupForSession { get; set; }
+    public Action<string, string>? SaveGroup { get; set; }
+    public Func<string, string>? DisplayGroupName { get; set; }
+    public Func<string, string?>? AgentProgram { get; set; }
 
     public ObservableCollection<FolderGroup> Groups { get; } = new();
     public ObservableCollection<SessionItem> AllSessions { get; } = new();
@@ -63,11 +68,12 @@ public sealed class SessionBoard
 
     public void Show(IReadOnlyList<LiveTile> tiles)
     {
-        var signature = string.Join("|", tiles.Select(t => t.ProjectPath + ":" + t.IsVm + ":" + t.ColorIndex + ":" + t.ProjectName + ":" + t.DisplayName + ":" + t.Session));
-        if (signature == _signature)
-            return;
         if (tiles.Select(TileId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != tiles.Count)
             throw new ArgumentException("Session IDs must be unique.", nameof(tiles));
+        _tiles = tiles.ToArray();
+        var signature = string.Join("|", tiles.Select(t => t.ProjectPath + ":" + GroupPath(t) + ":" + t.IsVm + ":" + t.ColorIndex + ":" + t.ProjectName + ":" + t.DisplayName + ":" + t.Session));
+        if (signature == _signature)
+            return;
         var existing = AllSessions.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var desiredGroups = new List<FolderGroup>();
         var desiredSessions = new List<SessionItem>();
@@ -76,18 +82,18 @@ public sealed class SessionBoard
         // Single sessions sit loose. Both use the same label slot and padding, so they share one baseline.
         var loose = Groups.FirstOrDefault(group => !group.ShowFrame) ?? new FolderGroup("", showFrame: false);
         var looseSessions = new List<SessionItem>();
-        foreach (var project in tiles.GroupBy(t => t.ProjectPath, StringComparer.OrdinalIgnoreCase))
+        foreach (var project in tiles.GroupBy(GroupPath, StringComparer.OrdinalIgnoreCase))
         {
             var list = project.ToList();
-            var grouped = list.Count > 1;
+            var grouped = list.Count > 1 || list.Any(t => !string.Equals(t.ProjectPath, project.Key, StringComparison.OrdinalIgnoreCase));
             var target = loose;
             var groupSessions = looseSessions;
             if (grouped)
             {
                 target = Groups.FirstOrDefault(group => group.ShowFrame &&
-                    string.Equals(group.ProjectPath, list[0].ProjectPath, StringComparison.OrdinalIgnoreCase))
-                    ?? new FolderGroup(list[0].ProjectName, showFrame: true, list[0].ProjectPath);
-                target.Name = list[0].ProjectName;
+                    string.Equals(group.ProjectPath, project.Key, StringComparison.OrdinalIgnoreCase))
+                    ?? new FolderGroup("", showFrame: true, project.Key);
+                target.Name = DisplayGroupName?.Invoke(project.Key) ?? tiles.FirstOrDefault(t => string.Equals(t.ProjectPath, project.Key, StringComparison.OrdinalIgnoreCase))?.ProjectName ?? Path.GetFileName(project.Key);
                 groupSessions = new List<SessionItem>();
                 desiredGroups.Add(target);
             }
@@ -105,6 +111,7 @@ public sealed class SessionBoard
                     ? previous : new SessionItem(name, tooltip, tile.ProjectPath, identity, tile.IsVm, status: null, session: tile.Session)
                     { IsSelected = previous?.IsSelected == true };
                 if (ReferenceEquals(item, previous)) item.UpdateDisplay(name, tooltip, tile.Session);
+                item.UpdateIcon(AgentProgram?.Invoke(tile.ProjectPath));
                 groupSessions.Add(item);
             }
             if (grouped) Reconcile(target.Sessions, groupSessions);
@@ -117,6 +124,24 @@ public sealed class SessionBoard
         Reconcile(Groups, desiredGroups);
         Reconcile(AllSessions, desiredSessions);
         _signature = signature;
+    }
+
+    private string GroupPath(LiveTile tile) => GroupForSession?.Invoke(TileId(tile)) ?? tile.ProjectPath;
+
+    public bool MoveToGroup(string sessionId, string projectPath)
+    {
+        if (SaveGroup is null || !AllSessions.Any(item => string.Equals(item.Id, sessionId, StringComparison.OrdinalIgnoreCase))) return false;
+        SaveGroup(sessionId, projectPath);
+        _signature = "\u0000";
+        Show(_tiles);
+        return true;
+    }
+
+    public void FitTiles(double availableWidth)
+    {
+        var count = Math.Max(1, AllSessions.Count);
+        var width = Math.Clamp((availableWidth - 64) / Math.Min(count, 6) - 12, 76, 108);
+        foreach (var item in AllSessions) item.SetSize(width);
     }
 
     private static string TileId(LiveTile tile) => tile.Session?.Id ??
@@ -166,7 +191,7 @@ public sealed class FolderGroup : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     public bool ShowFrame { get; }
     public double CaptionOpacity => ShowFrame ? 1 : 0;
-    public IBrush FrameBrush => ShowFrame ? new SolidColorBrush(Color.Parse("#C4B89A")) : Brushes.Transparent;
+    public IBrush FrameBrush => ShowFrame ? new SolidColorBrush(IdentityPalette.At(0), 0.5) : Brushes.Transparent;
     public ObservableCollection<SessionItem> Sessions { get; } = new();
 }
 
@@ -184,7 +209,7 @@ public sealed class SessionItem : INotifyPropertyChanged
         Session = session;
         Id = session?.Id ?? (isVm ? "vm:" : "host:") + LaunchPad.Services.Fence.QemuLayout.ProjectKey(projectPath);
         StatusBrush = status is Color s ? Freeze(s) : Paint(session?.State);
-        Icon = ProductIcons.LaunchPad;
+        Icon = ProductIcons.ForAgent(session?.AgentId);
     }
 
     public string Name { get; private set; }
@@ -234,7 +259,24 @@ public sealed class SessionItem : INotifyPropertyChanged
         _ => null
     };
     public bool IsVm { get; }
-    public IImage? Icon { get; }
+    public IImage? Icon { get; private set; }
+    public string AgentLabel => Session?.AgentId switch { "grok" => "G", "codex" => "C", "claude" => "A", _ => ">_" };
+    public void UpdateIcon(string? program)
+    {
+        Icon = ProductIcons.ForAgent(Session?.AgentId, program);
+        PropertyChanged?.Invoke(this, new(nameof(Icon)));
+        PropertyChanged?.Invoke(this, new(nameof(HasIcon)));
+        PropertyChanged?.Invoke(this, new(nameof(AgentLabel)));
+    }
+    public double TileWidth { get; private set; } = 88;
+    public double IconSize => Math.Clamp(TileWidth - 48, 32, 52);
+    public void SetSize(double width)
+    {
+        if (Math.Abs(TileWidth - width) < 0.5) return;
+        TileWidth = width;
+        PropertyChanged?.Invoke(this, new(nameof(TileWidth)));
+        PropertyChanged?.Invoke(this, new(nameof(IconSize)));
+    }
     public bool HasIcon => Icon is not null;
 
     public bool IsSelected
@@ -261,6 +303,19 @@ public sealed class SessionItem : INotifyPropertyChanged
 /// <summary>Tile pictures: the LaunchPad icon for a fenced VM, the Grok program icon for an unfenced window.</summary>
 public static class ProductIcons
 {
+    private static readonly Dictionary<string, IImage?> AgentIcons = new(StringComparer.OrdinalIgnoreCase);
+    public static Func<string, IImage?>? ReadProgramIcon { get; set; }
+    public static IImage? ForAgent(string? agent, string? program = null)
+    {
+        if (string.IsNullOrWhiteSpace(agent)) return null;
+        var key = agent + "|" + program;
+        if (AgentIcons.TryGetValue(key, out var icon)) return icon;
+        icon = FromPack("avares://LaunchPad/Assets/" + (agent switch { "grok" => "grok", "codex" => "codex", "claude" => "claude", _ => "custom" }) + "-icon.png");
+        if (icon is null && agent == "custom" && !string.IsNullOrWhiteSpace(program)) icon = ReadProgramIcon?.Invoke(program);
+        if (icon is null && agent == "grok") icon = Grok;
+        AgentIcons[key] = icon;
+        return icon;
+    }
     private static IImage? _launchPad;
     private static bool _launchPadTried;
     private static IImage? _grok;
@@ -282,7 +337,7 @@ public static class ProductIcons
             if (!_launchPadTried)
             {
                 _launchPadTried = true;
-                _launchPad = FromPack("avares://LaunchPad/Assets/launchpad-rocket.png");
+                _launchPad = FromPack("avares://LaunchPad/Assets/launchpad-icon-64.png");
             }
 
             return _launchPad;

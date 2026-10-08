@@ -6,12 +6,12 @@
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28">
         <StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                <Image Width="44" Height="44"
-                       Source="avares://LaunchPad/Assets/launchpad-rocket.png"
+                <Image Width="44" Height="44" Stretch="Uniform"
+                       Source="avares://LaunchPad/Assets/launchpad-icon-64.png"
                        Margin="0,0,12,0"/>
                 <TextBlock Text="What kind of user are you?"
                            Classes="TitleText"
@@ -22,8 +22,8 @@
                            Text="Choose a starting point. Agent Bob is optional. You can reopen this screen from the home page."/>
 
             <Button Classes="CardButton"
-                    Background="{StaticResource AccentSoft}"
-                    BorderBrush="{StaticResource Accent}"
+                    Background="{DynamicResource AccentSoft}"
+                    BorderBrush="{DynamicResource Accent}"
                     Click="AgentBob_Click"
                     Margin="0,0,0,12">
                 <StackPanel>

@@ -6,7 +6,7 @@
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28">
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Classes="GhostButton"

@@ -1,23 +1,37 @@
 using Avalonia.Animation;
+using Avalonia.VisualTree;
 
 namespace LaunchPad.Views;
 
 public partial class EdgeBarWindow : Window
 {
-    private const double ParkedWidth = 10;
+    private const double ParkedWidth = 14;
     private const double ParkedHeight = 160;
     private bool _popped, _pinned, _wanted;
     private Window? _main;
+    private PixelPoint? _lastMainPosition;
+    private readonly DispatcherTimer _leaveTimer = new() { Interval = TimeSpan.FromMilliseconds(180) };
 
     public EdgeBarWindow()
     {
         InitializeComponent();
+        UpdatePin();
+        _leaveTimer.Tick += (_, _) =>
+        {
+            if (IsPointerOver || _pinned) { _leaveTimer.Stop(); return; }
+            if (Tiles.GetVisualDescendants().OfType<SessionMark>().Any(mark => mark.ContextMenu?.IsOpen == true)) return;
+            _leaveTimer.Stop();
+            CollapseRow();
+            if (!_wanted) Hide();
+        };
+        Closed += (_, _) => _leaveTimer.Stop();
         SizeChanged += (_, _) => { if (_popped && IsVisible) Center(); };
     }
 
     public void SyncToMain(Window main)
     {
         _main = main;
+        if (main.WindowState != WindowState.Minimized && main.IsVisible) _lastMainPosition = main.Position;
         _wanted = main.WindowState == WindowState.Minimized || IsOutOfFrame(main);
         Apply();
     }
@@ -50,7 +64,7 @@ public partial class EdgeBarWindow : Window
 
     private void Center()
     {
-        var screen = _main is null ? Screens.Primary : Screens.ScreenFromWindow(_main) ?? Screens.Primary;
+        var screen = _lastMainPosition is { } position ? Screens.ScreenFromPoint(position) ?? Screens.Primary : Screens.Primary;
         var area = screen?.WorkingArea;
         if (area is null) return;
         if (_popped)
@@ -63,8 +77,8 @@ public partial class EdgeBarWindow : Window
         Position = new PixelPoint(area.Value.X, area.Value.Y + Math.Max(0, (area.Value.Height - height) / 2));
     }
 
-    private void OnEnter(object sender, PointerEventArgs e) { if (IsVisible && !_popped) Pop(true); }
-    private void OnLeave(object sender, PointerEventArgs e) { if (_popped && !_pinned) { CollapseRow(); if (!_wanted) Hide(); } }
+    private void OnEnter(object sender, PointerEventArgs e) { _leaveTimer.Stop(); if (IsVisible && !_popped) Pop(true); }
+    private void OnLeave(object sender, PointerEventArgs e) { if (_popped && !_pinned) _leaveTimer.Start(); }
     private void Pin_Click(object sender, RoutedEventArgs e) { _pinned = !_pinned; UpdatePin(); Apply(); }
 
     private void UpdatePin()
@@ -72,6 +86,7 @@ public partial class EdgeBarWindow : Window
         PinButton.Content = _pinned ? "\uE840" : "\uE718";
         ToolTip.SetTip(PinButton, _pinned ? "Unpin" : "Pin");
         PinButton.Classes.Set("pinned", _pinned);
+        PinButton.Content = _pinned ? "Pinned" : "Pin";
     }
 
     private void Pop(bool animate)
@@ -81,7 +96,8 @@ public partial class EdgeBarWindow : Window
         Sliver.IsVisible = false;
         Transitions = animate ? new Transitions { new DoubleTransition { Property = WidthProperty, Duration = TimeSpan.FromMilliseconds(160) } } : null;
         SizeToContent = SizeToContent.Height;
-        Width = 94;
+        Width = 118;
+        Height = double.NaN;
         Center();
     }
 

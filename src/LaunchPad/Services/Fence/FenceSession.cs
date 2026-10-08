@@ -369,7 +369,8 @@ public sealed class FenceSession : IFencedProjectSession
                     if (string.IsNullOrWhiteSpace(title))
                         title = "LaunchPad";
                     var pidFile = Path.Combine(sessionDir, "tui.pid");
-                    var hand = await FenceHost.HandOffAsync(liveFull, qmp, title, pidFile, cancellationToken, agent, existingSession, resumeOnly).ConfigureAwait(false);
+                    var hand = await FenceHost.HandOffAsync(liveFull, qmp, title, pidFile, cancellationToken, agent, existingSession, resumeOnly,
+                        ProjectIdentity.ColorHex(launchSettings, liveFull)).ConfigureAwait(false);
                     var oldAgent = !agent.IsGrok
                         && await AgentScriptMissing(serialLog, cancellationToken).ConfigureAwait(false)
                         && ConfigHeal.ImageHasText(backing, AgentChoice.Marker);
@@ -556,6 +557,7 @@ public sealed class FenceSession : IFencedProjectSession
         {
             using var heartbeatStop = new CancellationTokenSource();
             var heartbeat = KeepHostAliveAsync(sessionDir, heartbeatStop.Token);
+            string? returnWarning = null;
             try
             {
             var graceful = false;
@@ -624,13 +626,13 @@ public sealed class FenceSession : IFencedProjectSession
                     : await ApplyReturnAsync(liveProject, recovery, receipt).ConfigureAwait(false);
                 SaveReturnState(liveProject, recovery, receipt, result);
                 _log.Write("Fenced return: " + result.Message);
-                if (!result.Applied) await TellReturnAsync(result.Message).ConfigureAwait(false);
+                if (!result.Applied) returnWarning = result.Message;
             }
             catch (Exception ex)
             {
                 _log.Write("Fenced return: " + ex.Message);
-                await TellReturnAsync("The return could not be completed. Its received files and VM disk were preserved."
-                    + (recovery is null ? "" : " Recovery copy: " + recovery.DirectoryPath)).ConfigureAwait(false);
+                returnWarning = "The return could not be completed. Its received files and VM disk were preserved."
+                    + (recovery is null ? "" : " Recovery copy: " + recovery.DirectoryPath);
             }
 
             // The live status reader owns sign-in caching. A second shutdown
@@ -666,6 +668,9 @@ public sealed class FenceSession : IFencedProjectSession
                 heartbeatStop.Cancel();
                 await heartbeat.ConfigureAwait(false);
             }
+            // Recovery was persisted above. A modal warning must not keep the
+            // VM/return owner alive or postpone home capture and disk shutdown.
+            if (returnWarning is not null) await TellReturnAsync(returnWarning).ConfigureAwait(false);
         });
     }
 

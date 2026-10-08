@@ -40,7 +40,17 @@ public partial class MainWindow : Window
         _services.Settings.DisplayNamesChanged += DisplayNamesChanged;
         WireReturn();
         ProductIcons.SetHostAgentIcon(() => _services.Desktop.ReadProgramIcon(_services.Runtime.HostAgentExecutable));
-        PropertyChanged += (_, e) => { if (e.Property == WindowStateProperty) MainWindow_StateChanged(this, EventArgs.Empty); };
+        ProductIcons.ReadProgramIcon = _services.Desktop.ReadProgramIcon;
+        _board.GroupForSession = id => _services.Settings.Current.SessionBoardGroups?.GetValueOrDefault(id);
+        _board.SaveGroup = _services.Settings.SaveBoardGroup;
+        _board.DisplayGroupName = path => _services.Settings.DisplayNameFor(path);
+        _board.AgentProgram = path => _services.Settings.AgentFor(path).Program;
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty) MainWindow_StateChanged(this, EventArgs.Empty);
+            else if (e.Property == OffScreenMarginProperty) UpdateWindowChrome();
+        };
+        UpdateWindowChrome();
         PositionChanged += (_, _) => _edge?.SyncToMain(this);
         SizeChanged += (_, _) => _edge?.SyncToMain(this);
         Activated += (_, _) => _projects?.Reload();
@@ -79,6 +89,7 @@ public partial class MainWindow : Window
     {
         // Created here, not as a field, so this window stays Application.MainWindow.
         _edge = new EdgeBarWindow { DataContext = _board };
+        _edge.SyncToMain(this);
 #if DEBUG
         var args = Environment.GetCommandLineArgs();
         _tileDemo = args.Contains("--tile-demo");
@@ -404,6 +415,12 @@ public partial class MainWindow : Window
     {
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
+        e.Handled = true;
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximize();
+            return;
+        }
         try
         {
             BeginMoveDrag(e);
@@ -416,14 +433,38 @@ public partial class MainWindow : Window
 
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
+    private void Maximize_Click(object sender, RoutedEventArgs e) => ToggleMaximize();
+
+    private void ToggleMaximize() => WindowState = WindowState == WindowState.Maximized
+        ? WindowState.Normal : WindowState.Maximized;
+
+    private void Resize_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (WindowState != WindowState.Normal || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
+            || sender is not Control { Tag: string tag } || !Enum.TryParse<WindowEdge>(tag, out var edge)) return;
+        e.Handled = true;
+        try { BeginResizeDrag(edge, e); }
+        catch (InvalidOperationException) { /* The button was already released. */ }
+    }
+
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
     private async void Settings_Click(object? sender, RoutedEventArgs e) => await new SettingsWindow(_services.Settings, _services.Resources, _services.Runtime.NativeOnly, _services.Notifications).ShowDialog(this);
 
     private void MainWindow_StateChanged(object? sender, EventArgs e)
     {
-        // Frameless windows hang past the screen edge by the resize border when maximized.
-        BorderThickness = new Thickness(0);
+        UpdateWindowChrome();
         _edge?.SyncToMain(this);
+    }
+
+    private void UpdateWindowChrome()
+    {
+        var maximized = WindowState == WindowState.Maximized;
+        // Avalonia reports the actual native frame hidden beyond this monitor,
+        // already converted to logical pixels. Recompute when state or DPI changes.
+        Padding = maximized ? OffScreenMargin : new Thickness(0);
+        ResizeHandles.IsVisible = WindowState == WindowState.Normal;
+        MaximizeButton.Content = maximized ? "\uE923" : "\uE922";
+        ToolTip.SetTip(MaximizeButton, maximized ? "Restore" : "Maximize");
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)
@@ -499,21 +540,7 @@ public partial class MainWindow : Window
 
     // Each project keeps its color: its place in the saved project list, in palette order.
     private static int ColorIndex(string path, List<string> known, IReadOnlyList<ProjectEntry> projects)
-    {
-        for (var i = 0; i < known.Count; i++)
-        {
-            if (SamePath(known[i], path))
-                return i;
-        }
-
-        for (var i = 0; i < projects.Count; i++)
-        {
-            if (SamePath(projects[i].Path, path))
-                return known.Count + i;
-        }
-
-        return 0;
-    }
+        => ProjectIdentity.IndexFor(path, known, projects);
 
     private static bool SamePath(string a, string b)
     {

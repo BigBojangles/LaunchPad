@@ -112,6 +112,8 @@ public static class SessionGuardian
             {
                 identity = identity with { TerminalPid = terminal.Id, TerminalStartTicks = terminal.StartTime.ToUniversalTime().Ticks };
                 WriteJson(Path.Combine(directory, IdentityFile), identity);
+                try { NotificationDeliveryOwner.StartIfEnabled(new AppPaths()); }
+                catch { /* Optional paging cannot affect the terminal or VM. */ }
                 using var controlStop = new CancellationTokenSource();
                 Task? control = null;
                 try

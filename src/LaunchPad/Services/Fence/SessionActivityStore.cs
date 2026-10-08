@@ -5,7 +5,7 @@ namespace LaunchPad.Services.Fence;
 
 public sealed record SessionActivityContext(string Directory, string Generation, string? ProjectPath = null, string? AgentId = null);
 public sealed record SessionActivityObservation(string Generation, bool Connected, DateTimeOffset ObservedUtc,
-    AgentActivitySnapshot Activity, bool Synchronized = false, bool HistoryComplete = false);
+    AgentActivitySnapshot Activity, bool Synchronized = false, bool HistoryComplete = false, string? Source = null);
 
 /// <summary>Shared host-side observation for desktop/owner handoff, not a permission boundary.</summary>
 public static class SessionActivityStore
@@ -38,7 +38,7 @@ public static class SessionActivityStore
     }
 
     public static void Publish(SessionActivityContext context, AgentActivitySnapshot activity, bool connected,
-        IReadOnlyList<AgentActivityEvent>? events = null, bool synchronized = true, bool historyComplete = true)
+        IReadOnlyList<AgentActivityEvent>? events = null, bool synchronized = true, bool historyComplete = true, string? source = null)
     {
         if (!Guid.TryParseExact(context.Generation, "N", out _) || !AgentActivityTracker.IsValidSnapshot(activity, context.Generation))
             throw new ArgumentException("Invalid activity observation.");
@@ -66,7 +66,7 @@ public static class SessionActivityStore
             using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 JsonSerializer.Serialize(output, new SessionActivityObservation(context.Generation, connected, DateTimeOffset.UtcNow,
-                    activity, synchronized, historyComplete), AgentActivityTracker.JsonOptions);
+                    activity, synchronized, historyComplete, source), AgentActivityTracker.JsonOptions);
                 output.Flush(flushToDisk: true);
             }
             File.Move(temporary, path, overwrite: true);

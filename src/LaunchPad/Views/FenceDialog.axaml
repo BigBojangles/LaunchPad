@@ -6,7 +6,7 @@
         MinHeight="360"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        Background="{StaticResource WindowBg}">
+        Background="{DynamicResource WindowBg}">
     <DockPanel Margin="28">
         <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
             <TextBlock x:Name="StatusText"

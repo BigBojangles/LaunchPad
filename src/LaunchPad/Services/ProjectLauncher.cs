@@ -70,7 +70,10 @@ public sealed class ProjectLauncher
                     AppDataDirectory: _paths.AppDataDir);
                 requestedGeneration = request.Generation;
                 NativeAgentTerminal.Save(directory, request);
-                TuiWindow.SaveDisplayTitle(directory, new SettingsStore(_paths).DisplayNameFor(project, "host:" + QemuLayout.ProjectKey(project)));
+                var displaySettings = new SettingsStore(_paths);
+                TuiWindow.SaveDisplayTitle(directory, displaySettings.DisplayNameFor(project, "host:" + QemuLayout.ProjectKey(project)));
+                try { TuiWindow.SaveDisplayColor(directory, ProjectIdentity.ColorHex(displaySettings, project)); }
+                catch (Exception paintError) when (paintError is IOException or UnauthorizedAccessException or ArgumentException) { }
                 var start = new ProcessStartInfo(_paths.ExePath) { UseShellExecute = false, WorkingDirectory = project };
                 start.ArgumentList.Add(NativeAgentTerminal.Argument); start.ArgumentList.Add(directory);
                 using var process = Process.Start(start) ?? throw new IOException("The native terminal did not start.");

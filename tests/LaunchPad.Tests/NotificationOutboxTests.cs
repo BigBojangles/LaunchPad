@@ -196,4 +196,26 @@ public sealed class NotificationOutboxTests
         Assert.Equal("{}", File.ReadAllText(box.LedgerPath));
         Assert.Empty(transport.Messages);
     }
+
+    [Theory]
+    [InlineData(AgentNotificationKind.RunEnded)]
+    [InlineData(AgentNotificationKind.ChannelTest)]
+    public async Task ManualTestRowsCannotEnterAutomaticDispatch(AgentNotificationKind kind)
+    {
+        var root = Fixture();
+        var box = new NotificationOutbox(Path.Combine(root, "outbox"));
+        box.Queue(Accepted(AgentEventKind.RunFinished), Path.Combine(root, "project"), "codex", Enabled);
+        var item = Assert.Single(box.Read()) with { Kind = kind, Outcome = AgentNotificationOutcome.ChannelTest };
+        var normalized = Path.TrimEndingDirectorySeparator(Path.GetFullPath(item.ProjectPath));
+        if (OperatingSystem.IsWindows()) normalized = normalized.ToUpperInvariant();
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new[] { normalized, item.AgentId, item.AgentSessionId,
+            item.RunId, kind.ToString(), "" });
+        item = item with { Id = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)) };
+        var saved = JsonSerializer.Serialize(new NotificationOutbox.Ledger { Items = [item] }, JsonFile.Options);
+        File.WriteAllText(box.LedgerPath, saved);
+        var transport = new FakeTransport();
+        await Assert.ThrowsAsync<IOException>(() => box.DispatchOneAsync(transport, _ => Enabled, _ => "Project"));
+        Assert.Empty(transport.Messages);
+        Assert.Equal(saved, File.ReadAllText(box.LedgerPath));
+    }
 }

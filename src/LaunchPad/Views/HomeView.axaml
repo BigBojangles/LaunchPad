@@ -1,7 +1,10 @@
 <UserControl x:Class="LaunchPad.Views.HomeView"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:LaunchPad.Views">
+             xmlns:local="clr-namespace:LaunchPad.Views" DragDrop.AllowDrop="True">
+    <UserControl.Styles>
+        <Style Selector="Border.groupDrop"><Setter Property="BorderBrush" Value="{DynamicResource Ink}"/></Style>
+    </UserControl.Styles>
     <Grid x:Name="Stage">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -12,21 +15,22 @@
         <StackPanel HorizontalAlignment="Center" Margin="0,32,0,0">
             <Image Source="avares://LaunchPad/Assets/launchpad-rocket.png"
                    Width="72" Height="72"
+                   Stretch="Uniform"
                    HorizontalAlignment="Center"/>
             <TextBlock Text="LaunchPad"
                        FontSize="32"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource Ink}"
+                       Foreground="{DynamicResource Ink}"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"
                        Margin="0,16,0,0"/>
             <TextBlock Margin="0,10,0,0"
                        FontSize="15"
-                       Foreground="{StaticResource Ink}"
+                       Foreground="{DynamicResource Ink}"
                        LineHeight="22"
                        TextAlignment="Center"
                        HorizontalAlignment="Center">
-                <Run Text="Choose your workspace."/>
+                <Run Text="Put the agent in a box."/>
                 <LineBreak/>
                 <Run Text="Watch it work."/>
             </TextBlock>
@@ -37,7 +41,7 @@
             <TextBlock x:Name="EmptyHint"
                        Text="Open a project and its session shows up here."
                        FontSize="13"
-                       Foreground="{StaticResource Muted}"
+                       Foreground="{DynamicResource Muted}"
                        Opacity="0.8"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Top"
@@ -55,7 +59,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="12" HorizontalAlignment="Center" VerticalAlignment="Top">
-                                <Grid MinHeight="16" Margin="4,0,0,6"><local:EditableDisplayName Text="{Binding Name}" IsVisible="{Binding ShowFrame}" MaxWidth="220" FontSize="13" Foreground="{StaticResource Ink}" HorizontalAlignment="Left" NameSaved="GroupName_Saved"/></Grid>
+                                <Grid Height="24" Margin="4,0,0,6"><local:EditableDisplayName Text="{Binding Name}" IsVisible="{Binding ShowFrame}" MaxWidth="220" FontSize="13" Foreground="{DynamicResource Ink}" HorizontalAlignment="Left" NameSaved="GroupName_Saved"/></Grid>
                                 <Border Padding="10" CornerRadius="10" Background="Transparent" BorderThickness="1.5" BorderBrush="{Binding FrameBrush}">
 
                                     <ItemsControl ItemsSource="{Binding Sessions}">
@@ -66,7 +70,7 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <local:SessionMark Width="88" Margin="8"/>
+                                                <local:SessionMark Margin="6" TileWidth="{Binding TileWidth}" IconSize="{Binding IconSize}"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -82,11 +86,11 @@
             <Button Classes="PadLink"
                     Content="What kind of user are you?"
                     Click="Onboarding_Click"/>
-            <TextBlock Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+            <TextBlock Text="  ·  " FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
             <Button Classes="PadLink"
                     Content="Share LaunchPad"
                     Click="Share_Click"/>
-            <TextBlock x:Name="MachineSeparator" Text="  ·  " FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center"/>
+            <TextBlock x:Name="MachineSeparator" Text="  ·  " FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
             <Button x:Name="MachineButton" Classes="PadLink"
                     Content="Machine"
                     Click="Machine_Click"/>
