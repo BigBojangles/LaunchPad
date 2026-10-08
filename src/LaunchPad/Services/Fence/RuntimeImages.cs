@@ -5,7 +5,7 @@ namespace LaunchPad.Services.Fence;
 
 public sealed record RuntimeImageFile(string File, string Sha256);
 public sealed record RuntimeImageManifest(int Schema, string Version, RuntimeImageFile Image,
-    IReadOnlyList<RuntimeImageFile> Dependencies, IReadOnlyList<string> Capabilities, string? MaintenanceManifest = null);
+    IReadOnlyList<RuntimeImageFile> Dependencies, IReadOnlyList<string> Capabilities, string? MaintenanceManifest = null, DirectBootManifest? DirectBoot = null);
 public sealed record RuntimeImageSelection(string ImagePath, RuntimeImageManifest? Manifest);
 
 public static class RuntimeImages
@@ -38,6 +38,7 @@ public static class RuntimeImages
                     || !FenceFiles.TryResolveUnlinked(images, item.File, out var path) || !File.Exists(path))
                     throw new InvalidDataException("A required VM image is missing or its manifest path is unsafe.");
             }
+            RuntimeBoot.Validate(manifest.DirectBoot);
             if (!IsBuilder(manifest.Image.File)) throw new InvalidDataException("The active runtime does not select a builder image.");
             return new(Path.Combine(images, manifest.Image.File), manifest);
         }
@@ -47,6 +48,7 @@ public static class RuntimeImages
     public static void Verify(string root, RuntimeImageSelection selected)
     {
         if (selected.Manifest is null) return; // Legacy discovery is not a provenance pass.
+        _ = RuntimeBoot.Read(root, selected.Manifest);
         var images = Path.Combine(Path.GetFullPath(root), "images");
         foreach (var item in selected.Manifest.Dependencies.Prepend(selected.Manifest.Image))
         {
