@@ -1,104 +1,97 @@
-# Direct-boot experiment - 2026-10-08
+# Direct-boot experiment - completed basic workflow, 2026-10-08
 
-Branch: try-direct-boot. Main checkpoint: 732e8d9f6b8de4a4002cd65ca8480ebf0a169c12.
-All implementation and the candidate are in launcher-direct-boot. No merge, push,
-installed runtime activation or change to the main distribution occurred.
+Branch: try-direct-boot. Main checkpoint: 732e8d9. No merge or push.
+Main source/distribution, installed runtime and poc-openvmm remain unchanged.
 
-## Change and commits
+## Current result
 
-- c3a1964: optional runtime-bound directBoot metadata and verified asset reader.
-- 7a2c688: normal QEMU direct boot, session matching and boot receipt persistence.
-- d719d5a: package inclusion, shared-asset deduplication, activation leases and read ACL planning.
-- Final step commit records focused tests, proof runner and this report.
+| Requested step | Result | Evidence and limit |
+|---|---|---|
+| Worktree-local app/runtime bundle | PASS | dist contains EXE, copied QEMU, complete three-image backing chain, matching kernel/initrd and maintenance payload. Actual package planner validated all eight runtime inputs. App PublicRuntime.Ensure resolved this bundle and supplied direct boot for a new session. |
+| Grok/custom mismatch | PASS, test setup corrected | Guest parser reads EOF while fence is disconnected and defaults to Grok on an empty import. Old runner connected after IMPORT-READY. Corrected runner connects fence first, as the app does. Guest reported AGENT-IN custom and AGENT-PICK custom. No production agent-selection code or guest policy was changed. |
+| Import/typing/shutdown/reopen | PASS for basic backend workflow | Text contents and 16,384-byte binary SHA256 verified from inside guest; terminal input wrote/fsynced a unique token; actual app MachineShutdown helper completed two clean ACPI shutdowns; same overlay reopened with the token intact. Both launches selected direct boot. |
+| Branch commit | PASS | Corrected proof, pinned bundle manifest and current report committed on try-direct-boot. Payload/evidence remain ignored, not committed to Git. |
 
-Runtime manifests retain schema 1 and gain an optional directBoot object:
+The successful test used one disposable session through its first boot and reopen.
+A previous failed proof session remains retained for diagnosis. No real project,
+existing saved disk, source template or image backing chain was changed.
 
-```json
-{
-  "directBoot": {
-    "kernelRelease": "6.1.0-53-amd64",
-    "kernel": {"file": "vmlinuz-6.1.0-53-amd64", "sha256": "d66b8bc4b8330f4e98257602449feeeed696b860bf147a40477e7f4cfc48e704"},
-    "initrd": {"file": "initrd.img-6.1.0-53-amd64", "sha256": "cd032cc68333d4b79a3196ce67d7164f402305b123e1b0d6b32c412a13b2fdbe"}
-  }
-}
-```
+## Runtime bundle
 
-Declare this pair only for the demonstrated compatible runtime; hashes alone do
-not establish compatibility with arbitrary disks. No current runtime.json was
-activated or rewritten. Missing metadata retains GRUB. Declared invalid paths,
-links, missing files or mismatching content fail preflight before QEMU launch.
+Run dist/LaunchPad.exe manually. The qemu executable beside it lets normal app
+runtime discovery select this bundle without an environment override. The proof
+runner explicitly selected the same local root because its process is dotnet.
+The installed application is not switched to this runtime.
 
-New sessions record the matching boot metadata in session-runtime.json. Reopened
-sessions need matching runtime version and boot fingerprints. Legacy sessions and
-maintenance children lacking that evidence retain GRUB; no automatic rebasing,
-reset or migration was added. Guest kernel updates require a new verified pair.
+scripts/direct-boot-runtime.json records the exact experimental runtime manifest.
+The staged copies under dist/images are:
 
-Normal launch retains q35/WHPX, four virtio integration channels, networking,
-resources and writethrough caching. It adds -kernel/-initrd with:
+- debian-12-builder-runtime-20261006-policy2.qcow2
+- debian-12-builder.qcow2
+- debian-12-nocloud-amd64-20260601-2496.qcow2
+- launchpad-maintenance-runtime-20261006-policy2.kernel
+- launchpad-maintenance-runtime-20261006-policy2.initrd
+- launchpad-maintenance-runtime-20261006-policy2.tar.gz
+- runtime.json and maintenance.json
+
+Every copied runtime artifact matched its declared SHA256. Kernel release:
+6.1.0-53-amd64. Kernel SHA256:
+d66b8bc4b8330f4e98257602449feeeed696b860bf147a40477e7f4cfc48e704.
+Initrd SHA256:
+cd032cc68333d4b79a3196ce67d7164f402305b123e1b0d6b32c412a13b2fdbe.
+Existing immutable kernel/initrd files serve both boot and maintenance; no duplicate
+pair is packaged. QEMU/DLLs/firmware/licenses are local copies. No rebase or flatten
+was needed. Bundle construction used only source reads and worktree writes.
+
+Normal boot retains q35/WHPX, resources, writethrough caching, networking and all
+four integration channels. It adds -kernel/-initrd and:
 root=/dev/vda1 ro console=ttyS0,115200 quiet
-Maintenance init=/bin/sh arguments and bl-proof.service remain unchanged.
+Maintenance boot and bl-proof.service remain unchanged.
 
-## Timing proof
+New sessions record boot metadata in session-runtime.json. Reopened sessions
+require matching runtime version and fingerprints. Legacy or maintenance-created
+sessions without that evidence retain GRUB; no automatic migration/reset was added.
+Declared missing, unsafe/linked or changed assets fail preflight before VM start.
 
-Three fresh overlays above the supplied standalone runtime; actual application
-QemuCommand.Build generated the arguments. The supplied BootRun.cs timed process
-start to IMPORT-READY, using its file reader against the application's serial log.
-No login wait. Exact command JSON, timestamps and summaries are retained.
+## Test correction and support limit
 
-| Run | IMPORT-READY |
-|---|---:|
-| 1 | 6.5597 s |
-| 2 | 6.0177 s |
-| 3 | 6.0549 s |
+The exact shipped maintenance script established the EOF/default-Grok cause;
+the corrected actual guest observation confirmed custom selection and imported
+contents. This was a proof setup issue, not evidence of the app choosing the wrong
+agent in its normal connected import path.
 
-Median: 6.0549 s. Minimum/maximum: 6.0177/6.5597 s. Range: 0.5420 s.
-Historical baseline median: 14.78 s from supplied RESULTS.txt, not a new matched
-control run. Improvement: approximately 8.7251 s, or 59%. This is local boot
-readiness evidence, not a universal startup guarantee or agent-ready timing.
-Timing overlays were intentionally stopped after the readiness marker.
+The first renewed attempt passed import and typing but stopped at an unrelated
+SIZE-OK assertion. Policy2 has no SIZE-OK acknowledgement; it prints GUEST-SIZE
+from the actual virtio terminal dimensions. The final attempt checks that real
+GUEST-SIZE observation, keeps all required basic assertions and labels the newer
+acknowledgement unsupported. No product protocol was changed or success faked.
+Future runs refuse existing proof directories/disks, preserving retained work.
 
-## Workflow result and bounded failure
+## Proof and timing
 
-The one disposable workflow reached IMPORT-READY and DOOR-READY safe-import
-safe-merge. Guest resize processing printed GUEST-SIZE 30 80. Imported file
-contents and terminal input were not verified: the custom fixture's greeting did
-not appear within 30 seconds. Serial output reports AGENT-PICK grok despite the
-fixture requesting custom; the cause remains unverified.
+- Prior affected host batch: 25 passed, zero failures/skips. Product code is unchanged
+  since that proof; the current change corrects the runner and stages actual assets.
+- Real local bundle plan: complete backing chain and eight runtime inputs verified.
+- Successful workflow: appResolvedLocalBundle, newSessionDirectBoot, import,
+  terminal, customAgentSelected, guestResizeObserved, shutdown and
+  reopenPersistedWork all true. No forced stop or workflow error.
+- Both QEMU command receipts include the verified external kernel/initrd and quiet
+  command line. Both serial logs contain clean Power down; process exit was zero.
+- Prior three fresh-overlay timing: 6.5597 / 6.0177 / 6.0549 seconds to IMPORT-READY.
+  Median 6.0549 s; range 0.5420 s. Historical baseline median 14.78 s. These timings
+  were not repeated for the copied bundle and are not a universal startup guarantee.
 
-- Import handshake: observed; imported-content verification incomplete.
-- Terminal interaction: unproven.
-- Status-channel SIZE-OK assertion: not reached; serial resize processing observed.
-- Graceful shutdown: not attempted after the terminal failure; owned QEMU forced stop recorded.
-- Saved-work reopen: not attempted/unproven.
+Ignored detailed evidence: tests/LaunchPad.Tests/TestResults/direct-boot-finish.
+The private final receipt points to successful/failed sessions and exact command,
+serial and terminal logs. Original evidence is preserved under direct-boot.
 
-The route used its two-attempt budget: initial proof-runner compile failure from
-an incorrect API name, then the corrected run and concrete missing-terminal
-marker. Parked with diagnostics, no further fixture repair/retry. Runner exit 0
-means its structured report was written; workflow.json contains the failed result.
-The custom fixture is transport-only, not vendor-agent, physical GUI,
-BuildLaunchTest, notification, security or save-copyback acceptance.
+## Still unproven
 
-## Host/package proof and candidate
-
-25 focused direct-boot/runtime checks passed, zero failures/skips, after selecting
-StartupObject=AutoGeneratedProgram for an existing multiple-entry test-project
-compile issue. Product compilation passed. Assertions were unchanged.
-
-The package planner parsed successfully and ran on tiny synthetic qcow2 metadata
-fixtures: identical kernel/initrd used for both boot and maintenance appeared
-once; a conflicting hash declaration was refused without emitting a new plan.
-No real bundle installation or runtime activation was tested.
-
-Candidate: this worktree's dist/LaunchPad.exe. This is an EXE-only experimental
-handoff; it does not ship or activate a direct-boot runtime bundle. Launching it
-against an unchanged runtime manifest retains GRUB. Main dist remains unchanged.
-
-Detailed evidence: tests/LaunchPad.Tests/TestResults/direct-boot, plus the uniquely
-named scratch directory in the private phase receipt. All guest test disks are
-new overlays; the supplied standalone backing image and existing runs remain intact.
-
-The next acceptance step is a normally selected compatible guest/runtime with
-Casey's ordinary import/terminal/shutdown/reopen observation. Do not claim saved
-session, restricted-account, installer, full agent or GUI acceptance from timing.
-OpenVMM work remains entirely unstarted; poc-openvmm is a clean branch/worktree
-from the final direct-boot commit. README is owned separately and was not edited.
+This pass used the actual app runtime resolver, boot selector, QEMU arguments,
+import/status transport and clean-shutdown helper under the normal Windows user.
+It did not exercise the physical Avalonia/Windows Terminal UI, BuildLaunchTest
+launch credentials, vendor-agent authentication or host copy-back/agent /exit flow.
+Those are separate acceptance limits, not failures observed in this direct-boot pass.
+The missing newer SIZE-OK acknowledgement remains a guest capability limit outside
+this direct-boot scope. No service fix, security scan, notification work or OpenVMM
+implementation was performed. README remains owned separately and untouched.

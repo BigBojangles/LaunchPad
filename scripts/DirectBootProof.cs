@@ -6,26 +6,23 @@ using System.Text;
 using System.Text.Json;
 using LaunchPad.Services.Fence;
 
-var inputRoot = args[0];
-var qemuRoot = args[1];
-var scratch = args[2];
+// Use the same verified runtime resolver as the app. All payload and session
+// writes remain inside this experimental worktree, never the installed runtime.
+var bundle = Path.GetFullPath(args[0]);
+var scratch = Path.GetFullPath(args[1]);
+if (!scratch.StartsWith(Path.GetDirectoryName(bundle)! + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+    throw new IOException("Proof session must remain inside the worktree.");
+if (Directory.Exists(scratch) || File.Exists(scratch)) throw new IOException("Use a fresh proof directory; existing evidence is preserved.");
 Directory.CreateDirectory(scratch);
-var qemu = Path.Combine(qemuRoot, "fence", "qemu-system-x86_64.exe");
-var img = Path.Combine(qemuRoot, "qemu-img.exe");
-var firmware = Path.Combine(qemuRoot, "share");
-var backing = Path.Combine(inputRoot, "runtime-policy2-standalone.qcow2");
-var images = Path.Combine(scratch, "images"); Directory.CreateDirectory(images);
-RuntimeImageFile CopyAsset(string name)
-{
-    var output = Path.Combine(images, name);
-    File.Copy(Path.Combine(inputRoot, "boot", name), output, false);
-    using var file = File.OpenRead(output);
-    return new(name, Convert.ToHexString(SHA256.HashData(file)).ToLowerInvariant());
-}
-var metadata = new DirectBootManifest("6.1.0-53-amd64", CopyAsset("vmlinuz-6.1.0-53-amd64"), CopyAsset("initrd.img-6.1.0-53-amd64"));
-var runtime = new RuntimeImageManifest(1, "direct-boot-policy2-proof", new("debian-12-builder-proof.qcow2", new string('0', 64)), [], [], DirectBoot: metadata);
-var boot = RuntimeBoot.Read(scratch, runtime)!;
-string Quote(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
+Environment.SetEnvironmentVariable("LAUNCHPAD_QEMU", bundle);
+var appRuntime = PublicRuntime.Ensure(new LaunchPad.Services.SetupLog(new LaunchPad.Services.AppPaths(appDataDir: Path.Combine(scratch, "appdata"))));
+var qemu = appRuntime.QemuExe;
+var img = appRuntime.ImgExe;
+var firmware = appRuntime.FirmwareDir;
+var backing = appRuntime.KeptImage;
+var runtime = RuntimeImages.Read(bundle).Manifest!;
+var boot = appRuntime.DirectBoot ?? throw new IOException("The app did not resolve the bundled direct-boot assets.");
+var metadata = boot.Manifest;
 int Port()
 {
     // Reserve the whole application port block during selection; QEMU then owns it.
@@ -40,6 +37,7 @@ int Port()
 }
 async Task CreateDisk(string disk)
 {
+    if (File.Exists(disk) || Directory.Exists(disk)) throw new IOException("Existing proof disk is preserved.");
     var start = new ProcessStartInfo(img) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = scratch };
     foreach (var arg in new[] { "create", "-q", "-f", "qcow2", "-b", backing, "-F", "qcow2", disk }) start.ArgumentList.Add(arg);
     using var p = Process.Start(start)!;
@@ -51,36 +49,21 @@ string SerialText(string path)
     using var reader = new StreamReader(input);
     return reader.ReadToEnd();
 }
-var samples = new List<double>();
-for (var n = 1; n <= 3; n++)
-{
-    var directory = Path.Combine(scratch, "timing-" + n); Directory.CreateDirectory(directory);
-    var disk = Path.Combine(directory, "session.qcow2"); await CreateDisk(disk);
-    var serial = Path.Combine(directory, "serial.log"); var port = Port();
-    var command = QemuCommand.Build("whpx", disk, 0, port, "fence", null, serialLog: serial, memoryMb: 2048, cores: 2,
-        firmwareDir: firmware, workingDirectory: directory, directBoot: boot);
-    File.WriteAllText(Path.Combine(directory, "command.json"), JsonSerializer.Serialize(new { exe = qemu, cwd = directory, args = command }));
-    var summary = BootRunV3.Run(qemu, string.Join(" ", command.Select(Quote)), directory,
-        new[] { "file:" + serial }, new[] { 0 }, new[] { "IMPORT-READY" }, 30000, 0, Path.Combine(directory, "boot"));
-    Console.WriteLine(summary);
-    var row = summary.Split('\n').Single(x => x.StartsWith("marker\tIMPORT-READY\t"));
-    var milliseconds = double.Parse(row.Trim().Split('\t')[2], System.Globalization.CultureInfo.InvariantCulture);
-    if (milliseconds < 0) throw new IOException("IMPORT-READY not observed within timing bound.");
-    samples.Add(milliseconds / 1000);
-}
-var sorted = samples.Order().ToArray();
-File.WriteAllText(Path.Combine(scratch, "timing.json"), JsonSerializer.Serialize(new { samplesSeconds = samples, medianSeconds = sorted[1], minSeconds = sorted[0], maxSeconds = sorted[2], rangeSeconds = sorted[2] - sorted[0], baselineMedianSeconds = 14.78, kernel = metadata }, new JsonSerializerOptions { WriteIndented = true }));
-Console.WriteLine($"TIMING median={sorted[1]:F3}s range={sorted[0]:F3}-{sorted[2]:F3}s");
-
 var project = Path.Combine(scratch, "project"); Directory.CreateDirectory(project);
 File.WriteAllText(Path.Combine(project, "hello.txt"), "hello-direct-boot");
+var binary = Enumerable.Range(0, 16384).Select(i => (byte)(i % 251)).ToArray();
+File.WriteAllBytes(Path.Combine(project, "payload.bin"), binary);
+var expectedHash = Convert.ToHexString(SHA256.HashData(binary)).ToLowerInvariant();
 var program = Path.Combine(scratch, "boot-proof-agent");
-File.WriteAllText(program, "#!/usr/bin/python3\nimport pathlib,sys,os\np=pathlib.Path.cwd()\nprint('LP-PROOF:IMPORT:'+p.joinpath('hello.txt').read_text(),flush=True)\nprint('LP-PROOF:PERSIST:'+(p.joinpath('saved.txt').read_text() if p.joinpath('saved.txt').exists() else 'NONE'),flush=True)\nfor line in sys.stdin:\n if line.startswith('WRITE '):\n  token=line.strip().split(' ',1)[1]\n  with open('saved.txt','w') as f:\n   f.write(token);f.flush();os.fsync(f.fileno())\n  print('LP-PROOF:SAVED:'+token,flush=True)\n elif line.strip()=='EXIT':\n  print('LP-PROOF:EXIT',flush=True);break\n");
+File.WriteAllText(program, "#!/usr/bin/python3\nimport pathlib,sys,os,hashlib\np=pathlib.Path.cwd()\nprint('LP-PROOF:HASH:'+hashlib.sha256(p.joinpath('payload.bin').read_bytes()).hexdigest(),flush=True)\nprint('LP-PROOF:IMPORT:'+p.joinpath('hello.txt').read_text(),flush=True)\nprint('LP-PROOF:PERSIST:'+(p.joinpath('saved.txt').read_text() if p.joinpath('saved.txt').exists() else 'NONE'),flush=True)\nfor line in sys.stdin:\n if line.startswith('WRITE '):\n  token=line.strip().split(' ',1)[1]\n  with open('saved.txt','w') as f:\n   f.write(token);f.flush();os.fsync(f.fileno())\n  print('LP-PROOF:SAVED:'+token,flush=True)\n elif line.strip()=='EXIT':\n  print('LP-PROOF:EXIT',flush=True);break\n");
 var session = Path.Combine(scratch, "workflow"); Directory.CreateDirectory(session);
-var ownedDisk = Path.Combine(session, "session.qcow2"); await CreateDisk(ownedDisk);
+var ownedDisk = Path.Combine(session, "session.qcow2");
+if (RuntimeBoot.ForSession(boot, runtime.Version, session, File.Exists(ownedDisk)) is null)
+    throw new IOException("New session did not select direct boot.");
+await CreateDisk(ownedDisk);
 File.WriteAllText(Path.Combine(session, "session-runtime.json"), JsonSerializer.Serialize(new { version = runtime.Version, directBoot = metadata }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 var token = Guid.NewGuid().ToString("N");
-var results = new Dictionary<string, object?> { ["scope"] = "Owned custom-program transport/workspace proof; not vendor agent, GUI, restricted-account or save-copyback acceptance", ["attempt"] = 1, ["startedUtc"] = DateTime.UtcNow, ["import"] = false, ["terminal"] = false, ["statusSizeReceipt"] = false, ["shutdown"] = false, ["reopenPersistedWork"] = false };
+var results = new Dictionary<string, object?> { ["scope"] = "App runtime resolver + normal QEMU/import/status transport; owned custom program; not physical GUI, vendor-agent or restricted-account acceptance", ["attempt"] = 1, ["startedUtc"] = DateTime.UtcNow, ["appResolvedLocalBundle"] = true, ["newSessionDirectBoot"] = true, ["import"] = false, ["terminal"] = false, ["statusSizeReceipt"] = "unsupported-by-policy2", ["shutdown"] = false, ["reopenPersistedWork"] = false };
 try
 {
     for (var n = 1; n <= 2; n++)
@@ -113,10 +96,13 @@ try
                 catch (SocketException) when (retry < 100) { client.Dispose(); await Task.Delay(50, deadline.Token); }
             }
         }
+        var terminal = new StringBuilder(); var gate = new object();
         try
         {
+            // Keep fence connected before guest reads it: waiting for IMPORT-READY
+            // first can expose EOF and launch the default Grok on an empty import.
+            using var fence = await Connect(QemuCommand.FencePort(port));
             using var tui = await Connect(QemuCommand.TuiPort(port));
-            var terminal = new StringBuilder(); var gate = new object();
             var reader = Task.Run(async () => {
                 var buffer = new byte[8192];
                 try { int length; while ((length = await tui.GetStream().ReadAsync(buffer, deadline.Token)) > 0) { lock (gate) terminal.Append(Encoding.UTF8.GetString(buffer, 0, length)); } }
@@ -126,19 +112,22 @@ try
             using var sizing = await ConsoleSizeLink.ConnectAsync(port, deadline.Token);
             sizing?.Send(80, 30);
             await Wait(() => File.Exists(serial) && SerialText(serial).Contains("IMPORT-READY"), "IMPORT-READY");
-            using (var fence = await Connect(QemuCommand.FencePort(port)))
                 await FenceHost.SendProjectAsync(fence.GetStream(), project, null, null, deadline.Token,
                     new AgentLaunch(AgentChoice.Custom, "boot-proof-agent", program), restoreGuestState: true, restoreHostHome: false, preserveRepositoryMetadata: true);
+            fence.Dispose(); // EOF commits the complete import; no bytes are sent after this point.
             using var status = new StatusLink(await Connect(QemuCommand.StatusPort(port)));
             status.SendWinsize(30, 80);
             await Wait(() => Seen("LP-PROOF:IMPORT:hello-direct-boot"), "import/terminal output");
+            await Wait(() => Seen("LP-PROOF:HASH:" + expectedHash), "intact binary contents");
+            await Wait(() => SerialText(serial).Contains("AGENT-IN custom") && SerialText(serial).Contains("AGENT-PICK custom"), "requested custom agent selected");
             results["import"] = true;
+            results["customAgentSelected"] = true;
             if (n == 1)
             {
                 await tui.GetStream().WriteAsync(Encoding.ASCII.GetBytes("WRITE " + token + "\n"), deadline.Token);
                 await Wait(() => Seen("LP-PROOF:SAVED:" + token), "terminal input acknowledgement");
                 results["terminal"] = true;
-                await Wait(() => status.SizeAccepted, "status SIZE-OK"); results["statusSizeReceipt"] = true;
+                await Wait(() => SerialText(serial).Contains("GUEST-SIZE 30 80"), "actual guest resize processing"); results["guestResizeObserved"] = true;
             }
             else
             {
@@ -147,13 +136,14 @@ try
             }
             lock (gate) File.WriteAllText(Path.Combine(directory, "terminal.txt"), terminal.ToString());
             sizing?.Dispose();
-            if (!ConsoleSizeLink.RequestPowerDown(port)) throw new IOException("ACPI request failed.");
-            await process.WaitForExitAsync(deadline.Token);
+            if (!await Task.Run(() => MachineShutdown.WaitForGuestExit(process, port)))
+                throw new IOException("Application clean guest shutdown did not complete within 30 seconds.");
             if (process.ExitCode != 0 || !SerialText(serial).Contains("Power down")) throw new IOException("Clean guest power-down not confirmed.");
             results["shutdown"] = true;
         }
         finally
         {
+            lock (gate) File.WriteAllText(Path.Combine(directory, "terminal.txt"), terminal.ToString());
             if (!process.HasExited) { process.Kill(); await process.WaitForExitAsync(); results["forcedStop"] = true; }
             File.WriteAllText(Path.Combine(directory, "stderr.txt"), await errors);
         }
@@ -162,3 +152,4 @@ try
 catch (Exception error) { results["error"] = error.ToString(); }
 File.WriteAllText(Path.Combine(scratch, "workflow.json"), JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine(JsonSerializer.Serialize(results));
+return results.ContainsKey("error") ? 1 : 0;

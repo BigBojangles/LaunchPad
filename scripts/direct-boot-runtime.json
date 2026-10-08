@@ -1,0 +1,36 @@
+{
+    "schema":  1,
+    "version":  "runtime-20261006-policy2",
+    "image":  {
+                  "file":  "debian-12-builder-runtime-20261006-policy2.qcow2",
+                  "sha256":  "65ccb99943c5dcac8710bd38df446d5fb4a5c1c642fad9cb23b6ca1eb1fff7fc"
+              },
+    "dependencies":  [
+                         {
+                             "file":  "debian-12-builder.qcow2",
+                             "sha256":  "c7f1ea5e78a6efc729528d522f7745a45b1d6c3f253f6747ff1eb33e07ce8cd5"
+                         },
+                         {
+                             "file":  "debian-12-nocloud-amd64-20260601-2496.qcow2",
+                             "sha256":  "71fcc93f10366f208750147ba841cc211ad2b098c274fbf43950e39eee3cd468"
+                         }
+                     ],
+    "capabilities":  [
+                         "agent-choice",
+                         "safe-import",
+                         "safe-merge",
+                         "content-return"
+                     ],
+    "maintenanceManifest":  "maintenance.json",
+    "directBoot":  {
+                       "initrd":  {
+                                      "sha256":  "cd032cc68333d4b79a3196ce67d7164f402305b123e1b0d6b32c412a13b2fdbe",
+                                      "file":  "launchpad-maintenance-runtime-20261006-policy2.initrd"
+                                  },
+                       "kernelRelease":  "6.1.0-53-amd64",
+                       "kernel":  {
+                                      "sha256":  "d66b8bc4b8330f4e98257602449feeeed696b860bf147a40477e7f4cfc48e704",
+                                      "file":  "launchpad-maintenance-runtime-20261006-policy2.kernel"
+                                  }
+                   }
+}
