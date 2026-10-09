@@ -86,8 +86,6 @@ public static class SessionGuardian
             || !Guid.TryParseExact(args[5], "N", out _)) return;
         using var owner = Process.GetCurrentProcess();
         Process? machine = null;
-        using var windowsTestStop = new CancellationTokenSource();
-        Task? windowsTests = null;
         SessionOwnerIdentity? permissionOwner = null;
         try
         {
@@ -106,7 +104,7 @@ public static class SessionGuardian
                 Thread.Sleep(40);
             }
             var armed = ReadGeneration(directory) == identity.Generation;
-            if (armed) windowsTests = Task.Run(() => WindowsTestSessionHost.RunAsync(directory, identity, machine, windowsTestStop.Token));
+            // The Windows testing bridge is deferred and is not exposed by release VMs.
             using var terminal = armed ? WaitForTerminal(directory, machine, owner.StartTime.ToUniversalTime()) : null;
             if (terminal is not null)
             {
@@ -120,7 +118,7 @@ public static class SessionGuardian
                 {
                     while (!machine.HasExited && !terminal.HasExited)
                     {
-                        if (File.Exists(Path.Combine(directory, "console.finished"))) { controlStop.Cancel(); windowsTestStop.Cancel(); }
+                        if (File.Exists(Path.Combine(directory, "console.finished"))) { controlStop.Cancel(); }
                         else if (control is null && !DesktopAlive(identity, directory))
                             control = KeepControlsAsync(directory, identity, controlStop.Token);
                         Thread.Sleep(200);
@@ -129,7 +127,6 @@ public static class SessionGuardian
                 finally
                 {
                     controlStop.Cancel();
-                    windowsTestStop.Cancel();
                     if (control is not null) try { control.GetAwaiter().GetResult(); } catch (Exception error) when (error is IOException or SocketException or OperationCanceledException) { }
                 }
             }
@@ -192,10 +189,6 @@ public static class SessionGuardian
         }
         finally
         {
-            windowsTestStop.Cancel();
-            if (windowsTests is not null)
-                try { windowsTests.Wait(TimeSpan.FromSeconds(8)); }
-                catch (AggregateException) { /* Bridge faults do not replace guest shutdown/recovery. */ }
             if (permissionOwner is not null)
                 try { PermissionPolicies.End(new AppPaths(), permissionOwner); }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException)

@@ -1,0 +1,13 @@
+[Unit]
+Description=LaunchPad project session supervisor
+After=systemd-udevd.service apparmor.service
+Wants=apparmor.service
+
+[Service]
+Type=simple
+ExecStartPre=+/sbin/modprobe virtio_console
+ExecStartPre=+/usr/local/sbin/bl-net.sh
+ExecStart=/usr/local/bin/launchpad-session
+
+[Install]
+WantedBy=multi-user.target

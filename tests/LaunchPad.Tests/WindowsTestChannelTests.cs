@@ -125,7 +125,8 @@ public sealed class WindowsTestChannelTests
         for (var offset = -4; offset <= 4; offset++) Assert.True(PortChoice.Overlaps(20000 + offset, [20000]));
         Assert.False(PortChoice.Overlaps(20005, [20000]));
         var command = QemuCommand.Build("whpx", "session.qcow2", 0, 20000, "fence", null);
-        Assert.Contains("virtserialport,bus=vserial0.0,chardev=wtestch,name=launchpad-windows-test", command);
+        Assert.DoesNotContain(command, argument => argument.Contains("wtestch", StringComparison.Ordinal)
+            || argument.Contains("launchpad-windows-test", StringComparison.Ordinal));
     }
 
     [Fact]

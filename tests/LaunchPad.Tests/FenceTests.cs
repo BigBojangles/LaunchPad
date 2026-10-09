@@ -559,9 +559,10 @@ public class FenceTests
         Assert.DoesNotContain("BuildLaunchTest:(OI)(CI)RX", iss, StringComparison.Ordinal);
         Assert.Contains("onlyifdoesntexist nocompression uninsneveruninstall",
             File.ReadAllText(RepoFile("scripts", "installer-runtime-files.ps1")), StringComparison.Ordinal);
-        Assert.DoesNotContain(@"C:\Users\Public\LaunchPad", File.ReadAllText(RepoFile("src", "LaunchPad", "Services", "Fence", "PublicRuntime.cs")), StringComparison.Ordinal);
+        var publicHome = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments))!;
+        Assert.DoesNotContain(Path.Combine(publicHome, "LaunchPad"), File.ReadAllText(RepoFile("src", "LaunchPad", "Services", "Fence", "PublicRuntime.cs")), StringComparison.Ordinal);
 
-        var root = @"C:\Users\Big Bojangles\AppData\Local\Programs\LaunchPad";
+        var root = Path.Combine(Path.GetDirectoryName(RepoFile("LaunchPad.sln"))!, "tests", "LaunchPad.Tests", "TestResults", "Runtime With Spaces");
         var session = root + @"\sessions\20261003235959";
         var qemuDirectory = root + @"\qemu\fence";
         var args = QemuCommand.Build(
@@ -965,13 +966,14 @@ public class FenceTests
         var users = ReadProcess("net.exe", "localgroup Users");
         Assert.Contains(TestUserRunner.UserName, users, StringComparison.OrdinalIgnoreCase);
 
-        var outFile = @"C:\Users\Public\bl-whoami.txt";
+        var publicHome = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments))!;
+        var outFile = Path.Combine(publicHome, "bl-whoami.txt");
         if (File.Exists(outFile))
             File.Delete(outFile);
         var started = TestUserRunner.TryStart(
             Path.Combine(Environment.SystemDirectory, "cmd.exe"),
             Environment.SystemDirectory,
-            new[] { "/c", "whoami > " + outFile },
+            new[] { "/c", "whoami > " + Quote(outFile) },
             out var process);
         Assert.True(started);
         Assert.NotNull(process);
@@ -1113,7 +1115,7 @@ public class FenceTests
         Assert.True(SessionEnd.HostStillWatching(now.AddSeconds(-1), now));
         Assert.False(SessionEnd.HostStillWatching(now.AddSeconds(-5), now));
 
-        var root = @"C:\Users\Big Bojangles\AppData\Local\Programs\LaunchPad\sessions";
+        var root = Path.Combine(Path.GetDirectoryName(RepoFile("LaunchPad.sln"))!, "tests", "LaunchPad.Tests", "TestResults", "Runtime With Spaces", "sessions");
         var ours = "qemu-system-x86_64.exe -drive file=" + root + @"\EB9B427956C4ACF0\session.qcow2";
         var other = @"C:\Tools\qemu-system-x86_64.exe -drive file=D:\other\session.qcow2";
         Assert.True(SessionSweep.ShouldStop(ours, root, false));

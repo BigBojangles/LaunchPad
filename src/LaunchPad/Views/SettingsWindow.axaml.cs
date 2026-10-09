@@ -55,6 +55,17 @@ public partial class SettingsWindow : Window
     }
     private void ResetTips_Click(object? sender, RoutedEventArgs e) { _resetTips = true; StatusText.Text = "Tips will appear again after saving."; }
     private void Cancel_Click(object? sender, RoutedEventArgs e) => Close(false);
+    private void Licenses_Click(object? sender, RoutedEventArgs e)
+    {
+        var folder = Path.Combine(Path.GetDirectoryName(_settings.Paths.ExePath)!, "licenses");
+        if (!Directory.Exists(folder))
+        {
+            StatusText.Text = "The licenses folder is missing from this copy of LaunchPad.";
+            return;
+        }
+        try { ProjectFolders.OpenInExplorer(folder); }
+        catch { StatusText.Text = "Could not open the licenses folder: " + folder; }
+    }
     private async void RepairSetup_Click(object? sender, RoutedEventArgs e)
         => await new SetupRepairWindow(_repair, _nativeOnly).ShowDialog(this);
     private async void ConfigureNotifications_Click(object? sender, RoutedEventArgs e)

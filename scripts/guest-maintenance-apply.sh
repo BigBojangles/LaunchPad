@@ -24,7 +24,7 @@ if [ -d security-packages ]; then
     cp security-packages/* /opt/launchpad-security-inputs/
     /bin/sh /opt/launchpad-security-inputs/apply.sh maintenance
 fi
-perl -c bl-proof.sh
+perl -c launchpad-session
 perl -c launchpad-agent
 # Install the exact dependency packages, keeping dpkg/security inventories true.
 if [ "$procps_install" = true ]; then
@@ -32,10 +32,17 @@ if [ "$procps_install" = true ]; then
 else
     printf 'PRESERVE-PROCPS:%s\n' "$procps_version"
 fi
-install -o root -g root -m 0750 bl-proof.sh /usr/local/bin/bl-proof.sh
+install -o root -g root -m 0750 launchpad-session /usr/local/bin/launchpad-session
 install -o root -g root -m 0755 launchpad-agent /usr/local/bin/launchpad-agent
 install -o root -g root -m 0644 usr.local.bin.grok /etc/apparmor.d/usr.local.bin.grok
-install -o root -g root -m 0644 bl-proof.service /etc/systemd/system/bl-proof.service
+install -o root -g root -m 0644 launchpad-session.service /etc/systemd/system/launchpad-session.service
+mkdir -p /etc/systemd/system/multi-user.target.wants
+ln -sfn /etc/systemd/system/launchpad-session.service /etc/systemd/system/multi-user.target.wants/launchpad-session.service
+# Only obsolete product startup/bridge files are removed. Saved work, home,
+# credentials and machine identity are never generalized during an upgrade.
+rm -f /usr/local/bin/bl-proof.sh /etc/systemd/system/bl-proof.service /etc/systemd/system/multi-user.target.wants/bl-proof.service
+rm -f /etc/systemd/system/launchpad-windows-test.service /etc/systemd/system/multi-user.target.wants/launchpad-windows-test.service
+rm -f /usr/local/bin/launchpad-windows-test /usr/local/lib/launchpad/windows-test-broker.py /usr/local/lib/launchpad/windows-test-client.py /etc/udev/rules.d/70-launchpad-windows-test.rules /etc/udev/rules.d/99-launchpad-windows-test.rules
 install -d -o root -g root -m 0755 /usr/local/lib/launchpad
 install -o root -g root -m 0750 quiesce.py /usr/local/lib/launchpad/quiesce.py
 # The maintenance kernel is not the running product kernel. Compile only;
@@ -44,7 +51,7 @@ apparmor_parser --skip-kernel-load --skip-cache /etc/apparmor.d/usr.local.bin.gr
 perl -MDigest::SHA -MJSON::PP -MFile::Temp -e 'print "MAINTENANCE-MODULES-OK\n"'
 ps --version
 dpkg-query -W procps libproc2-0
-sha256sum /usr/local/bin/bl-proof.sh
+sha256sum /usr/local/bin/launchpad-session
 # Seed only an absent protected baseline from confirmed host import hashes.
 # Existing guest baseline state survives an upgrade unchanged.
 test ! -L /var/lib/launchpad
@@ -55,8 +62,5 @@ if [ ! -e /var/lib/launchpad/import.json ]; then
     install -o root -g root -m 0600 baseline.json /var/lib/launchpad/import.json
 fi
 # Project, auth, history, home and network policy remain unchanged.
-if [ -d windows-test ]; then
-    ( cd windows-test; /bin/sh apply.sh )
-fi
 sync
 printf 'MAINTENANCE-APPLY-OK\n'

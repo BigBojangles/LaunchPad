@@ -8,9 +8,12 @@ public class SessionPathsTests
     [Fact]
     public void DecodesUrlEncodedWindowsPath()
     {
-        var encoded = "C%3A%5CUsers%5CBig%20Bojangles%5Cprojects%5Clauncher%20build";
+        var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Projects", "Demo Project");
+        if (!OperatingSystem.IsWindows())
+            expected = @"X:\Tests\" + Path.GetFileName(Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory)) + @"\Demo Project";
+        var encoded = Uri.EscapeDataString(expected);
         Assert.True(SessionPaths.TryDecodeFolderName(encoded, out var path));
-        Assert.Equal(@"C:\Users\Big Bojangles\projects\launcher build", path);
+        Assert.Equal(expected, path);
     }
 
     [Fact]

@@ -27,8 +27,8 @@ public static class TuiWindow
         if (identityColor is not null && !ProjectIdentity.IsColorHex(identityColor)) throw new ArgumentException("Invalid project color.");
         // Windows Terminal splits this line into words and joins them again.
         // cmd.exe then deletes one pair of quotes when the command starts with
-        // a quote, so a quoted "C:\Users\Big Bojangles\..." becomes the folder
-        // C:\Users\Big and the tab says Access is denied. The program path has
+        // a quote, so a quoted program path under a profile folder with spaces
+        // can be truncated and the tab says Access is denied. The program path has
         // to reach cmd without quotes. The short path has no spaces.
         var program = SpaceFree(exe);
         var pid = SpaceFree(pidFile);

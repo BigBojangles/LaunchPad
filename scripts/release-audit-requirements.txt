@@ -1,0 +1,6 @@
+dissect.hypervisor==3.21
+dissect.extfs==3.15
+dissect.volume==3.18
+dissect.util==3.24
+dissect.cstruct==4.7
+defusedxml==0.7.1

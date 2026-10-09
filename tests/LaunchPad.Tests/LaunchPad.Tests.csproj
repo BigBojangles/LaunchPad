@@ -16,6 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Private evidence may contain disposable harness projects and generated C#;
+         it is never part of the test assembly. -->
+    <Compile Remove="TestResults\**\*.cs" />
     <ProjectReference Include="..\..\src\LaunchPad\LaunchPad.csproj" />
   </ItemGroup>
 </Project>

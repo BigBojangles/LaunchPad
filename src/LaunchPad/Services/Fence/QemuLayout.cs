@@ -12,7 +12,8 @@ public static class QemuLayout
 
             var exeDir = Path.GetDirectoryName(Environment.ProcessPath);
             if (!string.IsNullOrEmpty(exeDir)
-                && File.Exists(Path.Combine(exeDir, "qemu", "qemu-system-x86_64.exe")))
+                && (File.Exists(Path.Combine(exeDir, "qemu", "fence", "qemu-system-x86_64.exe"))
+                    || File.Exists(Path.Combine(exeDir, "qemu", "qemu-system-x86_64.exe"))))
                 return exeDir;
 
             return Path.Combine(

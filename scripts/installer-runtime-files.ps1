@@ -63,7 +63,7 @@ $lines = [Collections.Generic.List[string]]::new()
 $lines.Add('#define RuntimeManifestInstallName "' + $candidate.Name + '"')
 foreach ($item in $plan.files) {
     if ($item.immutable) {
-        $lines.Add('Source: "' + $item.source + '"; DestDir: "{app}\images"; Flags: onlyifdoesntexist nocompression uninsneveruninstall')
+        $lines.Add('Source: "' + $item.source + '"; DestDir: "{app}\images"; Flags: onlyifdoesntexist uninsneveruninstall')
     }
 }
 foreach ($snapshot in @($maintenance, $candidate)) {

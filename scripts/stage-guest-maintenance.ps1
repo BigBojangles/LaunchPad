@@ -15,7 +15,7 @@ if ($Version -notmatch '^[a-z0-9-]{1,64}$') { throw 'Unsafe maintenance version.
 foreach ($hash in @($KernelSha256, $InitrdSha256, $PayloadSha256, $GuestScriptSha256)) {
     if ($hash -notmatch '^[A-Fa-f0-9]{64}$') { throw 'An expected SHA256 is invalid.' }
 }
-if ((Get-FileHash -LiteralPath (Join-Path $source 'payload\bl-proof.sh')).Hash -ne $GuestScriptSha256) { throw 'Guest script identity changed.' }
+if ((Get-FileHash -LiteralPath (Join-Path $source 'payload\launchpad-session')).Hash -ne $GuestScriptSha256) { throw 'Guest script identity changed.' }
 $images = [IO.Path]::GetFullPath((Join-Path $repository '..\build-launch-qemu\images'))
 $artifacts = @(
     @{ source='kernel'; file="launchpad-maintenance-$Version.kernel"; sha256=$KernelSha256 },

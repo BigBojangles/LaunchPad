@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "reviewedEmailExamples": [
+    {
+      "path": "src/LaunchPad/Views/NotificationSetupWindow.axaml",
+      "addresses": ["you@gmail.com"],
+      "reason": "Existing email field placeholder, not a saved account."
+    },
+    {
+      "path": "tests/LaunchPad.Tests/AvaloniaMigrationTests.cs",
+      "addresses": ["other@gmail.com", "pager@gmail.com", "pager@hotmail.com", "restored@gmail.com", "restored@yahoo.com"],
+      "reason": "Existing inert accounts in mocked provider/setup UI tests."
+    },
+    {
+      "path": "tests/LaunchPad.Tests/EmailProviderPresetsTests.cs",
+      "addresses": ["user+pager@gmail.com", "user@yahoo.com", "user@icloud.com", "user@fastmail.com", "user@hotmail.com", "user@notgmail.com", "user@gmail.com", "user@outlook.com"],
+      "reason": "Existing synthetic inputs test provider recognition and malformed addresses; no delivery."
+    },
+    {
+      "path": "tests/LaunchPad.Tests/NotificationProviderTests.cs",
+      "addresses": ["password@discord.com"],
+      "reason": "Existing malformed URL user-info fixture, not an account."
+    },
+    {
+      "path": "scripts/guest-policy-probe.sh",
+      "addresses": ["s@observe.py"],
+      "reason": "Sed expression fragment that resembles an email address."
+    }
+  ]
+}

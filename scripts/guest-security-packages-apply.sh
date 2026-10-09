@@ -93,7 +93,7 @@ if [ -f npm-security-patches.py ]; then python3 npm-security-patches.py "$mode";
 install -d -o root -g root -m 0755 /usr/local/share/launchpad
 install -o root -g root -m 0644 security-packages.json /usr/local/share/launchpad/security-packages.json
 if [ "$mode" = build ]; then
-    perl -c /usr/local/bin/bl-proof.sh
+    perl -c /usr/local/bin/launchpad-session
     perl -c /usr/local/bin/launchpad-agent
     apparmor_parser --skip-kernel-load --skip-cache /etc/apparmor.d/usr.local.bin.grok
 fi

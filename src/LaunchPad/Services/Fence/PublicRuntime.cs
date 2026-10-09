@@ -69,7 +69,7 @@ public sealed class PublicRuntime
         var boot = RuntimeBoot.Read(root, selection.Manifest);
         var kept = selection.ImagePath;
         var baseImage = Path.Combine(root, "images", BaseName);
-        if (!File.Exists(kept) || !File.Exists(baseImage))
+        if (!File.Exists(kept) || selection.Manifest is null && !File.Exists(baseImage))
             throw new FileNotFoundException("The kept Debian image is not in the image folder.");
 
         RestrictedRuntimeAccess.ReadRuntimeTree(qemuDir);

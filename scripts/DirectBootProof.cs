@@ -63,11 +63,20 @@ if (RuntimeBoot.ForSession(boot, runtime.Version, session, File.Exists(ownedDisk
 await CreateDisk(ownedDisk);
 File.WriteAllText(Path.Combine(session, "session-runtime.json"), JsonSerializer.Serialize(new { version = runtime.Version, directBoot = metadata }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 var token = Guid.NewGuid().ToString("N");
-var results = new Dictionary<string, object?> { ["scope"] = "App runtime resolver + normal QEMU/import/status transport; owned custom program; not physical GUI, vendor-agent or restricted-account acceptance", ["attempt"] = 1, ["startedUtc"] = DateTime.UtcNow, ["appResolvedLocalBundle"] = true, ["newSessionDirectBoot"] = true, ["import"] = false, ["terminal"] = false, ["statusSizeReceipt"] = "unsupported-by-policy2", ["shutdown"] = false, ["reopenPersistedWork"] = false };
+string? firstMachineId = null;
+var fixtureText = File.ReadAllText(program).Replace("p=pathlib.Path.cwd()\n",
+    "p=pathlib.Path.cwd()\nprint('LP-PROOF:MACHINE-ID:'+pathlib.Path('/etc/machine-id').read_text().strip(),flush=True)\n");
+File.WriteAllText(program, fixtureText);
+var results = new Dictionary<string, object?> { ["scope"] = "App runtime resolver + normal QEMU/import/status transport; owned custom program; not physical GUI, vendor-agent or restricted-account acceptance", ["attempt"] = 1, ["startedUtc"] = DateTime.UtcNow, ["appResolvedLocalBundle"] = true, ["newSessionDirectBoot"] = true, ["import"] = false, ["terminal"] = false, ["shutdown"] = false, ["reopenPersistedWork"] = false };
 try
 {
-    for (var n = 1; n <= 2; n++)
+    for (var n = 1; n <= 3; n++)
     {
+        if (n == 3)
+        {
+            ownedDisk = Path.Combine(session, "second-session.qcow2");
+            await CreateDisk(ownedDisk);
+        }
         var directory = Path.Combine(session, "run-" + n); Directory.CreateDirectory(directory);
         var serial = Path.Combine(directory, "serial.log"); var port = Port();
         var selectedBoot = RuntimeBoot.ForSession(boot, runtime.Version, session, true) ?? throw new IOException("Saved matching direct boot record not selected.");
@@ -122,6 +131,30 @@ try
             await Wait(() => SerialText(serial).Contains("AGENT-IN custom") && SerialText(serial).Contains("AGENT-PICK custom"), "requested custom agent selected");
             results["import"] = true;
             results["customAgentSelected"] = true;
+            await Wait(() =>
+            {
+                lock (gate) return System.Text.RegularExpressions.Regex.IsMatch(terminal.ToString(), "LP-PROOF:MACHINE-ID:[0-9a-f]{32}");
+            }, "generated machine identity");
+            string machineId;
+            lock (gate)
+            {
+                var text = terminal.ToString();
+                var offset = text.IndexOf("LP-PROOF:MACHINE-ID:", StringComparison.Ordinal) + "LP-PROOF:MACHINE-ID:".Length;
+                machineId = text[offset..].Split('\r', '\n')[0];
+            }
+            if (machineId.Length != 32 || !machineId.All(Uri.IsHexDigit)) throw new IOException("Invalid generated machine identity.");
+            results["machineIdRun" + n] = machineId;
+            if (n == 1) firstMachineId = machineId;
+            else if (n == 2)
+            {
+                if (machineId != firstMachineId) throw new IOException("Saved VM changed machine identity on reopen.");
+                results["reopenRetainsMachineId"] = true;
+            }
+            else
+            {
+                if (machineId == firstMachineId) throw new IOException("Two fresh VMs share machine identity.");
+                results["freshVmsHaveDistinctMachineIds"] = true;
+            }
             if (n == 1)
             {
                 await tui.GetStream().WriteAsync(Encoding.ASCII.GetBytes("WRITE " + token + "\n"), deadline.Token);
@@ -129,12 +162,24 @@ try
                 results["terminal"] = true;
                 await Wait(() => SerialText(serial).Contains("GUEST-SIZE 30 80"), "actual guest resize processing"); results["guestResizeObserved"] = true;
             }
-            else
+            else if (n == 2)
             {
                 await Wait(() => Seen("LP-PROOF:PERSIST:" + token), "persisted saved work on reopen");
                 results["reopenPersistedWork"] = true;
             }
             lock (gate) File.WriteAllText(Path.Combine(directory, "terminal.txt"), terminal.ToString());
+            using (var returned = await Connect(QemuCommand.FencePort(port)))
+            {
+                var recovery = Path.Combine(directory, "returned");
+                Directory.CreateDirectory(recovery);
+                var receive = Task.Run(() => ProjectPull.Receive(returned.GetStream(), recovery, TimeSpan.FromSeconds(30)));
+                await tui.GetStream().WriteAsync(Encoding.ASCII.GetBytes("EXIT\n"), deadline.Token);
+                var receipt = await receive.WaitAsync(deadline.Token);
+                if (!receipt.Complete || !receipt.HasContentIdentities) throw new IOException("Incomplete guest return: " + receipt.Error);
+                if (n <= 2 && (!receipt.Files.Contains("saved.txt") || File.ReadAllText(Path.Combine(recovery, "saved.txt")) != token))
+                    throw new IOException("Saved work did not return intact.");
+                results["returnRun" + n] = true;
+            }
             sizing?.Dispose();
             if (!await Task.Run(() => MachineShutdown.WaitForGuestExit(process, port)))
                 throw new IOException("Application clean guest shutdown did not complete within 30 seconds.");

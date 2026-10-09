@@ -12,12 +12,13 @@ public sealed class WindowsTestEnvironmentTests
     {
         var temporary = Path.Combine(Path.GetTempPath(), "launchpad-env-temp");
         var logs = Path.Combine(Path.GetTempPath(), "launchpad-env-logs");
-        var block = WindowsTestEnvironment.BuildBlock(["USERNAME=BuildLaunchTest", "USERPROFILE=C:\\Users\\BuildLaunchTest",
+        var profile = Path.Combine(Path.GetTempPath(), "launchpad-env-profile");
+        var block = WindowsTestEnvironment.BuildBlock(["USERNAME=BuildLaunchTest", "USERPROFILE=" + profile,
             "PATH=C:\\Windows;C:\\Tools", "TEMP=old", "TMP=old", "COMPLUS_CLRLoadLogDir=old", "LABEL=naïve=task", "=C:=C:\\work"], temporary, logs);
         Assert.EndsWith("\0\0", block);
         var entries = block.Split('\0', StringSplitOptions.RemoveEmptyEntries);
         Assert.Contains("USERNAME=BuildLaunchTest", entries);
-        Assert.Contains("USERPROFILE=C:\\Users\\BuildLaunchTest", entries);
+        Assert.Contains("USERPROFILE=" + profile, entries);
         Assert.Contains("PATH=C:\\Windows;C:\\Tools", entries);
         Assert.Contains("LABEL=naïve=task", entries);
         Assert.Contains("=C:=C:\\work", entries);

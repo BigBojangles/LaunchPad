@@ -73,8 +73,6 @@ public static class QemuCommand
             "-device", "virtserialport,bus=vserial0.0,chardev=statusch,name=status",
             "-chardev", "socket,id=ttych,host=127.0.0.1,port=" + tuiPort + ",server=on,wait=off",
             "-device", "virtconsole,bus=vserial0.0,chardev=ttych,name=tui",
-            "-chardev", "socket,id=wtestch,host=127.0.0.1,port=" + WindowsTestPort(qmpPort) + ",server=on,wait=off",
-            "-device", "virtserialport,bus=vserial0.0,chardev=wtestch,name=launchpad-windows-test",
             "-netdev", "user,id=net0",
             "-device", "virtio-net-pci,netdev=net0"
         };

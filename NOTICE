@@ -8,11 +8,11 @@ including qemu-system-x86_64 and related tools. QEMU is free software
 licensed under the GNU General Public License, version 2.
 
 On an installed copy, see:
-  qemu\COPYING
-  qemu\QEMU-SOURCE.txt
+  qemu\fence\COPYING
+  qemu\fence\QEMU-SOURCE.txt
 
 Corresponding source for the bundled QEMU build is described in
-qemu\QEMU-SOURCE.txt. You can also obtain QEMU from https://www.qemu.org/
+qemu\fence\QEMU-SOURCE.txt. You can also obtain QEMU from https://www.qemu.org/
 
 LaunchPad itself remains under the MIT License (see LICENSE).
 

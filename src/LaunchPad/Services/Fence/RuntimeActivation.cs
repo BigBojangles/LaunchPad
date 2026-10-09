@@ -57,7 +57,7 @@ public static class RuntimeActivation
             var declared = manifest.Dependencies.Prepend(manifest.Image).Select(image => Safe(image.File)).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var actual = RestrictedRuntimeAccess.BackingChain(selected.ImagePath, images, images);
             if (!declared.SetEquals(actual)) throw new InvalidDataException("The installed backing chain differs from the declared runtime dependencies.");
-            if (!manifest.Dependencies.Any(image => image.File.Equals(PublicRuntime.BaseName, StringComparison.OrdinalIgnoreCase)))
+            if (manifest.Dependencies.Count > 0 && !manifest.Dependencies.Any(image => image.File.Equals(PublicRuntime.BaseName, StringComparison.OrdinalIgnoreCase)))
                 throw new InvalidDataException("The packaged runtime lacks its required Debian base.");
             var kit = MaintenanceKit.Read(root, maintenanceName);
             if (kit.Manifest.Version != manifest.Version) throw new InvalidDataException("The package maintenance version differs from its runtime.");

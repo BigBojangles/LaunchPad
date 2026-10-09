@@ -25,6 +25,7 @@
         <CheckBox x:Name="RememberSignInSwitch" Content="Reuse Grok sign-in for new VM projects"/>
         <TextBlock Text="Optional reuse is off for new users. New host caches are encrypted for your Windows account. Turning this off stops sharing with new projects; existing saved logins and VM sign-ins remain. Native agents manage their own sign-in." Classes="HintText" TextWrapping="Wrap"/>
         <Button x:Name="SetupRepairButton" Content="Repair setup…" Classes="GhostButton" HorizontalAlignment="Left" Click="RepairSetup_Click"/>
+        <Button x:Name="LicensesButton" Content="Licenses" Classes="GhostButton" HorizontalAlignment="Left" Click="Licenses_Click"/>
         <TextBlock Text="Notifications" Classes="BodyText" Margin="0,12,0,0"/>
         <CheckBox x:Name="NotificationsSwitch" Content="Enable optional agent alerts"/>
         <TextBlock x:Name="NotificationsHint" Classes="HintText" TextWrapping="Wrap"/>

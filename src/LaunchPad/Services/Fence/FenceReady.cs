@@ -16,7 +16,15 @@ public static class FenceReady
             return false;
 
         var images = Path.Combine(root, "images");
-        return File.Exists(Path.Combine(images, "debian-12-builder.qcow2"))
-            && File.Exists(Path.Combine(images, PublicRuntime.BaseName));
+        try
+        {
+            var selected = RuntimeImages.Read(root);
+            return File.Exists(selected.ImagePath) && (selected.Manifest is not null
+                || File.Exists(Path.Combine(images, PublicRuntime.BaseName)));
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
     }
 }

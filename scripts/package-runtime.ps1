@@ -46,6 +46,9 @@ if (-not $allowedOutput -or $outputPath.StartsWith($runtimePath.TrimEnd('\', '/'
 $imagesPath = Join-Path $runtimePath 'images'
 $runtimeManifestPath = Join-Path $imagesPath 'runtime.json'
 $runtimeManifest = Read-Manifest $runtimeManifestPath
+# Missing reader tools, rejected paths or stale maintenance stop Full packaging.
+& py -3 (Join-Path $PSScriptRoot 'verify-release-image.py') --runtime-root $runtimePath
+if ($LASTEXITCODE -ne 0) { throw 'Release guest cleanup check failed; no package plan was updated.' }
 $maintenanceFile = if ($null -eq $runtimeManifest.maintenanceManifest) { 'maintenance.json' } else { $runtimeManifest.maintenanceManifest }
 if ($maintenanceFile -isnot [string] -or $maintenanceFile -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json$') { throw 'The maintenance manifest pointer is invalid.' }
 $maintenanceManifestPath = Join-Path $imagesPath $maintenanceFile

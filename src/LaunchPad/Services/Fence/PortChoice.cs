@@ -4,6 +4,8 @@ public static class PortChoice
 {
     public const int First = 20000;
     public const int Last = 20900;
+    // Preserve existing saved-session port allocations. The former fifth
+    // Windows-test offset stays reserved but no listener is exposed there.
     public const int Width = 5;
 
     public static int Next(IReadOnlyCollection<int> takenBases)

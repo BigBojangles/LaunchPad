@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <SourcePrivacyPython Condition="'$(OS)' == 'Windows_NT'">py -3</SourcePrivacyPython>
+    <SourcePrivacyPython Condition="'$(OS)' != 'Windows_NT'">python3</SourcePrivacyPython>
+  </PropertyGroup>
+  <Target Name="VerifySourcePrivacy" BeforeTargets="PrepareForBuild;Publish"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="$(SourcePrivacyPython) &quot;$(MSBuildThisFileDirectory)scripts/verify-source-privacy.py&quot; --repo &quot;$(MSBuildThisFileDirectory).&quot;"
+          WorkingDirectory="$(MSBuildThisFileDirectory)" />
+  </Target>
+</Project>

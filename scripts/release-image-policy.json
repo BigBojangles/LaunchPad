@@ -1,0 +1,3520 @@
+{
+  "schema": 1,
+  "reviewedSeedImageSha256": "65ccb99943c5dcac8710bd38df446d5fb4a5c1c642fad9cb23b6ca1eb1fff7fc",
+  "approval": "Casey approved KEEP/REMOVE 1\u201331 on 2026-10-08; exact Debian/vendor name exceptions, hard block on our leftovers",
+  "removedTrees": [
+    "/usr/local/bin/bl-proof.sh",
+    "/etc/systemd/system/bl-proof.service",
+    "/etc/systemd/system/multi-user.target.wants/bl-proof.service",
+    "/etc/systemd/system/launchpad-windows-test.service",
+    "/etc/systemd/system/multi-user.target.wants/launchpad-windows-test.service",
+    "/usr/local/bin/launchpad-windows-test",
+    "/usr/local/lib/launchpad/windows-test-broker.py",
+    "/usr/local/lib/launchpad/windows-test-client.py",
+    "/etc/udev/rules.d/70-launchpad-windows-test.rules",
+    "/etc/udev/rules.d/99-launchpad-windows-test.rules",
+    "/tmp/install-coding.sh",
+    "/tmp/agent-inspect.txt",
+    "/tmp/agent-fix-verify.txt",
+    "/tmp/builder.log",
+    "/tmp/node-compile-cache",
+    "/home/builder/.npm",
+    "/.npm",
+    "/.codex",
+    "/var/log/dpkg.log",
+    "/var/log/alternatives.log",
+    "/etc/ca-certificates.conf.dpkg-old",
+    "/etc/passwd-",
+    "/etc/group-",
+    "/etc/shadow-",
+    "/etc/gshadow-",
+    "/etc/subuid-",
+    "/etc/subgid-"
+  ],
+  "requiredFiles": [
+    "/usr/local/bin/launchpad-session",
+    "/etc/systemd/system/launchpad-session.service",
+    "/etc/systemd/system/multi-user.target.wants/launchpad-session.service",
+    "/usr/local/bin/launchpad-agent",
+    "/usr/local/lib/launchpad/quiesce.py",
+    "/usr/local/sbin/bl-net.sh",
+    "/etc/apparmor.d/usr.local.bin.grok",
+    "/etc/udev/rules.d/99-bl-fence.rules",
+    "/etc/sysctl.d/99-bl-fence.conf",
+    "/usr/local/bin/grok",
+    "/usr/local/bin/codex",
+    "/usr/local/bin/claude",
+    "/usr/local/bin/node",
+    "/usr/local/bin/npm",
+    "/usr/bin/git"
+  ],
+  "reviewedNameExceptions": [
+    {
+      "path": "/boot/grub/i386-pc/bswap_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a3b7c1500606318929942387ad36160e02e9224ecdd80cc1213202f1d3357d1f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/cmdline_cat_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6f89efa623442c6e9b00978957c57d5994390f3180b7483da72bda91283ff5cc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/cmostest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "000765bc45b4c896b6abc2f187b8672f8a3875da62e8939299e527fc8503f081"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/cmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a3fe6999728b19efbe2838e08ea59edadb2a241f2966d0b16198cd3172a62b0e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/ctz_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1708dbf5c9b25a3876e3464e108130fb309ca0d9676cda39bf4765b8d0eefda7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/div_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "15ca5cf0c87ccf894fbb2f3039a1107a03a07210df16e587e892be236b7abe2a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/exfctest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1ec6112df11c6b4dc5f226ec1f48764b48fc23ed410bf079848a7f86949999ea"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/functional_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "03a2f99e8b6776808f9c71edd7293e4d34b6b179325286e7f9cfade421189cda"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/legacy_password_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3c47305ad6abdf95f750f45e43413869d0942a060ec85e0067fc59e0664f203b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/mul_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "78aa631963ba997cf20d5a820de2c2c08fdfd29db4f9a07b3a0832816aab5b6d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/pbkdf2_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "286e69e016a13191501db476d1016d2c5a79d351419f625a14b93211221fa1cc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/probe.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "375092cc2d5da04295f5f5aba085d39103be91e5d90e13b8cc3162cb30c98d93"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/setjmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3ea699b3ee100945c0329ad0240cc013df1cef00c52c876b07722454e895aacb"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/shift_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c0c72d8b3b45238ea8cdb1d51e0639e2d0808813df5942ffbee5245be3f9de64"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/signature_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3e94b807d9b3167ee22425637122f26b57d090a1e7bc709a4db3edcc299cc654"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/sleep_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "93c450093c8f473d93ca080e0cb5be3513937367ee8b03c5598ec44d4ea1a392"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/strtoull_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8ba3c6a21f458195da393c9da8b587f30e2df5e98554172f22179bbd8d38be69"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3106064faea3cae3b327cd5f21d2614d6ebfd4322395f848e7c092d7f63f57fd"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/test_blockarg.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d092cc97e6bc3f5b2cc1d398d729e9e00d6347d0816aaf2b30ebb120e90c5575"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/testload.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ef1d60ed47b4e234e2f10ba83b90c485cf7f496e9073a6ee253f5253ac22aae5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/testspeed.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c5ad99ef20515eee637cfc1a49dc09771b93d6bd0720cf3b76675db9271a98d8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/usbtest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fabc77e5903e91fff9067c0c68bf6f7342886100d5e22f8d4ecfd93a652ecee1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/videotest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c848086d69e15dc449a7ef981f0e191630c9aafeca1d8693c2dd8207713dbba6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/videotest_checksum.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "faa40f43f9eccc2bc9f4d5913cf09c6e29480c45bff879cc479ea4eaffb90987"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/i386-pc/xnu_uuid_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5c2ee1034eed79acbef0085aa32dd58895849dbdf6f09afe1dbfa4d36e17c420"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/bswap_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "45b6e1c574d07f8d6279269300f5d9e0d5d1b6c3fecbfc0cc0ad2b1f70dfa8b1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/cmdline_cat_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "326671927d8df51000d6a972fea0245ec72828603d3b606f6fe7d9fbe90cec21"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/cmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "bc33d5fae34780be819169e24057289a13abc675f20ff1a7c0c12df99d99493b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/ctz_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ea06358eec5bdc89629d56c1d59a28d5bed255af23417148c13243e9a959262c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/div_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6ffa3ba7573d05dd6d8161aa76483367682597edac40ef9bb4d8283896c79dae"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/exfctest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0a174ecc976b3733b2fd36f9c98312f1e151a524d30e243b5cf961b7ad0e1d9d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/functional_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ce6233e2d33d2c812c5955f6307b4e98447ca81992daf635393be76eecee4718"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/legacy_password_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d88bf68bc5c2d63d143e06ae40974f49764617bfdb8d8f2baa5ec6094fde8f3f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/mul_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6cecbde5c393c48edd0012fece73231b90493fb569c5e97705f5412bf4d7ab3d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/pbkdf2_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3a1f65188f4b5a5b772165141e84605f3c9a95da2097cb3c7535a2b57ad70483"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/probe.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6cd8d66d1f99ce9dde0281c8caa9504e2c3d46f158633f50a4258ef7038b8a35"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/setjmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "18875528bca615d6267c0501415ee8cdd80c3d6c0d79b2408c00f79077b02552"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/shift_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5fa9360d7817360f03c3cb6f2084fc158923f3e999e0bf570aba580fe6ecb902"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/signature_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "da0ce1d573c38a02a2066f66cc825eba250eb4334b030f813d9a5945f2f5df5f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/sleep_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "630d123c440e928d5673d2b9caaf84718bdc444bbbf926e31eb6120fbd742f90"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/strtoull_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b48e7e7731761af261ed1f3382017aa6b6d9238bcf8e28d6739177e4c258e210"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7ee4b1c906a192269d8b33bcbfbc36a95eba5cba9db8b0155b988ae2a53dd232"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/test_blockarg.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ae926c0489a4ea5703d1b316f806db052c4608eaea543e800538d3bb45014c1d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/testload.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c4231c0be2b7e75e7a6e23e03200393e64192d43170f3eb4df3d66fe1f68c535"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/testspeed.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c9d4acda50d00dd82a47564fc0cfd3c4db7cb9be629e0a5391cd80374eefb424"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/usbtest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2bbb8ba85032a2570373874e274381b320da437ade508891f4b2d36ccb59d5a6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/videotest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3bf088219187ecb5a049a2597b0a7e7c8567f6fcc40789d764376aa952b68d5b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/videotest_checksum.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "160cd6fdfceeefffbdc4a1993405e0c9a2e1c82d8059fa1a224b83f330fba8c1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/boot/grub/x86_64-efi/xnu_uuid_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "413e88397028ad9cb7d717aac770e8fbb62be28253cd4169cf68a2c482ad0209"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/etc/apparmor.d/local/nvidia_modprobe",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/etc/apparmor.d/nvidia_modprobe",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "19e003a3251682c5d255921c1583713531f3c461bd85cbb88aa5a795e95d0193"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "apparmor"
+    },
+    {
+      "path": "/etc/grub.d/30_os-prober",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "cb311decd03f632965ac3d27270066704abe578cb3deb00351d53944c82929f5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/etc/modprobe.d",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "kmod"
+    },
+    {
+      "path": "/usr/bin/grub-fstest",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ec615dee6462b11f231fe45122bdaab2f58abbfb2036ad179a8372b9f08c03fa"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/usr/bin/test",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9a9cb09f9f71ae289fd3a93a86c1b8189048ea01f6b956dfa4734bb74dc834f7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "coreutils"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/linear_probe_fn_imp.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c88fff0a153528549033b0b9199b7d84fc2944b6932fb936ea20c434eb122e38"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/probe_fn_base.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f09c493edb2a46b16708940382bf25ee0475effa721e16dee7f907efb7c5fede"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/quadratic_probe_fn_imp.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1d66f9042f9690d5207c9e7561db1391c4f91ef8e0c82ed5ab95ee41c9f57c4b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/ranged_probe_fn.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "666da1e8e788be2c8963b779d140613d37727fe0baec585010570997d15acfa6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/sample_probe_fn.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fc6480d4ceb6a5c467848df6000865fc9c56df3e5774c8ccd36e701f4da85147"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/c++/12/ext/pb_ds/detail/hash_fn/sample_ranged_probe_fn.hpp",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4ed28f35060063508149555770dffe9256906b234ba3395af2bb70a546afde58"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libstdc++-12-dev:amd64"
+    },
+    {
+      "path": "/usr/include/linux/pcitest.h",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fb67aaae41b74a5e350af123e6bef877b9ff213d42eb0fe940b188e029f85c58"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "linux-libc-dev:amd64"
+    },
+    {
+      "path": "/usr/include/openssl/self_test.h",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "dc306f7070510f99019622afc0ed3f13fc2d9ae1d022d5e0e23730d660188e13"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libssl-dev:amd64"
+    },
+    {
+      "path": "/usr/lib/gcc/x86_64-linux-gnu/12/include/xtestintrin.h",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0c59f3d91ea0f3c3eba1136c7cb0b62bd2389f93b3b2209d0b77ab10dc302169"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libgcc-12-dev:amd64"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/bswap_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a3b7c1500606318929942387ad36160e02e9224ecdd80cc1213202f1d3357d1f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/cmdline_cat_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6f89efa623442c6e9b00978957c57d5994390f3180b7483da72bda91283ff5cc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/cmostest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "000765bc45b4c896b6abc2f187b8672f8a3875da62e8939299e527fc8503f081"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/cmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a3fe6999728b19efbe2838e08ea59edadb2a241f2966d0b16198cd3172a62b0e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/ctz_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1708dbf5c9b25a3876e3464e108130fb309ca0d9676cda39bf4765b8d0eefda7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/div_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "15ca5cf0c87ccf894fbb2f3039a1107a03a07210df16e587e892be236b7abe2a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/exfctest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1ec6112df11c6b4dc5f226ec1f48764b48fc23ed410bf079848a7f86949999ea"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/functional_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "03a2f99e8b6776808f9c71edd7293e4d34b6b179325286e7f9cfade421189cda"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/legacy_password_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3c47305ad6abdf95f750f45e43413869d0942a060ec85e0067fc59e0664f203b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/mul_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "78aa631963ba997cf20d5a820de2c2c08fdfd29db4f9a07b3a0832816aab5b6d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/pbkdf2_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "286e69e016a13191501db476d1016d2c5a79d351419f625a14b93211221fa1cc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/probe.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "375092cc2d5da04295f5f5aba085d39103be91e5d90e13b8cc3162cb30c98d93"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/setjmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3ea699b3ee100945c0329ad0240cc013df1cef00c52c876b07722454e895aacb"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/shift_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c0c72d8b3b45238ea8cdb1d51e0639e2d0808813df5942ffbee5245be3f9de64"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/signature_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3e94b807d9b3167ee22425637122f26b57d090a1e7bc709a4db3edcc299cc654"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/sleep_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "93c450093c8f473d93ca080e0cb5be3513937367ee8b03c5598ec44d4ea1a392"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/strtoull_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8ba3c6a21f458195da393c9da8b587f30e2df5e98554172f22179bbd8d38be69"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3106064faea3cae3b327cd5f21d2614d6ebfd4322395f848e7c092d7f63f57fd"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/test_blockarg.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d092cc97e6bc3f5b2cc1d398d729e9e00d6347d0816aaf2b30ebb120e90c5575"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/testload.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ef1d60ed47b4e234e2f10ba83b90c485cf7f496e9073a6ee253f5253ac22aae5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/testspeed.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c5ad99ef20515eee637cfc1a49dc09771b93d6bd0720cf3b76675db9271a98d8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/usbtest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fabc77e5903e91fff9067c0c68bf6f7342886100d5e22f8d4ecfd93a652ecee1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/videotest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c848086d69e15dc449a7ef981f0e191630c9aafeca1d8693c2dd8207713dbba6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/videotest_checksum.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "faa40f43f9eccc2bc9f4d5913cf09c6e29480c45bff879cc479ea4eaffb90987"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/i386-pc/xnu_uuid_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5c2ee1034eed79acbef0085aa32dd58895849dbdf6f09afe1dbfa4d36e17c420"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-pc-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/bswap_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "45b6e1c574d07f8d6279269300f5d9e0d5d1b6c3fecbfc0cc0ad2b1f70dfa8b1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/cmdline_cat_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "326671927d8df51000d6a972fea0245ec72828603d3b606f6fe7d9fbe90cec21"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/cmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "bc33d5fae34780be819169e24057289a13abc675f20ff1a7c0c12df99d99493b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/ctz_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ea06358eec5bdc89629d56c1d59a28d5bed255af23417148c13243e9a959262c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/div_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6ffa3ba7573d05dd6d8161aa76483367682597edac40ef9bb4d8283896c79dae"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/exfctest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0a174ecc976b3733b2fd36f9c98312f1e151a524d30e243b5cf961b7ad0e1d9d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/functional_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ce6233e2d33d2c812c5955f6307b4e98447ca81992daf635393be76eecee4718"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/legacy_password_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d88bf68bc5c2d63d143e06ae40974f49764617bfdb8d8f2baa5ec6094fde8f3f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/mul_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6cecbde5c393c48edd0012fece73231b90493fb569c5e97705f5412bf4d7ab3d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/pbkdf2_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3a1f65188f4b5a5b772165141e84605f3c9a95da2097cb3c7535a2b57ad70483"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/probe.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6cd8d66d1f99ce9dde0281c8caa9504e2c3d46f158633f50a4258ef7038b8a35"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/setjmp_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "18875528bca615d6267c0501415ee8cdd80c3d6c0d79b2408c00f79077b02552"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/shift_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5fa9360d7817360f03c3cb6f2084fc158923f3e999e0bf570aba580fe6ecb902"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/signature_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "da0ce1d573c38a02a2066f66cc825eba250eb4334b030f813d9a5945f2f5df5f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/sleep_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "630d123c440e928d5673d2b9caaf84718bdc444bbbf926e31eb6120fbd742f90"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/strtoull_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b48e7e7731761af261ed1f3382017aa6b6d9238bcf8e28d6739177e4c258e210"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7ee4b1c906a192269d8b33bcbfbc36a95eba5cba9db8b0155b988ae2a53dd232"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/test_blockarg.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ae926c0489a4ea5703d1b316f806db052c4608eaea543e800538d3bb45014c1d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/testload.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c4231c0be2b7e75e7a6e23e03200393e64192d43170f3eb4df3d66fe1f68c535"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/testspeed.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c9d4acda50d00dd82a47564fc0cfd3c4db7cb9be629e0a5391cd80374eefb424"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/usbtest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2bbb8ba85032a2570373874e274381b320da437ade508891f4b2d36ccb59d5a6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/videotest.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3bf088219187ecb5a049a2597b0a7e7c8567f6fcc40789d764376aa952b68d5b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/videotest_checksum.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "160cd6fdfceeefffbdc4a1993405e0c9a2e1c82d8059fa1a224b83f330fba8c1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/grub/x86_64-efi/xnu_uuid_test.mod",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "413e88397028ad9cb7d717aac770e8fbb62be28253cd4169cf68a2c482ad0209"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-efi-amd64-bin"
+    },
+    {
+      "path": "/usr/lib/modprobe.d",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/comedi/drivers/comedi_test.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b19ec3cfb8360eafad35e47d89eebff1733b8f57367b0cbbce08a697214865fd"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/media/test-drivers",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/mtd/chips/cfi_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "39f00857760c217a49d53963f71f0fc952f6415e66c546c1aa4d2567b8f67483"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/mtd/chips/gen_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1f842b29f8d67ab1475bb3f6466eb5a4fde628ce1857d655b6476684d110af37"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/mtd/chips/jedec_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "af39877c30b5903aef927d85112ff5315c72953c974e3c1e8a2a1db5d2d38c6c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/mtd/lpddr/qinfo_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9c70d9bb206c27b86c3c2996849c55777b796eaa23293cc9bb1c60a5d74d62a2"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/drivers/usb/misc/usbtest.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4ed9cee278e0e037e5946abb8a1b2ab1cd9e6df8ff5eb867b4acc48e150680c8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/lib/test_bpf.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "aebeac9930668160449d104cef4b3825c99529d3d393e933ee72c286bc15c838"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/lib/test_firmware.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a20a588d43ebc0a6e54141fb929ba9bf5900730d57e8c68a350e360df04846ef"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/lib/test_static_key_base.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9d7965beafbf7a9f81189f0712b64deb0ba6841356a5ab0178c0e26308360a0c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/lib/test_static_keys.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b3795726bee94d3c8a4a51491aedfd39a7dbacdbe89a1f082fad1f8356655101"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/lib/test_user_copy.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "71b3439e6c694201d13e93679ca3817761080543c45bc5ceaf799c9feb077e20"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/net/core/selftests.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "11d6a59a659b961cec5f5a4d0a725ba48863773dbaf8b1d2c9ab8d5ca8e018dc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-49-amd64/kernel/sound/soc/sof/snd-sof-probes.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ead3b164ec9ee4571a957b16358047c957070a8c44a2bbfa50d2f3bb107d588a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/comedi/drivers/comedi_test.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "19c8c7d79000a946fbecc49e7ea653397b0c23f72680b4e7b1714203cd148a71"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/media/test-drivers",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/mtd/chips/cfi_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c513c5b08184cb27e04e02d7f03ff9727c94e11a095003e2e71394f6a5e2aedd"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/mtd/chips/gen_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3490b42e20e4513b679efe64f87ba6a4f991dd00625e6e65d8d738971b1829e1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/mtd/chips/jedec_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f741bac86acf524997225a61736fbd09e05d0952bde03a8ae1cba8ccf1c9521a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/mtd/lpddr/qinfo_probe.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4f09b8b00d538f7a1203064e9bcbe1c35bc8ddf245012f9aba3f9e1e2c9f85d1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/drivers/usb/misc/usbtest.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6832b36690ce30f41acc5346579737b98e157e41b8cf1649b069173ee3140832"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/lib/test_bpf.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e58aa5278799bdf41f2e75e4c8987184813e49391019df6f7674f27fdfb2cff8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/lib/test_firmware.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ed94bec43df3081e19a6e3a2092718ba35f562d33b860371d9fb7c0a2d24cfaa"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/lib/test_static_key_base.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7e7763b859fc641bb57579a1155b09cc0bb4f0f0cd2c1e3c70fda392f63c349d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/lib/test_static_keys.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ac01fd4b1604ce31ea803f17bf6a2c74f411b63de4545b4bd80a9098245b49df"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/lib/test_user_copy.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8e5e77be8b73bfa720985c616b79e455de80d162835f3d6d902a76458474cd3d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/net/core/selftests.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4ba253334608e42bcbb14c385dd928bbf94ac61290e9728cf6f3bead658d39a8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/modules/6.1.0-53-amd64/kernel/sound/soc/sof/snd-sof-probes.ko",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c33f6cb1c31df74df31db100c239b823908c136827c17243d5a887e62f2d03fb"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/__pycache__/doctest.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6dd7f18245e189ba4134f0d65acaf2cbd3dbb1b4cd2af96cc8e4392aa82e8630"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/doctest.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e72bd7c0df9e11813815f221bdbf7bef4bd4771c002284a0ee7371173990c931"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_ctypes_test.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "045902f85f86c7c2d32afc7196ad21a94e965afbc696a6b2cc7549570c71e9b3"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testbuffer.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "27e23d654afb1d88a5933049dc0deee342c933f21bd0a17cea657cf2d1cd41f9"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testcapi.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "45af1ee01650acc642f3078949740731e2d7a12007e5a2bc8905d32810e674f6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testclinic.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9728443001750ac6710de663fcd82dae6d769506ecb91c3de9a3104258767904"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testimportmultiple.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "285dfebe67ff94ec10255ad2d18aff93197032f4345556ef646af7ee156d0bce"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testinternalcapi.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0c34f0f166b3a735c4137d6ff50d5128acfbf073239d11df3535ff92ce6b5b93"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_testmultiphase.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7564b3148c122a6d94a2f0657294e6b12528c1cb683ac2fa40ac072786eea0d9"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/lib-dynload/_xxtestfuzz.cpython-311-x86_64-linux-gnu.so",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5c09cf64cbf8bd67d618b4a12935df36eac913401055a1efbab321b352940e82"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/__pycache__/regrtest.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b96ad8e284e2f86694f7b23669f7e547c1aa49f97c37da26491116390a6a9bad"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/test/__pycache__/test_support.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fb73fdcc8c78586507f15adc80ffca100740f7d2b9aacb0d93f88854403bc16b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/test/libregrtest",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/libregrtest/__pycache__/runtest.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "cce611c8742e5e2a773cb2c04ff9b76e48dcbaab83fbf5ccb7bf6c1d2b36b0e7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/test/libregrtest/__pycache__/runtest_mp.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "154f0ec1a2edb51b94bf6a98a59aa553be05825883cc1c46fc3486389163501a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/test/libregrtest/runtest.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e6074f43820bad14107f7850305f8d1c963e654c7a261c0cd7706529250282d6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/libregrtest/runtest_mp.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1d75af7cc722217ddcd8a4c43014bc0b344dc686326163362d0d51f4afa50998"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/regrtest.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "341f95c55ae1ace475d4c1279454b282efd5f53f301b53a84f21d3d6b0de1697"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/support/__pycache__/testresult.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "695ba9ad2d1be660e6fed86a4f1e5679c591e00f014f38f1dfef26e797e5eed8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3.11/test/support/testresult.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6fd038a2a1efeb6987d1336be09481fbc2895c4c07fb170e09a4e3a885d6b7cf"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/test/test_support.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "26c8ab2175cd84c1cf3d61088d5de17bd058e998c1d7a3bbd9e537b3c868697e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3.11/unittest",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libpython3.11-stdlib:amd64"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/big5prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4722aef1f19950028a02249e625ea6dfd48126ade82de969c26184c15586ffe3"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/charsetgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9e77ac92b7802b57d926cbf68e9d5c06a3c968991562ee20ece4c643fefd9d42"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/charsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d46b6528c5a7d2fe8a56297ae4ff7276ce71db0d48b541b8a7fbcc23153f979d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/cp949prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "417b3a05872d89315763a4ace0d658c7724a76a693df1ee5a7e34e5880581897"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/escprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f09e5b2084888a740cd0385e7bd2f295bd78cfbb22c2d10a037a885e06781913"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/eucjpprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "81edbd6f26ac72ae38543bda69f74ddc7a354ff95d78828c32919e95c3dc9ec6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/euckrprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c3463b31995560722ab30c9b0d7d7fdfee5a71e0dd7cc1e05bc9701df90af87f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/euctwprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "164b0273c5018a1ed5e894f89a429954788c01854f7cc5972048a551285460ec"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/gb2312prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "82c31b74a73c1ce3170cd2a4b34e2f86808c5278828609f4e00e3e91215335cc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/hebrewprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "771c663cc01b697725fa547e489dc399496edf97df51a56fdcdc46a411ee4a96"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/johabprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "106eb56becd02df9afe5cde7fa39a848fb9f29d18e1568ec7b057195c8d4a247"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/latin1prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "03cfe3dc9296b697bda7145d4b5a1c8e803da1fd4334f0115694b661f63f6dae"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/macromanprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b0b52ca6e9d9b416b5afc1671d266d57f36d668640514620fbd17ca121e77ef2"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/mbcharsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "cb944e270a33d78b1113a28d45d93e6a526b8dcd0fe8f6c4e0c411f87d1cc513"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/mbcsgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2761f21c9b370dda140a973b619898a80ecdf30a713cf159521865f4ee6e353c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/sbcharsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "47559bb8f1858373f94beac78c207f90f0c737a7727454570441af399bc6b8df"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/sbcsgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eb249c6ae537ff5abdbae569c94385b61e84770ad3457c76498f3e70e997e85b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/sjisprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "bf7408e304779cfef395fc9b12fe9fc9040ca684fe842e986b621fc1e8f911f7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/utf1632prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1b6860f2ddc102b7848efe97727dbb0649425f9377c4bbdd16221bda8fbac91d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/__pycache__/utf8prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8809bdec515bf2de6145790991f9e9847460580f898cdc32034ce4c734afe6f6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/big5prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "94f31fc025fabf601a3e0bc587f7125997202c36d68850872d9fe9f5143dbb11"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/charsetgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "50a2b749a2190763c274a4884b4827bccb4b47d2495fad8cf9f649bb73a55b28"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/charsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2f7b7cff020ea2ff1e9bebd958e71b91db2bc1ee3737afe0a8d879a47ed63dde"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/cp949prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d2329157b7c40ae588d7aacd9e4b3464408a03589960220468ff00d59be35122"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/escprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2a1a38f17eb9c44d2c705ca521d7898ccd9b71bbd1befd21d1651b316ac90f70"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/eucjpprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e4a61a33d7ecc64458cf0d5be64d1f2fe8fff9ecc8c3e8a3f6bf7b6bd307c4b6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/euckrprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "862153eb0335ef8188c11bea0ec21cb8e73e743b2adae3ca30a6f257cfb55e77"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/euctwprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3716e935d06d5345452346ca7c67c39293fb4b6ffcffa1653bcedd547d28830b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/gb2312prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "28f101b9e6922d2bc1a4578834cbb40fa4e01dc47dd1ee4f6906b089fcc5e28d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/hebrewprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f7a4ff2e3fce996f9f2bb26b487a23623c86ddfb0681bce4a13365799de47d81"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/johabprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3b5430f67573467ba7eef669e1464cef0bc94aff56f78d66114f6e0cc9d8dc35"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/latin1prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a75e4412615b9905306ca2c2ee53895461c4670706e39b9b1196131aed352798"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/macromanprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f5a9dfce663a4c17d43c3c810ce758d3b92a9931e9675b4ad232fea7525670e6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/mbcharsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5abd3858d2381775ff57112f7ab346f87db983bbbe3030ca94db7e2468fefee5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/mbcsgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "891a5a3418d5d0337060fbbfcfa4e21e0469c186a188cef3b48ff8919e14cfd0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/sbcharsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fa777717dd22ec6a572e37a12d51ea5411342a55b31af4143c44cb04d9f8a3a5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/sbcsgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "81c808d1f39f830ff76130a5a5badafcc371c321322777945eb6a82c761be7d1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/sjisprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6aa42e7cccd1c38e99a45973998698793dbe9f398a6fe86672b029a6927ceb69"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/utf1632prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a70d5ea4674c8f58431a20aed401eaab33847e35fc3157625bb3b50654fcf9e4"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/chardet/utf8prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f26d3c51be78f741f88d0e8b617bc5cac1ad80aa0ab0751ddb31ff8bcfd39d5c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-chardet"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/big5prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eaee6efb61770b152d66ed5e27113d7f1d8875ff8e0cb69d81b8ea0f50a47783"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/charsetgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7190ce94aab42abb02ca402e86ba6c22440195386f925544af100ec3facd2e4c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/charsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "40de961f0b5cf9a32528efdc49b799d56886228ed449f293719e66ca0f29cb21"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/cp949prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "085727d5506a6f31d3fe4c32021322245fc537ae855b3e655226cead62d3c244"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/escprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f1d03869097f6b457dd819256b514d09d4660ea17c38f7dce27a42a32cf64ba6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/eucjpprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3c6c5b21583942582224e2c82a79910821d51eeff3381c400f9f8b4acf975733"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/euckrprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "559bb82fd9ef40740ab6abba76c3a0153d4cf1120648e47d22d836513d6e7bdc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/euctwprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "689b7058e109acc589b4accbb48211cf25c11abc545a337184b16a3af6ea9c22"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/gb2312prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7b45d6f0fb100c7164da04cb6a9302642e278c2d7c93d13fc443222fa3882170"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/hebrewprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "99edd80a097bc8a583809d31ff40ae23dd58bf88dd3cc0f1423b40899f3b3f49"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/johabprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f5cea50d4bea5b3306ed5b1a5f6bb26b3046f9baa0af101b1e8a366219a64cfa"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/latin1prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0561eccb88e7ac42ec2dfab19475c3ab7345597ae8a951c940d2a08ef68ed108"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/macromanprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "83b01d8872aa0e74103cbc91ee6f0824120f0b728abc9c876831306937eac654"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/mbcharsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6c9921f78a0e3fe47db4705b736191bdd24f8345b2836fb7e3ca5b00b1f6059b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/mbcsgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "72511748f08894da11ee75dbe7477abd0f38c198ab49704b4da645b7ba33f071"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/sbcharsetprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d9c443415ca1fde0b7216ae2e11c5b7cbcd9956a8e023529e0ea5e0fec3c38a4"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/sbcsgroupprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "902d01f84db9f3495e0ed44458d8bf5d17509007a99a19ce058919f2f3aeffef"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/sjisprober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "38df3aeba93f783997601e7102c2a0eb7a2f228dfdb29e0e59e2528469cdc666"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/utf1632prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a57558f5cc916319fa05e5664f2e725a7877ccb355d30ce8b085852245debddf"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/__pycache__/utf8prober.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d970c1893022cf159607a551ca0270f17bc0945f296febc029ee63966fce33d3"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/big5prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "94f31fc025fabf601a3e0bc587f7125997202c36d68850872d9fe9f5143dbb11"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/charsetgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "50a2b749a2190763c274a4884b4827bccb4b47d2495fad8cf9f649bb73a55b28"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/charsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2f7b7cff020ea2ff1e9bebd958e71b91db2bc1ee3737afe0a8d879a47ed63dde"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/cp949prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d2329157b7c40ae588d7aacd9e4b3464408a03589960220468ff00d59be35122"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/escprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2a1a38f17eb9c44d2c705ca521d7898ccd9b71bbd1befd21d1651b316ac90f70"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/eucjpprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e4a61a33d7ecc64458cf0d5be64d1f2fe8fff9ecc8c3e8a3f6bf7b6bd307c4b6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/euckrprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "862153eb0335ef8188c11bea0ec21cb8e73e743b2adae3ca30a6f257cfb55e77"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/euctwprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3716e935d06d5345452346ca7c67c39293fb4b6ffcffa1653bcedd547d28830b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/gb2312prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "28f101b9e6922d2bc1a4578834cbb40fa4e01dc47dd1ee4f6906b089fcc5e28d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/hebrewprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f7a4ff2e3fce996f9f2bb26b487a23623c86ddfb0681bce4a13365799de47d81"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/johabprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3b5430f67573467ba7eef669e1464cef0bc94aff56f78d66114f6e0cc9d8dc35"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/latin1prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a75e4412615b9905306ca2c2ee53895461c4670706e39b9b1196131aed352798"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/macromanprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f5a9dfce663a4c17d43c3c810ce758d3b92a9931e9675b4ad232fea7525670e6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/mbcharsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5abd3858d2381775ff57112f7ab346f87db983bbbe3030ca94db7e2468fefee5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/mbcsgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "891a5a3418d5d0337060fbbfcfa4e21e0469c186a188cef3b48ff8919e14cfd0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/sbcharsetprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fa777717dd22ec6a572e37a12d51ea5411342a55b31af4143c44cb04d9f8a3a5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/sbcsgroupprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "81c808d1f39f830ff76130a5a5badafcc371c321322777945eb6a82c761be7d1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/sjisprober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "6aa42e7cccd1c38e99a45973998698793dbe9f398a6fe86672b029a6927ceb69"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/utf1632prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a70d5ea4674c8f58431a20aed401eaab33847e35fc3157625bb3b50654fcf9e4"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/chardet/utf8prober.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f26d3c51be78f741f88d0e8b617bc5cac1ad80aa0ab0751ddb31ff8bcfd39d5c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/__pycache__/ansi_test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0ef31477cbae5bc7e54f046eef7fbd3fa16efefca1fe9c103143bb3f00356723"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/__pycache__/ansitowin32_test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a1f0e7a4d9560ec496a3ab0416b27dea275ae6a519a9a040e501b1259b7985ab"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/__pycache__/initialise_test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8ecea1ad21f9b0cd16fa77504911974020013e941acd4aac4c31d59b66776a6a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/__pycache__/isatty_test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c50e86fa22dc795ea79ead778c2efe07aabf62bcbbb52b85ad1e4a1ea3fc95e8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/__pycache__/winterm_test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "114f59344c30affeeca478b5febbc8e9f96e0f7f7de3a9dd0c401f902de2f1e0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/ansi_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "15e5620eb50834865caf9d393c0c6f5380235f3d5ab048802ecf465cc87045a1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/ansitowin32_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "44dec0221309e44a83b186828d5a3ea38bbc2730c3e2e9096e67af58a4bbd2b6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/initialise_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "05b3f2f977f21f027accaa33b903af36f419cecc7dbdd6ffd1b6179fb86c0537"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/isatty_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3e0dba2d1a6fd3240307901cfacc605571bb86c035358bdaa45800a597d8cd98"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/colorama/tests/winterm_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "aa85853c48f29b9826d91b8cc297f7a4e8acddae6bfcf259142ccadb9e092fc0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/pyparsing/__pycache__/testing.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "0183f1f26662761349c25432015b79189d6f099c52348ceb6a8ed8b1e04f6b19"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/pyparsing/testing.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eedbb801ba78b9278957437fc843d19a6354869775f1940fdc2ad7e350ccf35e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/webencodings/__pycache__/tests.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e3417addd12220178b92584b2812de3027cc68fdac4b149edf55bbbfbb4a2097"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pip/_vendor/webencodings/tests.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3ad18bca384d6357ef916d46bcb27f155f59a2a0bd027ca3afbab79314dbccdb"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pip"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pkg_resources/_vendor/pyparsing/__pycache__/testing.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8cf190fd0ff99ecf38f44ec322b4da8b15046de8b6db7abcd0cc9a1f11f54680"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pkg_resources/_vendor/pyparsing/testing.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eedbb801ba78b9278957437fc843d19a6354869775f1940fdc2ad7e350ccf35e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pkg-resources"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pygments/lexers/__pycache__/testing.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c3440724c1c83a9d22fa2659e9102d29b925642c9f5a1c6d2ebcd5ad67ab2af4"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pygments/lexers/testing.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3b3e8d01b624b6134ef2955ba97a05082ca0ec41d9f8ace24d7086309f153032"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pygments"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pyparsing/__pycache__/testing.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "95fcd1f583b5ce2597d00c85ee38cfe428e02b41c8cfc71345df636aec16d4e6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/pyparsing/testing.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eedbb801ba78b9278957437fc843d19a6354869775f1940fdc2ad7e350ccf35e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-pyparsing"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/setuptools/_vendor/pyparsing/__pycache__/testing.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d1c3a232917a60d13fcba175e93bd05fd599e0dc5fa3413a331694c18750e5b7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/setuptools/_vendor/pyparsing/testing.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "eedbb801ba78b9278957437fc843d19a6354869775f1940fdc2ad7e350ccf35e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-setuptools"
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/setuptools/command/__pycache__/test.cpython-311.pyc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "340e66c197a00f8620c953b3a39afa3af62393ea84bf12d1e550e3b9d6b31373"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/python3/dist-packages/setuptools/command/test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "656a0851d9babb666ff9686f482e487f5acfa2ec66e499b2830b1a8cd03c5962"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3-setuptools"
+    },
+    {
+      "path": "/usr/lib/systemd/system/modprobe@.service",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "739d06d77651c10207565eb519489d62b4e15438a464371273bd2effafc4e9a3"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/udev/mtd_probe",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5f21959779c5dca68bd2ec112eaabe9a4e7fdd0d8d951b66987edb82c009deb4"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/udev/rules.d/75-probe_mtd.rules",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "54256aa2ca91172cbce3ea805ccf2cd52de8acbbc2db88d209de84655fa997c5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libabsl_random_internal_distribution_test_util.so.20220623",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "libabsl_random_internal_distribution_test_util.so.20220623.0.0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libabsl20220623:amd64"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libabsl_random_internal_distribution_test_util.so.20220623.0.0",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "98a9d66ddbd6a333a58fe74167a5a2291116ca7f530c1327c0610a046c915ff1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libabsl20220623:amd64"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libicutest.so.72",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "libicutest.so.72.1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libicu72:amd64"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libicutest.so.72.1",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "336eb432cb4039c65de95dd22e789896caa4f8bbf05fde011116048b6a7ca829"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libicu72:amd64"
+    },
+    {
+      "path": "/usr/local/include/node/cppgc/testing.h",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d7e6d067eb779d41fc790854dcb2d8e8f58af3a7595979000c8929c83bde86e1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/include/node/openssl/self_test.h",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4bb6ecb6d55e5e1bee6ef79c24bc8691174ad1b5c160f7d3daea150c140d3abb"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/content/commands/npm-install-ci-test.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d1181a03f1a318205e59e08b31149cb7a7f6c2bd5069767d0e8b6f9af5913534"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/content/commands/npm-install-test.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "27f81f80e252e77a58b938f10bb65931866d481fe33c5193c11f5a65e74d0896"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/content/commands/npm-test.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3890c4605b941cb3895566419ea6180ea52e0f029f5929b33664889b287c1f58"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/output/commands/npm-install-ci-test.html",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3c29ef3df11770b5950d44dfe9963e5d867199a2bec0ecd6b025a25d3b6c9a54"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/output/commands/npm-install-test.html",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f67a93725757b216bf437f0172cc2e295b9d0edbe0e85bb6c8cb300fc8b9ce9f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/docs/output/commands/npm-test.html",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "23ab40b65afc7980b5d7d944aa0a00eabf8c4012b3977362bc54704a183f97e8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/lib/commands/install-ci-test.js",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9d6a27eb0116b8f55895639a9c4edfc2c083729c9ba75aa88c685bd3caed9fd9"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/lib/commands/install-test.js",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4db009aa28b8feaade604258f8090b2fed39dd8a5eea2afcefa07755dcbd0e49"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/lib/commands/test.js",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d7678bf75b6efec8710cec74aa98c09315a5c6bd478028925d70fe1bf815bf0d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/man/man1/npm-install-ci-test.1",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e0018af51bae90a2ae65c13027b1dac920ba39589dd9e62b6ea693a4a33cdc53"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/man/man1/npm-install-test.1",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3198bb494a2a708179e3d1f847f782f99b2ac6914b25263a3da01b2ba7134679"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/man/man1/npm-test.1",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2211e482f55b2a476c0fc7c01ed5d09b1a993588329edc134ce73e21ec59ee07"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/fastest-levenshtein",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/fastest-levenshtein/test.js",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "91458a1329672fa2e38462a8e653660f0db790b60c6e69b22ea68fa07ab0b360"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/docs/Testing.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "189bcf45daf9554786bbc300789d7a68c426eedef92c55f271ec58251a8c4189"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/MSVSSettings_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8c30d346ac54fb1d2a5f15a2f91be068336f490e1e5b648de7a5dba9eaade742"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/common_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d9831158cb9393a3d3b8d626731298e883602fffaaf2394ee6db658d01b92c70"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/easy_xml_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d4ca2f5b01ab57596bcee58881a75759f00cd978c413cb7d814c174f22d91229"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/generator/msvs_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "fff6c3e2608ad9d70dc3a8d73d55546bdefb6a9c01af3feeed608b03adc20f95"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/generator/ninja_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "021d757e992e6ae651fe2dcc77019ed6dde7d0ccfdbd983402beea7398e95208"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/generator/xcode_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "000187305f0f180a71e6540de9e5665bf6fbf4f082148674b4b2a69aa55b644e"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/input_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9c2bfb6b356f492faf17d12e8b5d6abbf4554f6bcf1befc4ae3fa852681aceab"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/pylib/gyp/xcode_emulation_test.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "784a6188ed50125e6a74d72e5b57bba2076d0d5693c523776542a5530091cab7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/test_gyp.py",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c47a7aade761cd8092d6169ac3c478ce45e2efa13bd3e8406bba715ede229264"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/node-gyp/macOS_Catalina_acid_test.sh",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c4ff0028080b20ec21f77b06dc84f27110e3c925e0cb65553a64d08f0989ef6a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/safer-buffer/tests.js",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "511906fdf6a233c84a9216065d1701dbfd84f380fbd495ae1cf5a002370b9885"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/local/lib/node_modules/npm/node_modules/undici/docs/docs/best-practices/writing-tests.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4fb1816618ab3a119e872f23d8d9d46c3521f9aea055dd5bc75c58847892641f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/sbin/grub-probe",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "db8527f5dbe7fe3446737c2a3c3465e3cd7bf07571fa5d43c18827c87f26d7c2"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/usr/sbin/modprobe",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "/bin/kmod"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": null
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/grub-probe",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "grub"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/modprobe",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "688fd30d4c572cbaaf4c019590e4339e6140a307d2156a11b295ce848d85cbc7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/py.test",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "pytest"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/py.test-2",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "pytest"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/py.test-3",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "pytest"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/pytest",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ad2157ff4e8681513f5b861481079f67b6aac673d5ae76af410e896a323cd01c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/pytest-2",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "pytest"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/bash-completion/completions/pytest-3",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "pytest"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "bash-completion"
+    },
+    {
+      "path": "/usr/share/doc/binutils/gprof/TEST.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "79a2a756c9eb83d6a0326207a9cdedb8eec76fc5e0471a3325b2b86c5abda589"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "binutils-common:amd64"
+    },
+    {
+      "path": "/usr/share/doc/binutils/test-summary-amd64.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d7ed6a77a2896d0cd4744fd64b4077f3b36640a43c98a16d36d3a8e640dab426"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "binutils-x86-64-linux-gnu"
+    },
+    {
+      "path": "/usr/share/doc/git/contrib/coccinelle/tests",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "git"
+    },
+    {
+      "path": "/usr/share/doc/git/contrib/credential/netrc/test.command-option-gpg",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "86cc5982db43879e1b1d647408e70506867f55fcda12cad1ab39abb83ba99470"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "git"
+    },
+    {
+      "path": "/usr/share/doc/git/contrib/credential/netrc/test.git-config-gpg",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "640b51fc7965fc3609a3dc7c2937f52b9f7ea95f1fdced0197d01cd16e750183"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "git"
+    },
+    {
+      "path": "/usr/share/doc/git/contrib/credential/netrc/test.netrc",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ab332a922f7a3f34862188198f321b326b94b0f1fe23f31a1fe87153e8b8be15"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "git"
+    },
+    {
+      "path": "/usr/share/doc/git/contrib/credential/netrc/test.pl",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d88641bee908a892247986a4428e766a611a20f2e8817dc4cf3d8b7f4608efd2"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "git"
+    },
+    {
+      "path": "/usr/share/doc/python3.11/test_results.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5af5d9327d49a3176f12f5d0119142873d97cad20f1fb5cbeb7b62d5472e8ccc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "python3.11-dev"
+    },
+    {
+      "path": "/usr/share/doc/screen/terminfo/test.txt.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d673e4fb8483ac7e11c75fd23418559d41fb4e76b224b6ae50ecd97f483b54e8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "screen"
+    },
+    {
+      "path": "/usr/share/doc/socat/examples/readline-test.sh",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c4a646444e9ab026660452a1a1181474052d7e635b8d8729fcb73a171f700d3a"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "socat"
+    },
+    {
+      "path": "/usr/share/doc/socat/examples/test.sh",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1444e8a93e23300f89c8bc25b18553cc013093ab1de5c9f159065edb6def31a7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "socat"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/test-list",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "7998b695524048a56c21e26dece8a5b01d8ea0d67ccfd7520722ed7b387634c8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_01",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "786b5f16afadf07e894676defd5c0e849176a840db7271ae9c8b7cf57e4cbbf7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_02",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "16f725c56daf91fa0b516d6a6ecfafe123ce06c9105bd9ffa4a532a3c34b04ac"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_03",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "00dc1e06265a655ef2676d1ba0a581887e5c36ed5d5707d9e73db217ccb302f2"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_04",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3c064dc542c74bacfa9e012de2e256c21d6c5c523472c1cadb008e2ca4b36654"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_05",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "daebc1d7926a75b6ed0a15ef1bdf50622bd64db0361874358733a381ab684fca"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_06",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "703725d00780aff2b40411ba0490faab8ecb02fe74c34ac22ad6a74828946f49"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_07",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d59263e589b76ccf3d863000b35ecd58bce61bd78670ab1bf6e284cf72407b39"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_08",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4256a3e7212f6f8cefc5e4ff36f6a3f582da2fced7849ca81f406af7b03fc366"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_09",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "cfdfb099ef84d25108d67f686e7b6169143de552dc76d3f0e73ed643c49d8a25"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_10",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c59d45e1c2354cc664279b23b5e21c86bb9c8d7e3497c80556f88ae0db2fe6d7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_11",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "87467608a5986e333cacbc0515d10e35fc1e125abea2c28e9ac73166d0698cd8"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_12",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "e54c98f31e9549ca326f201b84057cf0e6bfdbd05b6df0013d7d2db4d0b84210"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_13",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "15dd4365453120e51f829d5f06442de5ec48b79bf9f5bf3f3f437ea47fdd3a58"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_14",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "5d3f1d2a010765d302e96f36d79f8d26c6c9253b8e86109fe999b4b44e1a8853"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_15",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c00093a3812ed87eac406655af821f4b752f4337bdb3b8f2808f6603e7ba09d7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_16",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "52a0f63df55ca5eeb437a4dea274c10dbbcc7a5de223a6c0b65fb7ce67dd4bab"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_17",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b44b1f0c9ec3f4adf942612611ec20acf470c249104acba8c0b46c95d37fe38c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_18",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "1540cf70b029283533e459118e7b5a7fe11530ea74b12cb69944ade04f64e4fe"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_19",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "894d44c50ea485af002641c741453027668242f152ef0841e7f9cb349aae7738"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/tests/test_20",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d72b4a27b1b109f5fa395e2488fa8c2db670cd05f2aef3a705f902ba7d7b73a5"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/ucf/examples/ucf_helper_functions/testsuite",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "08ff928ee17c43dc677d0398544535565738871df8ba2acaeb51c31ecc68587c"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "ucf"
+    },
+    {
+      "path": "/usr/share/doc/util-linux/howto-tests.txt",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f05e9c9b8e5bbfa9e163842a1a2505950d34dd367fd480670c413f64f503c954"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "util-linux"
+    },
+    {
+      "path": "/usr/share/doc/zstd/TESTING.md",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "84cf11926e9ccd1977680933c2b432ccd9f21f95ac75fe693e9ff18350a93cee"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "zstd"
+    },
+    {
+      "path": "/usr/share/man/man1/grub-fstest.1.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f27e0483fc1b59f4ccab97dc3c455d33732fe4ce52a408753bdc112a243a3b31"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/usr/share/man/man1/test.1.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "2076ff3cd222045fc7244830ab438843ee893bb427a477c470ddfb8be898e4e0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "coreutils"
+    },
+    {
+      "path": "/usr/share/man/man3/Dpkg::Control::Tests.3perl.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "427762fe4072676d2c1613f57e68f033e851ac87867ce18fe5d59c344643cc9f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libdpkg-perl"
+    },
+    {
+      "path": "/usr/share/man/man3/Dpkg::Control::Tests::Entry.3perl.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "af3d63c61f3181a9cb59492eec4888f087327415d3610a061305782be5ccaea1"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libdpkg-perl"
+    },
+    {
+      "path": "/usr/share/man/man3/fetestexcept.3.gz",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "fenv.3.gz"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "manpages-dev"
+    },
+    {
+      "path": "/usr/share/man/man3/mprobe.3.gz",
+      "fingerprint": {
+        "type": "symlink",
+        "link": "mcheck.3.gz"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "manpages-dev"
+    },
+    {
+      "path": "/usr/share/man/man3/pthread_testcancel.3.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b03ca59120303f6b79bad1e6dfaa61bb236ac6392220b5e9c4b0a4034e92870b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "manpages-dev"
+    },
+    {
+      "path": "/usr/share/man/man5/modprobe.d.5.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "3e037f5239172694563bdd8344170848bc907487a496557286e2773ddf1a63f9"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "kmod"
+    },
+    {
+      "path": "/usr/share/man/man7/EVP_RAND-TEST-RAND.7ssl.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "9d34c5b236229daf493dae0d3320be6c43cc5cd7a6082f611c581797a5d5a0c3"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "openssl"
+    },
+    {
+      "path": "/usr/share/man/man7/feature_test_macros.7.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "41ecc8abbbf31549acdac1644e26abd67a005b7acb4bba2d4252e6089300074d"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "manpages"
+    },
+    {
+      "path": "/usr/share/man/man8/grub-probe.8.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a760de0f9788165c9fc4d3b9a023f45b62316d0166e7eb82e991fb651c7e7442"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "grub-common"
+    },
+    {
+      "path": "/usr/share/man/man8/modprobe.8.gz",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "4c480ca24aef995f10fa4a2c63059ebc2278d2c816d4f807165eb51ad3f487dc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "kmod"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/App/Prove/State/Result/Test.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "61991c84f111bc8f1b21fe32f048a6de2b79e38ae585fd3ebd078ae349739414"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/ExtUtils/testlib.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "db553d541d4c48739dfd87d928205c56299d9e738b1cd346da9630cec8ef3f1f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Memoize/ExpireTest.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "c3f72021dd674b6db5f32f3b85cba0c14f7ccbb6e235d7c4ebc36b5b663aafdc"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/TAP/Parser/Result/Test.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f790bed6d7653de1c58dd6a08aca9cc2a9757dac2648430dfd299bf5fff51076"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8da7d115d60b42265b6bfba1d68c85e3ae4f27d243567a93c6b4f5655cda2231"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test/Builder/Tester",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test/Builder/Tester.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b47e0581956426e4fa40346299c23a2bd12c10b2435db8534aeaa78e26a215ea"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test/Tester",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test/Tester.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "8cb3341b94d05c7a720eb03eac1aa2053e0523a5ab5201a85aab530297361b0b"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test2",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test2.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "893aedb69e8091d38d432338bca1dc0d1383c5ba68e0cf6fde2c7a8177543b79"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test2/Event/Subtest.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "62e0d46d51889a1d7deacf8cd1cde7e9fec58877511af6d92ad95a550af57940"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/Test2/Hub/Subtest.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "ae410227b88b59900787892f0f54742c136947c2df51c49fa8c5de458a3d7897"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl/5.36.0/filetest.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "dca763b20f8c701557c37bdcee0c589b9e21a3014b0452cfd673e65214b854f7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "perl-modules-5.36"
+    },
+    {
+      "path": "/usr/share/perl5/Dpkg/Control/Tests",
+      "fingerprint": {
+        "type": "directory"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libdpkg-perl"
+    },
+    {
+      "path": "/usr/share/perl5/Dpkg/Control/Tests.pm",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "a696c8bba581ed2c076689bac2596869d32fa255479e773063edef97d6dfa9b7"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "libdpkg-perl"
+    },
+    {
+      "path": "/usr/share/vim/vim90/compiler/racotest.vim",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "56b81c2df99e00c233a2d9f191939af9fa418613e7981916cd6751d0cc5d94e6"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    },
+    {
+      "path": "/usr/share/vim/vim90/compiler/zig_test.vim",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "b6a5d920dbafc21cecbbec3211062b56a77223734f89111a25a6614ee2c54184"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    },
+    {
+      "path": "/usr/share/vim/vim90/doc/testing.txt",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "859f09bb7f2048e7bd3b760edef901431081107233cf0145781621faab2bb93f"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    },
+    {
+      "path": "/usr/share/vim/vim90/syntax/colortest.vim",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "d8a5d8ed3944a37603c74b02abfe4bdf5d1daa36e3218b24bc0270cc041245aa"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    },
+    {
+      "path": "/usr/share/vim/vim90/syntax/hitest.vim",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "42a429bd0c1b325c67778eafd3300069e2ec77e8f1f91376c2dfab6769ba9fa0"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    },
+    {
+      "path": "/usr/share/vim/vim90/syntax/litestep.vim",
+      "fingerprint": {
+        "type": "file",
+        "sha256": "f4a2ae9b914f991b7de3a8245f3ca685e04db36efee38a8ae8ce23c7f5989581"
+      },
+      "reason": "Reviewed Debian development/runtime dependency or vendor payload, not LaunchPad fixture",
+      "package": "vim-runtime"
+    }
+  ]
+}

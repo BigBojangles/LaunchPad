@@ -19,10 +19,10 @@ export SUPERMIN_MODULES="/lib/modules/$(uname -r)"
 guestfish --ro -a "$candidate" -i <<EOF
 download /boot/vmlinuz-6.1.0-53-amd64 "$report/kernel"
 download /boot/initrd.img-6.1.0-53-amd64 "$report/initrd"
-download /usr/local/bin/bl-proof.sh "$report/payload/bl-proof.sh"
+download /usr/local/bin/launchpad-session "$report/payload/launchpad-session"
 download /usr/local/bin/launchpad-agent "$report/payload/launchpad-agent"
 download /etc/apparmor.d/usr.local.bin.grok "$report/payload/usr.local.bin.grok"
-download /etc/systemd/system/bl-proof.service "$report/payload/bl-proof.service"
+download /etc/systemd/system/launchpad-session.service "$report/payload/launchpad-session.service"
 download /usr/local/lib/launchpad/quiesce.py "$report/payload/quiesce.py"
 download /usr/bin/ps "$report/verified-ps"
 download /usr/lib/x86_64-linux-gnu/libproc2.so.0 "$report/verified-libproc2"
@@ -64,23 +64,13 @@ test -n "$psfile" && test -n "$libfile"
 cmp "$report/verified-ps" "$psfile"
 cmp "$report/verified-libproc2" "$libfile"
 cp -- "$project/scripts/guest-maintenance-apply.sh" "$report/payload/apply.sh"
-( cd "$report/payload"; sha256sum bl-proof.sh launchpad-agent usr.local.bin.grok bl-proof.service quiesce.py procps_4.0.2-3_amd64.deb libproc2-0_4.0.2-3_amd64.deb > SHA256SUMS )
+( cd "$report/payload"; sha256sum launchpad-session launchpad-agent usr.local.bin.grok launchpad-session.service quiesce.py procps_4.0.2-3_amd64.deb libproc2-0_4.0.2-3_amd64.deb > SHA256SUMS )
 extra_payload=()
 if [ -d "$report/payload/security-packages" ]; then
     ( cd "$report/payload"; sha256sum security-packages/* >> SHA256SUMS )
     extra_payload=(security-packages)
 fi
-# The same reviewed bridge inputs serve new guests and preserved-session
-# maintenance. No service runs while PID 1 is the offline maintenance shell.
-mkdir "$report/payload/windows-test"
-for name in windows-test-broker.py windows-test-client.py launchpad-windows-test.service; do
-    cp -- "$project/scripts/$name" "$report/payload/windows-test/$name"
-done
-cp -- "$project/scripts/install-windows-test-guest.sh" "$report/payload/windows-test/apply.sh"
-( cd "$report/payload/windows-test"; sha256sum windows-test-broker.py windows-test-client.py launchpad-windows-test.service > SHA256SUMS )
-( cd "$report/payload"; sha256sum windows-test/* >> SHA256SUMS )
-extra_payload+=(windows-test)
-tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$report/payload" -czf "$report/upgrade.tar.gz" apply.sh SHA256SUMS bl-proof.sh launchpad-agent usr.local.bin.grok bl-proof.service quiesce.py procps_4.0.2-3_amd64.deb libproc2-0_4.0.2-3_amd64.deb "${extra_payload[@]}"
+tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$report/payload" -czf "$report/upgrade.tar.gz" apply.sh SHA256SUMS launchpad-session launchpad-agent usr.local.bin.grok launchpad-session.service quiesce.py procps_4.0.2-3_amd64.deb libproc2-0_4.0.2-3_amd64.deb "${extra_payload[@]}"
 sha256sum "$report/kernel" "$report/initrd" "$report/upgrade.tar.gz" "$report/payload/"*.deb > "$report/identity.sha256"
 
 # A private runtime layout exercises the production manifest reader before
@@ -93,7 +83,7 @@ root = pathlib.Path(sys.argv[1])
 def artifact(name):
     return dict(file=name, sha256=hashlib.sha256((root / 'images' / name).read_bytes()).hexdigest())
 manifest = dict(schema=1, version=sys.argv[2], kernel=artifact('kernel'), initrd=artifact('initrd'),
-                payload=artifact('upgrade.tar.gz'), guestScriptSha256=hashlib.sha256((root / 'payload/bl-proof.sh').read_bytes()).hexdigest())
+                payload=artifact('upgrade.tar.gz'), guestScriptSha256=hashlib.sha256((root / 'payload/launchpad-session').read_bytes()).hexdigest())
 (root / 'images/maintenance.json').write_text(json.dumps(manifest, indent=2) + '\n')
 PY
 test "$(sha256sum "$candidate" | cut -d' ' -f1)" = "$expected"

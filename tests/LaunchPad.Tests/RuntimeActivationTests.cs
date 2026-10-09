@@ -10,6 +10,28 @@ namespace LaunchPad.Tests;
 public sealed class RuntimeActivationTests
 {
     [Fact]
+    public void StandalonePackageActivatesWithoutHistoricalBaseAndPreservesSavedSessions()
+    {
+        using var fixture = new Fixture();
+        var path = Path.Combine(fixture.Images, fixture.Manifest.Image.File);
+        var bytes = File.ReadAllBytes(path)[..72];
+        bytes.AsSpan(8, 12).Clear();
+        File.WriteAllBytes(path, bytes);
+        var manifest = fixture.Manifest with
+        {
+            Image = fixture.Manifest.Image with { Sha256 = Convert.ToHexString(SHA256.HashData(bytes)) },
+            Dependencies = Array.Empty<RuntimeImageFile>()
+        };
+        File.Delete(Path.Combine(fixture.Images, PublicRuntime.BaseName));
+        var candidate = fixture.Address(RuntimeActivation.RuntimePrefix, manifest);
+        var result = RuntimeActivation.Activate(fixture.Root, candidate, _ => { });
+        Assert.True(result.Changed);
+        Assert.Empty(RuntimeImages.Read(fixture.Root).Manifest!.Dependencies);
+        Assert.Equal("owned saved session", File.ReadAllText(fixture.Session));
+        Assert.Equal(fixture.OriginalBuilder, File.ReadAllBytes(fixture.Builder));
+    }
+
+    [Fact]
     public void ActivationPreservesPreviousSelectionAndLegacyKitWhileSelectingOneNewPair()
     {
         using var fixture = new Fixture();

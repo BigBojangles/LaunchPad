@@ -33,6 +33,17 @@ public sealed class RuntimeImageTests
         Assert.Throws<InvalidDataException>(() => RuntimeImages.Verify(fixture.Root, selected));
     }
 
+    [Fact]
+    public void StandaloneSelectionDoesNotRequireOrReadHistoricalBackingImages()
+    {
+        using var fixture = new Fixture();
+        fixture.Save(fixture.Manifest with { Dependencies = Array.Empty<RuntimeImageFile>() });
+        File.Delete(Path.Combine(fixture.Images, "debian-12-builder.qcow2"));
+        var selected = RuntimeImages.Read(fixture.Root);
+        RuntimeImages.Verify(fixture.Root, selected);
+        Assert.Empty(selected.Manifest!.Dependencies);
+    }
+
     [Theory]
     [InlineData("../outside.qcow2")]
     [InlineData("nested/runtime.qcow2")]
