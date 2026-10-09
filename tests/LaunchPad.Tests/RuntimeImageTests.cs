@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.IO.Compression;
+using System.Text;
 using LaunchPad.Services.Fence;
 using Xunit;
 
@@ -7,6 +9,45 @@ namespace LaunchPad.Tests;
 
 public sealed class RuntimeImageTests
 {
+    [Theory]
+    [InlineData(AgentChoice.Codex)]
+    [InlineData(AgentChoice.Claude)]
+    [InlineData(AgentChoice.Custom)]
+    public void DeclaredAgentChoiceAllowsAgentsWithoutPlaintextImageMarkers(string agent)
+    {
+        using var fixture = new Fixture();
+        var selected = fixture.CompressedMarkers([AgentChoice.Capability]);
+        Assert.False(ConfigHeal.ImageHasText(selected.ImagePath, AgentChoice.Marker));
+        RuntimeImages.Verify(fixture.Root, selected);
+        Assert.True(AgentChoice.RuntimeSupports(new(agent, null, null), selected.ImagePath, selected.Manifest!.Capabilities));
+        Assert.False(ConfigHeal.ImageHasConfigFix(selected.ImagePath, selected.Manifest.Capabilities));
+    }
+
+    [Fact]
+    public void ConfigRecoveryUsesItsOwnCapabilityOnCompressedPayloads()
+    {
+        using var fixture = new Fixture();
+        var selected = fixture.CompressedMarkers([ConfigHeal.Capability]);
+        Assert.False(ConfigHeal.ImageHasConfigFix(selected.ImagePath));
+        Assert.True(ConfigHeal.ImageHasConfigFix(selected.ImagePath, selected.Manifest!.Capabilities));
+        Assert.False(AgentChoice.RuntimeSupports(new(AgentChoice.Codex, null, null), selected.ImagePath, selected.Manifest.Capabilities));
+    }
+
+    [Theory]
+    [InlineData(AgentChoice.Codex)]
+    [InlineData(AgentChoice.Claude)]
+    [InlineData(AgentChoice.Custom)]
+    public void LegacyMarkersRemainAFallbackWithoutDeclaringCapabilities(string agent)
+    {
+        using var fixture = new Fixture();
+        var selected = RuntimeImages.Read(fixture.Root);
+        Assert.False(AgentChoice.RuntimeSupports(new(agent, null, null), selected.ImagePath, []));
+        Assert.True(AgentChoice.RuntimeSupports(AgentLaunch.Grok, selected.ImagePath, []));
+        File.WriteAllText(selected.ImagePath, AgentChoice.Marker + "\n" + ConfigHeal.Marker);
+        Assert.True(AgentChoice.RuntimeSupports(new(agent, null, null), selected.ImagePath, []));
+        Assert.True(ConfigHeal.ImageHasConfigFix(selected.ImagePath, []));
+    }
+
     [Fact]
     public void AVersionedImageKeepsTheOriginalAndVerifiesAllBackingIdentities()
     {
@@ -96,6 +137,15 @@ public sealed class RuntimeImageTests
         }
         public void Save(RuntimeImageManifest manifest) => File.WriteAllText(Path.Combine(Images, RuntimeImages.ManifestName),
             JsonSerializer.Serialize(manifest, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        public RuntimeImageSelection CompressedMarkers(IReadOnlyList<string> capabilities)
+        {
+            var path = Path.Combine(Images, Manifest.Image.File);
+            using (var output = File.Create(path))
+            using (var compressed = new ZLibStream(output, CompressionLevel.SmallestSize))
+                compressed.Write(Encoding.ASCII.GetBytes(AgentChoice.Marker + "\n" + ConfigHeal.Marker));
+            Save(Manifest with { Image = Manifest.Image with { Sha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))) }, Capabilities = capabilities });
+            return RuntimeImages.Read(Root);
+        }
         public void Dispose() => Directory.Delete(Root, recursive: true);
     }
 }

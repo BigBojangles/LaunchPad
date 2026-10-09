@@ -16,6 +16,11 @@ public static class AgentChoice
     public const string Claude = "claude";
     public const string Custom = "custom";
     public const string Marker = "AGENT-PICK";
+    public const string Capability = "agent-choice";
+
+    public static bool RuntimeSupports(AgentLaunch agent, string imagePath, IReadOnlyList<string> capabilities) =>
+        agent.IsGrok || capabilities.Contains(Capability, StringComparer.Ordinal)
+        || ConfigHeal.ImageHasText(imagePath, Marker);
 
     /// <summary>Single list for UI + guest id mapping. Codex/Claude enabled after 2026-10-05 builder image bake.</summary>
     public static IReadOnlyList<AgentOption> Options { get; } =

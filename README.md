@@ -58,11 +58,11 @@ Startup took about 6 seconds in local backend tests. In total, 7 of 92 features 
 - **Copy-back verification** is built, but only tested on sample files.
 - **AMSI scan on the way back:** returned files go through the Windows AMSI scan, and copy-back refuses to apply if the scan is unavailable or rejects content. This is not a guarantee that files are malware-free.
 - **Agent support:** Grok Build, Codex CLI, and Claude Code are partly tested. Codex has an open sandbox conflict.
+- **The installer:** installed and run on the developer's PC, and Grok Build, Codex CLI, and Claude Code all open from the installed app. It hasn't been tried on a clean PC yet.
 
 ## Untested
 
 - The real GUI, including all 14 UI features.
-- The installer on a clean PC.
 - **Snapshot push:** before returned files update your Windows project folder, LaunchPad can push a snapshot commit to a git remote you choose. It backs up the host project folder only, not the VM session disk.
 - **The pager:** notifications are built, but phone delivery isn't proven.
 
@@ -129,7 +129,7 @@ Setup doesn't handle these:
 - **Restart.** If setup turned on the hypervisor, restart Windows before your first VM project.
 - **Native agents.** Native mode uses Grok Build, Codex CLI, or Claude Code already installed on Windows. Install and sign in to them yourself.
 
-### Did it work? (untested)
+### Did it work?
 
 **It worked if LaunchPad opens to the home screen with the rocket and "Open a project and its session shows up here."**
 
@@ -142,31 +142,31 @@ Setup doesn't handle these:
 
 Click a card to open the full report. Each hash matches `LaunchPad-Full-SHA256.txt`.
 
-### `LaunchPad-Setup.exe`: 2/71
+### `LaunchPad-Setup.exe`: 2/65
 
-[![VirusTotal report for LaunchPad-Setup.exe](docs/virustotal/vt-setup-exe.png)](https://www.virustotal.com/gui/file/67178b3814cb69aeead16e6df3138dd314571c5d873e2c4cbbccb5d14592a1da)
+[![VirusTotal report for LaunchPad-Setup.exe](docs/virustotal/vt-setup-exe.png)](https://www.virustotal.com/gui/file/316cabf57731710773184c7a76372968383d159737167b2173ca3201f8e55284)
 
-SHA256: `67178b3814cb69aeead16e6df3138dd314571c5d873e2c4cbbccb5d14592a1da`
+SHA256: `316cabf57731710773184c7a76372968383d159737167b2173ca3201f8e55284`
 
-Two generic flags, not named malware: Skyhigh (BehavesLike.Win32.ObfuscatedPoly) and Trapmine (Suspicious.low.ml.score). Heuristic and machine-learning flags like these are common for unsigned Inno Setup installers.
+Two generic flags, not named malware: Arctic Wolf (Unsafe) and Trapmine (Suspicious.low.ml.score). Heuristic and machine-learning flags like these are common for unsigned Inno Setup installers.
 
-### `LaunchPad-Setup-1.bin`: 0/60 (clean)
+### `LaunchPad-Setup-1.bin`: 0/59 (clean)
 
-[![VirusTotal report for LaunchPad-Setup-1.bin](docs/virustotal/vt-setup-1-bin.png)](https://www.virustotal.com/gui/file/176492ce069975aeca845533e12923cb43f06426fcfae1a6ca6c8d13b3be1be2)
+[![VirusTotal report for LaunchPad-Setup-1.bin](docs/virustotal/vt-setup-1-bin.png)](https://www.virustotal.com/gui/file/5360038941b10141cd02a38b0b4ae5757986307e22312bbfffa6c16e88758fb9)
 
-SHA256: `176492ce069975aeca845533e12923cb43f06426fcfae1a6ca6c8d13b3be1be2`
+SHA256: `5360038941b10141cd02a38b0b4ae5757986307e22312bbfffa6c16e88758fb9`
 
-### `LaunchPad-Setup-2.bin`: 0/59 (clean)
+### `LaunchPad-Setup-2.bin`: 0/60 (clean)
 
-[![VirusTotal report for LaunchPad-Setup-2.bin](docs/virustotal/vt-setup-2-bin.png)](https://www.virustotal.com/gui/file/4763dd6a3f42ff633f6f77c8f1d49678eb0d799f3138172b761bd63fcb941545)
+[![VirusTotal report for LaunchPad-Setup-2.bin](docs/virustotal/vt-setup-2-bin.png)](https://www.virustotal.com/gui/file/125cd06983d2ceaf3c46864176fedc13caf3cd500f2e76dead8e4fcbfc2b9b50)
 
-SHA256: `4763dd6a3f42ff633f6f77c8f1d49678eb0d799f3138172b761bd63fcb941545`
+SHA256: `125cd06983d2ceaf3c46864176fedc13caf3cd500f2e76dead8e4fcbfc2b9b50`
 
 ### `LaunchPad-Setup-3.bin`: 0/61 (clean)
 
-[![VirusTotal report for LaunchPad-Setup-3.bin](docs/virustotal/vt-setup-3-bin.png)](https://www.virustotal.com/gui/file/b257328b30deef9d7f5ca92e3a3e1fec2f80f91fee77994ae3a261fa058c7090)
+[![VirusTotal report for LaunchPad-Setup-3.bin](docs/virustotal/vt-setup-3-bin.png)](https://www.virustotal.com/gui/file/33ad5252d664642e9ace77eb6e6700552df684a21012aaf9e8cf5bbbcbdc35b6)
 
-SHA256: `b257328b30deef9d7f5ca92e3a3e1fec2f80f91fee77994ae3a261fa058c7090`
+SHA256: `33ad5252d664642e9ace77eb6e6700552df684a21012aaf9e8cf5bbbcbdc35b6`
 
 ### `LaunchPad-1.0.2-sources.zip`: 0/44 (clean)
 
@@ -190,7 +190,7 @@ The patched QEMU runtime, guest images, and session disks are not in this reposi
 
 ## Credit
 
-Built by Casey Nielsen · X [@BigBojangles_](https://x.com/BigBojangles_) · [github.com/BigBojangles](https://github.com/BigBojangles)
+Built by Casey Nielsen · [CaseyNielsen.tech](https://caseynielsen.tech) · X [@BigBojangles_](https://x.com/BigBojangles_) · [github.com/BigBojangles](https://github.com/BigBojangles)
 
 ## License
 

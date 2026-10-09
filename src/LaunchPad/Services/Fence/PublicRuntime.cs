@@ -4,7 +4,7 @@ public sealed class PublicRuntime
 {
     public const string BaseName = "debian-12-nocloud-amd64-20260601-2496.qcow2";
 
-    private PublicRuntime(string root, string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version, string maintenanceManifestName, VerifiedDirectBoot? directBoot)
+    private PublicRuntime(string root, string qemuDirectory, string qemuExe, string imgExe, string keptImage, string sessions, string firmwareDir, string? version, string maintenanceManifestName, VerifiedDirectBoot? directBoot, IReadOnlyList<string> capabilities)
     {
         Root = root;
         DirectBoot = directBoot;
@@ -16,6 +16,7 @@ public sealed class PublicRuntime
         Sessions = sessions;
         FirmwareDir = firmwareDir;
         Version = version;
+        Capabilities = Array.AsReadOnly(capabilities.ToArray());
     }
 
     public VerifiedDirectBoot? DirectBoot { get; }
@@ -28,6 +29,7 @@ public sealed class PublicRuntime
     public string Sessions { get; }
     public string FirmwareDir { get; }
     public string? Version { get; }
+    public IReadOnlyList<string> Capabilities { get; }
 
     public static PublicRuntime Ensure(SetupLog log)
     {
@@ -87,6 +89,6 @@ public sealed class PublicRuntime
         var sessions = Path.Combine(root, "sessions");
         Directory.CreateDirectory(sessions);
         return new PublicRuntime(root, launchDir, qemuExe, imgExe, kept, sessions, Path.GetFullPath(firmwareDir), selection.Manifest?.Version,
-            selection.Manifest?.MaintenanceManifest ?? "maintenance.json", boot);
+            selection.Manifest?.MaintenanceManifest ?? "maintenance.json", boot, selection.Manifest?.Capabilities ?? []);
     }
 }

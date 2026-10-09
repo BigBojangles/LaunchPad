@@ -342,7 +342,7 @@ public sealed class FenceSession : IFencedProjectSession
             }
 
             // The payload starts as BuildLaunchTest. A failed logon does not start it as the signed-in user.
-            if (!agent.IsGrok && !ConfigHeal.ImageHasText(backing, AgentChoice.Marker))
+            if (!AgentChoice.RuntimeSupports(agent, backing, runtime.Capabilities))
                 throw new InvalidOperationException("This machine does not have that agent yet.");
             cancellationToken.ThrowIfCancellationRequested();
             if (leaveRunning) InitialImport.Begin(sessionDir);
@@ -374,9 +374,9 @@ public sealed class FenceSession : IFencedProjectSession
                         ProjectIdentity.ColorHex(launchSettings, liveFull)).ConfigureAwait(false);
                     var oldAgent = !agent.IsGrok
                         && await AgentScriptMissing(serialLog, cancellationToken).ConfigureAwait(false)
-                        && ConfigHeal.ImageHasText(backing, AgentChoice.Marker);
+                        && AgentChoice.RuntimeSupports(agent, backing, runtime.Capabilities);
                     if ((await ConfigStayedBroken(serialLog, cancellationToken).ConfigureAwait(false)
-                                && ConfigHeal.ImageHasConfigFix(backing))
+                                && ConfigHeal.ImageHasConfigFix(backing, runtime.Capabilities))
                             || oldAgent)
                     {
                         _log.Write("Fenced session requires recovery; preserving its VM disk and saved state.");

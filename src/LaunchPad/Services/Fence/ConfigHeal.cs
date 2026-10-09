@@ -5,6 +5,7 @@ namespace LaunchPad.Services.Fence;
 public static class ConfigHeal
 {
     public const string Marker = "GROK-HOME builder";
+    public const string Capability = "config-home-builder";
     public const int SearchBytes = 1024 * 1024;
 
     public static bool LogShowsBrokenConfig(string? log)
@@ -19,6 +20,9 @@ public static class ConfigHeal
     }
 
     public static bool ImageHasConfigFix(string imagePath) => ImageHasText(imagePath, Marker);
+
+    public static bool ImageHasConfigFix(string imagePath, IReadOnlyList<string> capabilities) =>
+        capabilities.Contains(Capability, StringComparer.Ordinal) || ImageHasConfigFix(imagePath);
 
     public static bool ImageHasText(string imagePath, string text)
     {

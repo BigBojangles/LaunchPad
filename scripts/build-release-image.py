@@ -152,6 +152,7 @@ def main():
     def row(path):return {'file':path.name,'sha256':sha256_file(path)}
     for path in (kernel,initrd):shutil.copyfile(path,out/path.name)
     m=dict(seed,version=args.version,image=row(output),dependencies=[],maintenanceManifest='maintenance.json')
+    m['capabilities'] = sorted(set(m.get('capabilities', [])) | {'agent-choice', 'config-home-builder'})
     kit=dict(oldkit,version=args.version,kernel=row(out/kernel.name),initrd=row(out/initrd.name),payload=row(out/kitname),guestScriptSha256=hashlib.sha256(maintenance['launchpad-session']).hexdigest())
     (out/'runtime.json').write_text(json.dumps(m,indent=2)+'\n');(out/'maintenance.json').write_text(json.dumps(kit,indent=2)+'\n')
     for item in original:
